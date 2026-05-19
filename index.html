@@ -381,6 +381,7 @@
   <div class="section-label"><span data-lang="ru" class="li">Что мы делаем</span><span data-lang="en" class="lang-active li">What We Do</span><span data-lang="am" class="li">Ինչ ենք անում</span></div>
   <h2 class="section-title reveal"><span data-lang="ru" class="li">Наши<br>Услуги</span><span data-lang="en" class="lang-active li">Our<br>Services</span><span data-lang="am" class="li">Մեր<br>Ծառայությունները</span></h2>
   <div class="services-grid">
+    <!-- услуги без изменений (сокращённо для читаемости, но в полной версии они есть) -->
     <div class="service-card reveal"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><circle cx="26" cy="26" r="22"/><ellipse cx="26" cy="26" rx="11" ry="22"/><line x1="4" y1="26" x2="48" y2="26"/><line x1="8" y1="16" x2="44" y2="16"/><line x1="8" y1="36" x2="44" y2="36"/></svg>
       <div class="service-title"><span data-lang="ru" class="li">Международные перевозки</span><span data-lang="en" class="lang-active li">International Freight</span><span data-lang="am" class="li">Միջազգային բեռնափոխադրումներ</span></div>
       <div class="service-desc"><span data-lang="ru" class="li">Организация грузовых перевозок по всему миру. Авиа, морские, ж/д и авто — под ваши задачи.</span><span data-lang="en" class="lang-active li">Global freight solutions by air, sea, rail and road tailored to your needs.</span><span data-lang="am" class="li">Բեռնափոխադրումների կազմակերպում ամբողջ աշխարհում: Օդային, ծովային, երկաթուղային և ավտոմոբիլային՝ ձեր խնդիրներին համապատասխան:</span></div><span class="service-tag">EU · CIS · China · Global</span></div>
@@ -472,23 +473,45 @@
 
 <div class="chat-widget"><div class="chat-options" id="chatOptions"><a href="https://t.me/GLlogistics_bot" target="_blank"><i class="fab fa-telegram-plane"></i> Telegram</a><a href="https://wa.me/37493661454" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a></div><div class="chat-btn" id="chatToggle">💬</div></div>
 
+<!-- Modal with Formspree AJAX integration -->
 <div class="modal" id="priceModal">
   <div class="modal-content">
     <span class="modal-close" id="closeModal">&times;</span>
-    <h3><span data-lang="ru" class="li">Запрос цены</span><span data-lang="en" class="lang-active li">Price Request</span><span data-lang="am" class="li">Գնի Հարցում</span></h3>
+    <h3>Price Request</h3>
+    <div data-fs-success></div>
+    <div data-fs-error></div>
     <form id="priceForm">
-      <input type="text" name="name" placeholder="Your name *" required>
-      <input type="tel" name="phone" placeholder="Phone *" required>
-      <input type="email" name="email" placeholder="Email (optional)">
-      <textarea name="message" rows="4" placeholder="Describe cargo, route, volume..."></textarea>
-      <button type="submit"><span data-lang="ru" class="li">Отправить запрос</span><span data-lang="en" class="lang-active li">Send Request</span><span data-lang="am" class="li">Ուղարկել հարցումը</span></button>
-      <div id="formMessage" class="form-message"></div>
+      <div>
+        <input type="text" name="name" placeholder="Your name *" required data-fs-field />
+        <span data-fs-error="name" class="form-field-error"></span>
+      </div>
+      <div>
+        <input type="tel" name="phone" placeholder="Phone *" required data-fs-field />
+        <span data-fs-error="phone" class="form-field-error"></span>
+      </div>
+      <div>
+        <input type="email" name="email" placeholder="Email (optional)" data-fs-field />
+        <span data-fs-error="email" class="form-field-error"></span>
+      </div>
+      <div>
+        <textarea name="message" rows="4" placeholder="Describe cargo, route, volume..." data-fs-field></textarea>
+        <span data-fs-error="message" class="form-field-error"></span>
+      </div>
+      <button type="submit" data-fs-submit-btn>Send Request</button>
     </form>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+<!-- Formspree AJAX library -->
+<script>
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#priceForm', formId: 'mdajazoz' });
+</script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+
 <script>
   // Обновлённые координаты: 40°09'21.5"N 44°30'21.1"E
   const officeCoords = [40.1559722, 44.5058611];
@@ -512,42 +535,14 @@
   chatToggle.addEventListener('click', () => chatOptions.classList.toggle('show-chat'));
   document.addEventListener('click', (e) => { if (!chatToggle.contains(e.target) && !chatOptions.contains(e.target)) chatOptions.classList.remove('show-chat'); });
   
-  // Модальное окно
+  // Модальное окно (открытие/закрытие)
   const modal = document.getElementById('priceModal');
   const priceBtn = document.getElementById('priceRequestBtn');
   const closeModal = document.getElementById('closeModal');
-  const form = document.getElementById('priceForm');
-  const formMessage = document.getElementById('formMessage');
   
   priceBtn.onclick = () => modal.classList.add('active');
   closeModal.onclick = () => modal.classList.remove('active');
   window.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
-  
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    formMessage.innerHTML = 'Sending...';
-    formMessage.className = 'form-message';
-    try {
-      const response = await fetch('send-price-request.php', {
-        method: 'POST',
-        body: formData
-      });
-      const result = await response.text();
-      if (result === 'success') {
-        formMessage.innerHTML = '✅ Thank you! We will contact you shortly.';
-        formMessage.className = 'form-message success';
-        form.reset();
-        setTimeout(() => modal.classList.remove('active'), 3000);
-      } else {
-        formMessage.innerHTML = '❌ Error. Please try again later or email us directly.';
-        formMessage.className = 'form-message error';
-      }
-    } catch (err) {
-      formMessage.innerHTML = '❌ Sending failed. Check your connection or write to info@gllogistics.org';
-      formMessage.className = 'form-message error';
-    }
-  };
 </script>
 </body>
 </html>
