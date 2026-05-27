@@ -94,6 +94,8 @@
         <div class="input-group"><label data-i18n="date_label">ԱՄՍԱԹԻՎ *</label><input type="date" id="signDate" required></div>
         <div class="input-group"><label data-i18n="email_label">ԷԼ. ՓՈՍՏ *</label><input type="email" id="email" placeholder="your@email.com" required></div>
         <div class="input-group"><label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label><input type="tel" id="phone" placeholder="+374 XX XXX XXX"></div>
+        <div class="input-group"><label data-i18n="bank_label">ԲԱՆԿ / БАНК / BANK</label><input type="text" id="bankName" placeholder="«Էվոկաբանկ» ՓԲԸ"></div>
+        <div class="input-group"><label data-i18n="account_label">Հ/Հ · Р/С · ACCOUNT NO.</label><input type="text" id="bankAccount" placeholder="1660030207153200"></div>
         <div class="upload-row">
           <div class="stamp-upload" id="stampTrigger">🏢 <span data-i18n="upload_stamp">ԿՆԻՔ</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
           <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
@@ -120,25 +122,26 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  // Signature left, stamp right — side by side, nothing overlaps
-  var html = '<div style="display:flex;align-items:flex-end;gap:12px;margin-top:6px;">';
+  // Row: [signature block] [stamp block] — never overlapping
+  var row = 'display:table;width:100%;border-collapse:separate;border-spacing:10px 0;margin-top:8px;';
+  var html = '<div style="' + row + '">';
 
-  // Left: signature above the line
-  html += '<div style="flex:1;min-width:0;">';
+  // Left cell: signature image + underline
+  html += '<div style="display:table-cell;vertical-align:bottom;width:60%;">';
   if (sig) {
-    html += '<img src="' + sig + '" alt="signature" style="'
-          + 'display:block;max-width:200px;max-height:80px;'
-          + 'object-fit:contain;margin-bottom:4px;">';
+    html += '<img src="' + sig + '" alt="signature" '
+          + 'style="display:block;width:auto;height:70px;max-width:220px;'
+          + 'object-fit:contain;background:transparent;margin-bottom:4px;">';
   }
-  html += '<div style="border-bottom:1px solid #2A5E66;width:100%;"></div>';
+  html += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
   html += '</div>';
 
-  // Right: stamp — separate block, does NOT overlap signature
+  // Right cell: stamp (only if provided)
   if (st) {
-    html += '<div style="flex-shrink:0;width:160px;height:160px;">';
-    html += '<img src="' + st + '" alt="stamp" style="'
-          + 'width:100%;height:100%;object-fit:contain;'
-          + 'opacity:0.82;transform:rotate(-13deg);display:block;">';
+    html += '<div style="display:table-cell;vertical-align:middle;width:40%;text-align:center;">';
+    html += '<img src="' + st + '" alt="stamp" '
+          + 'style="width:140px;height:140px;object-fit:contain;'
+          + 'opacity:0.82;transform:rotate(-12deg);display:inline-block;">';
     html += '</div>';
   }
 
@@ -332,7 +335,7 @@ const contracts = {
   // ════════════════════════════════════════════════════════════════════════════
   customer: {
 
-    am: (c,t,a,s,p,d,n,sig,st) => `
+    am: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>ՄԻՋԱԶԳԱՅԻՆ ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՄԱՆ ՊԱՅՄԱՆԱԳԻՐ</h2>
       <p class="center">Թիվ ${n}</p>
       <p class="center">Ք. Երևան &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -352,15 +355,15 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Պատվիրատու</strong></p>
-          <p>Շահառուի Բանկ՝ _______________</p>
+          <p>Շահառուի Բանկ՝ ${bk}</p>
           <p>Շահառու՝ «${c}» ՍՊԸ</p>
-          <p>Հ/Հ՝ ________________________</p>
+          <p>Հ/Հ՝ ${ba}</p>
           <br><p>${p}՝ ${s}</p>
           ${sigStamp(sig,st)}
         </div>
       </div>`,
 
-    ru: (c,t,a,s,p,d,n,sig,st) => `
+    ru: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>ДОГОВОР МЕЖДУНАРОДНОЙ ТРАНСПОРТНОЙ ЭКСПЕДИЦИИ</h2>
       <p class="center">№ ${n}</p>
       <p class="center">г. Ереван &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -380,15 +383,15 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Заказчик</strong></p>
-          <p>Банк получателя: _______________</p>
+          <p>Банк получателя: ${bk}</p>
           <p>Получатель: «${c}» ООО</p>
-          <p>Р/С: ________________________</p>
+          <p>Р/С: ${ba}</p>
           <br><p>${p}: ${s}</p>
           ${sigStamp(sig,st)}
         </div>
       </div>`,
 
-    en: (c,t,a,s,p,d,n,sig,st) => `
+    en: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>INTERNATIONAL TRANSPORT FORWARDING AGREEMENT</h2>
       <p class="center">No. ${n}</p>
       <p class="center">Yerevan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -408,9 +411,9 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Customer</strong></p>
-          <p>Beneficiary's Bank: _______________</p>
+          <p>Beneficiary's Bank: ${bk}</p>
           <p>Beneficiary: "${c}" LLC</p>
-          <p>Account No.: ________________________</p>
+          <p>Account No.: ${ba}</p>
           <br><p>${p}: ${s}</p>
           ${sigStamp(sig,st)}
         </div>
@@ -422,7 +425,7 @@ const contracts = {
   // ════════════════════════════════════════════════════════════════════════════
   carrier: {
 
-    am: (c,t,a,s,p,d,n,sig,st) => `
+    am: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>ՄԻՋԱԶԳԱՅԻՆ ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՄԱՆ ՊԱՅՄԱՆԱԳԻՐ</h2>
       <p class="center">Թիվ ${n}</p>
       <p class="center">Ք. Երևան &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -442,15 +445,15 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Տրանսպորտային առաքող</strong></p>
-          <p>Շահառուի Բանկ՝ _______________</p>
+          <p>Շահառուի Բանկ՝ ${bk}</p>
           <p>Շահառու՝ «${c}» ՍՊԸ</p>
-          <p>Հ/Հ՝ ________________________</p>
+          <p>Հ/Հ՝ ${ba}</p>
           <br><p>${p}՝ ${s}</p>
           ${sigStamp(sig,st)}
         </div>
       </div>`,
 
-    ru: (c,t,a,s,p,d,n,sig,st) => `
+    ru: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>ДОГОВОР МЕЖДУНАРОДНОЙ ТРАНСПОРТНОЙ ЭКСПЕДИЦИИ</h2>
       <p class="center">№ ${n}</p>
       <p class="center">г. Ереван &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -470,15 +473,15 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Экспедитор</strong></p>
-          <p>Банк получателя: _______________</p>
+          <p>Банк получателя: ${bk}</p>
           <p>Получатель: «${c}» ООО</p>
-          <p>Р/С: ________________________</p>
+          <p>Р/С: ${ba}</p>
           <br><p>${p}: ${s}</p>
           ${sigStamp(sig,st)}
         </div>
       </div>`,
 
-    en: (c,t,a,s,p,d,n,sig,st) => `
+    en: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
       <h2>INTERNATIONAL TRANSPORT FORWARDING AGREEMENT</h2>
       <p class="center">No. ${n}</p>
       <p class="center">Yerevan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${d}</p>
@@ -498,9 +501,9 @@ const contracts = {
         </div>
         <div class="party-col">
           <p><strong>Freight Forwarder</strong></p>
-          <p>Beneficiary's Bank: _______________</p>
+          <p>Beneficiary's Bank: ${bk}</p>
           <p>Beneficiary: "${c}" LLC</p>
-          <p>Account No.: ________________________</p>
+          <p>Account No.: ${ba}</p>
           <br><p>${p}: ${s}</p>
           ${sigStamp(sig,st)}
         </div>
@@ -517,13 +520,28 @@ const previewDiv=document.getElementById('contractPreview'), canvas=document.get
 
 function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
 
-function initSignaturePad(){canvas.width=canvas.offsetWidth*2;canvas.height=canvas.offsetHeight*2;signaturePad=new SignaturePad(canvas,{backgroundColor:'rgb(255,255,255)',penColor:'rgb(0,0,0)',minWidth:0.8,maxWidth:2.2});}
+function captureSignature(){
+  if(signaturePad && !signaturePad.isEmpty()){
+    signatureDataUrl=signaturePad.toDataURL('image/png');
+    document.getElementById('signaturePreview').src=signatureDataUrl;
+    document.getElementById('signaturePreview').style.display='block';
+    renderContract();
+  }
+}
+function initSignaturePad(){
+  canvas.width=canvas.offsetWidth||300;
+  canvas.height=canvas.offsetHeight||80;
+  signaturePad=new SignaturePad(canvas,{
+    backgroundColor:'rgba(255,255,255,0)',
+    penColor:'rgb(10,10,10)',
+    minWidth:1,maxWidth:3,
+    onEnd: captureSignature
+  });
+}
 initSignaturePad();
-window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignaturePad();if(d&&d.length>0)signaturePad.fromData(d);});
+window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignaturePad();if(d&&d.length>0){signaturePad.fromData(d);captureSignature();}});
 
 document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';renderContract();});
-canvas.addEventListener('mouseup',()=>{if(!signaturePad.isEmpty()){signatureDataUrl=signaturePad.toDataURL('image/png');document.getElementById('signaturePreview').src=signatureDataUrl;document.getElementById('signaturePreview').style.display='block';renderContract();}});
-canvas.addEventListener('touchend',()=>{if(!signaturePad.isEmpty()){signatureDataUrl=signaturePad.toDataURL('image/png');document.getElementById('signaturePreview').src=signatureDataUrl;document.getElementById('signaturePreview').style.display='block';renderContract();}});
 
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
 document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';renderContract();};r.readAsDataURL(f);}});
@@ -534,11 +552,13 @@ function renderContract(){
         a=document.getElementById('address').value.trim()||'________',
         s=document.getElementById('signatory').value.trim()||'[NAME]',
         p=document.getElementById('position').value.trim()||'Տնօրեն',
-        d=document.getElementById('signDate').value||new Date().toISOString().slice(0,10);
+        d=document.getElementById('signDate').value||new Date().toISOString().slice(0,10),
+        bk=document.getElementById('bankName').value.trim()||'_______________',
+        ba=document.getElementById('bankAccount').value.trim()||'________________________';
   if(!contractNumber) contractNumber=generateContractNumber();
   document.getElementById('contractNumberDisplay').textContent=contractNumber;
   const fn=contracts[currentType][currentLang];
-  previewDiv.innerHTML=fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl);
+  previewDiv.innerHTML=fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
 }
 
 document.querySelectorAll('.type-btn').forEach(b=>b.addEventListener('click',()=>{
@@ -552,7 +572,7 @@ document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=
 
 function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.dataset.i18n;if(t[k])e.innerHTML=t[k];});}
 
-['company','taxId','address','signatory','position','signDate'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
+['company','taxId','address','signatory','position','signDate','bankName','bankAccount'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
 document.getElementById('signDate').valueAsDate=new Date();
 
 // ── Submit ────────────────────────────────────────────────────────────────────
