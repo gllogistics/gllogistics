@@ -36,8 +36,8 @@
     .contract-preview .parties-row { display: flex; justify-content: space-between; gap: 1rem; margin: 0.8rem 0; }
     .contract-preview .party-col { width: 48%; }
     .contract-preview .party-col p { margin-bottom: 0.15rem; }
-    .sig-block .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
-    .sig-block .under { font-size: 10px; text-align: center; }
+    .party-col .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
+    
     .stamp-sign-row { display: flex; align-items: center; gap: 35px; justify-content: flex-end; margin-top: 0.3rem; margin-bottom: 0.3rem; padding-right: 20px; min-height: 100px; }
     .sig-img-display { max-width: 160px; max-height: 65px; object-fit: contain; flex-shrink: 0; }
     .stamp-box { width: 120px; height: 120px; opacity: 0.8; transform: rotate(-14deg); flex-shrink: 0; }
@@ -120,10 +120,12 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  return `<div class="stamp-sign-row">
-    ${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}
-    ${st  ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}
-  </div>`;
+  if (!sig && !st) return '<div style="border-bottom:1px solid #2A5E66;margin-top:2rem;"></div>';
+  var html = '<div class="stamp-sign-row">';
+  if (sig) html += '<img src="' + sig + '" class="sig-img-display" alt="signature">';
+  if (st)  html += '<div class="stamp-box"><img src="' + st + '" alt="stamp"></div>';
+  html += '</div>';
+  return html;
 }
 
 // ── shared body sections (identical text for customer & carrier per language) ─
@@ -163,7 +165,7 @@ function bodyAM() {
 <p>4.5–4.6. Բեռի վնասման, ոչնչացման և/կամ ժամկետների խախտման դեպքում Տրանսպորտային առաքողը պարտավորվում է հատուցել Պատվիրատուի կրած վնասները, ներառյալ՝ բաց թողնված օգուտը:</p>
 <p>4.7. Կողմերը ազատվում են պատասխանատվությունից, եթե չկատարումն անհաղթահարելի ուժի ազդեցության արդյունք է:</p>
 <p>4.8.1–4.8.4. Տրանսպորտային առաքողը պատասխանատու է Պատվիրատուին հասցված վնասների համար ՀՀ ՕԳ 873-րդ հոդվածով սահմանված հիմքերով։ Բեռների փոխադրումն իրականացվում է CMR կոնվենցիայի պայմաններով։ Բեռի վնասման/կորստի դեպքում Տրանսպորտային առաքողը հատուցում է բեռի ձեռքբերման արժեքը, բայց ոչ ավելի, քան CMR-ով սահմանված սահմանաչափը:</p>
-<p>4.9.1. Պատվիրատուն պատասխանատվություն է կրում Տրանսպորտային առաքողին հասցված վնասների համար` Պայմանագրի պայմանների ոչ պատշաճ կատարման դեպքում, ինչպես նաև Տրանսպորտային առաքողի հաշիվների հիման վրա վճարումից անհիմն հրաժարվելու կամ ուշացնելու դեպքում:</p>
+<p>4.9.1. Պատվիրատուն պատասխանատվություն է կրում Տրանսպորտային առաքողին հասցված վնասների համար&#96; Պայմանագրի պայմանների ոչ պատշաճ կատարման դեպքում, ինչպես նաև Տրանսպորտային առաքողի հաշիվների հիման վրա վճարումից անհիմն հրաժարվելու կամ ուշացնելու դեպքում:</p>
 <p>4.10. Պատվիրատուն պատասխանատվություն չի կրում Առաքողի կողմից բեռները փոխադրման չտրամադրելու դեպքում:</p>
 
 <h3>5. ՊԱՀԱՆՋՆԵՐԻ ԵՎ ՎԵՃԵՐԻ ԼՈՒԾՄԱՆ ԿԱՐԳԸ</h3>
@@ -336,7 +338,7 @@ const contracts = {
           <p>Շահառու՝ «${c}» ՍՊԸ</p>
           <p>Հ/Հ՝ ________________________</p>
           <br><p>${p}՝ ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`,
 
@@ -364,7 +366,7 @@ const contracts = {
           <p>Получатель: «${c}» ООО</p>
           <p>Р/С: ________________________</p>
           <br><p>${p}: ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`,
 
@@ -392,7 +394,7 @@ const contracts = {
           <p>Beneficiary: "${c}" LLC</p>
           <p>Account No.: ________________________</p>
           <br><p>${p}: ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`
   },
@@ -426,7 +428,7 @@ const contracts = {
           <p>Շահառու՝ «${c}» ՍՊԸ</p>
           <p>Հ/Հ՝ ________________________</p>
           <br><p>${p}՝ ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`,
 
@@ -454,7 +456,7 @@ const contracts = {
           <p>Получатель: «${c}» ООО</p>
           <p>Р/С: ________________________</p>
           <br><p>${p}: ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`,
 
@@ -482,7 +484,7 @@ const contracts = {
           <p>Beneficiary: "${c}" LLC</p>
           <p>Account No.: ________________________</p>
           <br><p>${p}: ${s}</p>
-          ${sig ? `<div class="stamp-sign-row">${sig ? `<img src="${sig}" class="sig-img-display" alt="signature">` : ''}${st ? `<div class="stamp-box"><img src="${st}" alt="stamp"></div>` : ''}</div>` : '<div class="line"></div>'}
+          ${sigStamp(sig,st)}
         </div>
       </div>`
   }
