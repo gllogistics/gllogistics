@@ -2,7 +2,6 @@
 <html lang="hy">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; connect-src *; img-src * data: blob:; font-src * data:">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>GL Logistics | Պայմանագրի ստորագրում</title>
   <link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
@@ -539,16 +538,7 @@ function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.qu
 document.getElementById('signDate').valueAsDate=new Date();
 
 // ── Submit ────────────────────────────────────────────────────────────────────
-// ── Submit ──────────────────────────────────────────────────────────────────── document.getElementById('contractForm').addEventListener('submit', async function(e) {   e.preventDefault();   if (!document.getElementById('agree').checked) { alert(uiLabels[currentLang]?.agree_text); return; }   const btn = this.querySelector('.btn-submit'); btn.disabled = true; btn.innerHTML = '⏳ GENERATING PDF...';   try {     const canvasEl = await html2canvas(previewDiv, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });     const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');     const imgData = canvasEl.toDataURL('image/png');     const w = pdf.internal.pageSize.getWidth() - 20;     const h = (canvasEl.height * w) / canvasEl.width;     pdf.addImage(imgData, 'PNG', 10, 10, w, h);     const pdfBlob = pdf.output('blob');     const pdfFile = new File([pdfBlob], `contract_${contractNumber}.pdf`, { type: 'application/pdf' });          btn.innerHTML = '📤 UPLOADING...';     let cloudinaryUrl = '';     try {       const cf = new FormData(); cf.append('file', pdfFile); cf.append('upload_preset', 'gl_contracts');       const cr = await fetch('https://api.cloudinary.com/v1_1/drp98zkka/upload', { method: 'POST', body: cf });       const cd = await cr.json();       console.log('Cloudinary response:', cd);       if (cd.secure_url) {          cloudinaryUrl = cd.secure_url;        } else {          alert('Cloudinary error: ' + (cd.error?.message || JSON.stringify(cd)));         btn.disabled = false; btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT';          return;       }     } catch (ce) {        alert('Cloudinary exception: ' + ce.message);        btn.disabled = false; btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT';        return;     }          btn.innerHTML = '📧 SENDING...';     const customerEmail = document.getElementById('email').value;     const companyName = document.getElementById('company').value;     const signatoryName = document.getElementById('signatory').value;     const fdMain = new FormData();     fdMain.append('contract_number', contractNumber); fdMain.append('contract_type', currentType);     fdMain.append('company', companyName); fdMain.append('signatory', signatoryName);     fdMain.append('customer_email', customerEmail); fdMain.append('cloudinary_pdf_url', cloudinaryUrl);     fdMain.append('message', `New signed contract №${contractNumber}
-${cloudinaryUrl}`);     await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });     const fdClient = new FormData();     fdClient.append('email', customerEmail);     fdClient.append('contract_number', contractNumber); fdClient.append('contract_type', currentType);     fdClient.append('company', companyName);     fdClient.append('message', `Dear ${signatoryName},
-
-Your signed contract (No. ${contractNumber}) is ready.
-
-Download: ${cloudinaryUrl}
-
-Best regards,
-GL Logistics LLC
-📞 +374 93 66 14 54`);     fdClient.append('_subject', `GL Logistics — Signed Contract ${contractNumber}`);     await fetch(FORMSPREE_CLIENT, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });     document.getElementById('contractForm').style.display = 'none';     document.getElementById('successMsg').style.display = 'block';   } catch (err) { console.error(err); alert('Error: ' + err.message); }   finally { btn.disabled = false; btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT'; } });
+document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!document.getElementById('agree').checked) { alert(uiLabels[currentLang]?.agree_text); return; }
   const btn = this.querySelector('.btn-submit'); btn.disabled = true; btn.innerHTML = '⏳ GENERATING PDF...';
