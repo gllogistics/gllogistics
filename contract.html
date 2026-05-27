@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hy">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>GL Logistics | Digital Contract Signing</title>
+  <title>GL Logistics | Պայմանագրի ստորագրում</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -307,16 +307,16 @@
   <div class="top-bar">
     <div class="brand">
       <div class="brand-icon">GL</div>
-      <span>LOGISTICS • CONTRACT SIGNING</span>
+      <span>LOGISTICS • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ</span>
     </div>
     <div class="type-group">
-      <button class="type-btn active" data-type="client">👤 CLIENT → GL</button>
+      <button class="type-btn active" data-type="customer">👤 CUSTOMER → GL</button>
       <button class="type-btn" data-type="carrier">🚛 GL → CARRIER</button>
     </div>
     <div class="lang-group">
-      <button class="lang-btn" data-lang="am">🇦🇲 HAY</button>
-      <button class="lang-btn active" data-lang="en">🇬🇧 EN</button>
+      <button class="lang-btn active" data-lang="am">🇦🇲 HAY</button>
       <button class="lang-btn" data-lang="ru">🇷🇺 RU</button>
+      <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
     </div>
   </div>
 
@@ -328,70 +328,70 @@
     </div>
 
     <div class="form-panel">
-      <h2 data-i18n="form_title">📄 SIGN CONTRACT</h2>
+      <h2 data-i18n="form_title">📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ</h2>
       <form id="contractForm">
         <div class="input-group">
-          <label data-i18n="company_label">COMPANY NAME *</label>
-          <input type="text" id="company" placeholder="LLC 'Company Name'" required>
+          <label data-i18n="company_label">ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *</label>
+          <input type="text" id="company" placeholder="ՍՊԸ 'Անվանում'" required>
         </div>
         <div class="input-group">
-          <label data-i18n="tax_label">TAX ID / VAT</label>
-          <input type="text" id="taxId" placeholder="Tax ID number">
+          <label data-i18n="tax_label">ՀՎՀՀ</label>
+          <input type="text" id="taxId" placeholder="ՀՎՀՀ համար">
         </div>
         <div class="input-group">
-          <label data-i18n="address_label">LEGAL ADDRESS</label>
-          <input type="text" id="address" placeholder="City, Street, Building">
+          <label data-i18n="address_label">ՀԱՍՑԵ</label>
+          <input type="text" id="address" placeholder="Քաղաք, Փողոց, Շենք">
         </div>
         <div class="input-group">
-          <label data-i18n="signatory_label">SIGNATORY FULL NAME *</label>
-          <input type="text" id="signatory" placeholder="First Name Last Name" required>
+          <label data-i18n="signatory_label">ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *</label>
+          <input type="text" id="signatory" placeholder="Անուն Ազգանուն" required>
         </div>
         <div class="input-group">
-          <label data-i18n="position_label">POSITION</label>
-          <input type="text" id="position" placeholder="Director / Owner">
+          <label data-i18n="position_label">ՊԱՇՏՈՆ</label>
+          <input type="text" id="position" placeholder="Տնօրեն">
         </div>
         <div class="input-group">
-          <label data-i18n="date_label">DATE *</label>
+          <label data-i18n="date_label">ԱՄՍԱԹԻՎ *</label>
           <input type="date" id="signDate" required>
         </div>
         <div class="input-group">
-          <label data-i18n="email_label">YOUR EMAIL (RECEIVE PDF COPY) *</label>
+          <label data-i18n="email_label">ԷԼ. ՓՈՍՏ (PDF ԿՈՒՂԱՐԿՎԻ) *</label>
           <input type="email" id="email" placeholder="your@email.com" required>
         </div>
         <div class="input-group">
-          <label data-i18n="phone_label">PHONE</label>
+          <label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label>
           <input type="tel" id="phone" placeholder="+374 XX XXX XXX">
         </div>
 
         <div class="upload-row">
           <div class="stamp-upload" id="stampTrigger">
-            🏢 <span data-i18n="upload_stamp">COMPANY STAMP</span>
+            🏢 <span data-i18n="upload_stamp">ԿՆԻՔ</span>
             <input type="file" id="stampInput" accept="image/*" style="display:none;">
             <img id="stampPreview" class="stamp-preview-img" alt="stamp">
           </div>
           <div class="signature-area">
-            ✍️ <span data-i18n="upload_signature">DRAW SIGNATURE</span>
+            ✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span>
             <div class="signature-canvas-box">
               <canvas id="signatureCanvas"></canvas>
             </div>
-            <button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Clear</button>
+            <button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button>
             <img id="signaturePreview" class="sig-preview-img" alt="signature">
           </div>
         </div>
 
         <div class="checkbox-group">
           <input type="checkbox" id="agree" required>
-          <label for="agree" data-i18n="agree_text">I have read, understood and accept all terms of this Agreement.</label>
+          <label for="agree" data-i18n="agree_text">Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:</label>
         </div>
-        <button type="submit" class="btn-submit" data-i18n="submit_btn">✍️ SIGN & SUBMIT CONTRACT</button>
+        <button type="submit" class="btn-submit" data-i18n="submit_btn">✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ</button>
       </form>
       <div class="success-msg" id="successMsg">
         <span style="font-size:2.5rem;">✅</span>
-        <h3 data-i18n="success_title">Contract Successfully Signed!</h3>
-        <p data-i18n="success_msg">PDF copy generated and sent to your email. Our team will contact you within 24 hours.</p>
-        <p style="font-size:0.8rem; color:#B9DFE4; margin-top:10px;">Contract #<span id="contractNumberDisplay">---</span></p>
+        <h3 data-i18n="success_title">Պայմանագիրը հաջողությամբ ստորագրված է:</h3>
+        <p data-i18n="success_msg">PDF պատճենը ուղարկվել է Ձեր էլ. փոստին: Մենք կապ կհաստատենք 24 ժամվա ընթացքում:</p>
+        <p style="font-size:0.8rem; color:#B9DFE4; margin-top:10px;">Պայմանագիր #<span id="contractNumberDisplay">---</span></p>
       </div>
-      <div class="legal-note">🔒 Legally binding electronic signature • RA legislation</div>
+      <div class="legal-note">🔒 Իրավաբանորեն պարտադիր էլեկտրոնային ստորագրություն • ՀՀ օրենսդրություն</div>
     </div>
   </div>
 </div>
@@ -402,15 +402,15 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/drp98zkka/upload';
 const CLOUDINARY_UPLOAD_PRESET = 'gl_contracts';
 
 // ✅ FORMSPREE ENDPOINTS
-const FORMSPREE_MAIN = 'https://formspree.io/f/mdajazoz';        // вам
-const FORMSPREE_CLIENT_COPY = 'https://formspree.io/f/mwvzwgpv'; // клиенту
+const FORMSPREE_MAIN = 'https://formspree.io/f/mdajazoz';
+const FORMSPREE_CLIENT_COPY = 'https://formspree.io/f/mwvzwgpv';
 
-// ==================== FULL CONTRACT TEXTS (both types) ====================
+// ==================== CONTRACT TEXTS ====================
 const contracts = {
-  client: {
-    am: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
+  customer: {
+    am: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Թիվ ${contractNum}</strong><br>ք. Երևան | ${d}</p>
-      <p><strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ «Պատվիրատու», և <strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ «Տրանսպորտային առաքող», կնքեցին սույն Պայմանագիրը՝</p>
+      <p><strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ <strong>«Պատվիրատու»</strong>, և <strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ <strong>«Տրանսպորտային առաքող»</strong>, կնքեցին սույն Պայմանագիրը՝</p>
       <h3>1. ԱՌԱՐԿԱՆ</h3>
       <p>1.1. Սույն Պայմանագիրը կարգավորում է Կողմերի հարաբերությունները Տրանսպորտային առաքողի կողմից Պատվիրատուի բեռների փոխադրումների և տրանսպորտային առաքման ծառայության (ՏԱԾ) հետ կապված հանձնարարությունները կատարելիս:</p>
       <p>1.2. Պատվիրատուն հանձնարարում է, իսկ Տրանսպորտային առաքողը կազմակերպում և կատարում է տրանսպորտի բոլոր տեսակներով բեռների փոխադրումը, ՏԱԾ նավահանգիստներում, սահմանային կայարաններում:</p>
@@ -425,100 +425,77 @@ const contracts = {
       <h3>7. ԵԶՐԱՓԱԿԻՉ ԴՐՈՒՅԹՆԵՐ</h3>
       <p>7.1. Պայմանագիրը գործում է 1 տարի, ավտոմատ երկարաձգմամբ:</p>
       <div class="signature-section">
-        <div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
+        <div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ (CUSTOMER)</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
         <div class="sig-block"><strong>ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՈՂ (GL)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div>
       </div>
       <p><strong>Բանկ:</strong> GL Logistics, Էվոկաբանկ, Հ/Հ 1660030207153200 (AMD)</p>
     `,
-    en: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
+    ru: (c,t,a,s,p,d,contractNum,sigImg) => `
+      <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
+      <p><strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое <strong>«Заказчик» (Customer)</strong>, и <strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое <strong>«Экспедитор»</strong>, заключили договор:</p>
+      <h3>1. ПРЕДМЕТ</h3>
+      <p>1.1. Экспедитор организует международные перевозки; Заказчик оплачивает.</p>
+      <p>1.5. По настоящему Договору местом назначения является «________», а местом передачи — «_________».</p>
+      <div class="signature-section">
+        <div class="sig-block"><strong>ЗАКАЗЧИК (CUSTOMER)</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
+        <div class="sig-block"><strong>ЭКСПЕДИТОР (GL)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div>
+      </div>
+    `,
+    en: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Contract No. ${contractNum}</strong><br>Yerevan | ${d}</p>
-      <p><strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter "Customer", and <strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter "Forwarder", agree:</p>
+      <p><strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter <strong>"Customer"</strong>, and <strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter <strong>"Forwarder"</strong>, agree:</p>
       <h3>1. SUBJECT</h3>
       <p>1.1. Forwarder organizes international cargo transportation; Customer pays agreed price.</p>
-      <p>1.2. Forwarder arranges cargo transportation by all modes of transport, freight forwarding in ports and border stations.</p>
-      <p>1.3. Forwarder undertakes to deliver cargo to the Destination point; Customer undertakes to pay the agreed price.</p>
-      <p>1.4. Each transportation is performed based on Appendix 1 (Order).</p>
-      <p><strong>1.5. Under this Agreement, the destination point is "________", hereinafter "Destination", and the handover point is "_________" address according to Appendix 1 — "Handover point", unless otherwise specified in the Order submitted to the Forwarder.</strong></p>
-      <p>1.6. Forwarder is not liable for the quality, conformity or actual characteristics of the cargo content.</p>
-      <h3>2. PAYMENT</h3>
-      <p>100% within 15 business days after delivery.</p>
-      <h3>4. LIABILITY</h3>
-      <p>Late payment penalty 0.1%/day. Forwarder's liability per CMR.</p>
-      <h3>7. VALIDITY</h3>
-      <p>1 year, auto-renewal.</p>
+      <p>1.5. Under this Agreement, the destination is "________", and the handover point is "_________".</p>
       <div class="signature-section">
         <div class="sig-block"><strong>CUSTOMER</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
         <div class="sig-block"><strong>FORWARDER (GL)</strong><div class="line"></div><div class="under">Tigran Metsbagyan<br>Director<br>${d}</div></div>
       </div>
-    `,
-    ru: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
-      <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
-      <p><strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое «Заказчик», и <strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое «Экспедитор», заключили договор:</p>
-      <h3>1. ПРЕДМЕТ</h3>
-      <p>1.1. Экспедитор организует международные перевозки; Заказчик оплачивает.</p>
-      <p>1.2. Экспедитор выполняет перевозки всеми видами транспорта, транспортно-экспедиционное обслуживание в портах и на пограничных станциях.</p>
-      <p>1.3. Экспедитор обязуется доставить груз в Место назначения; Заказчик обязуется уплатить установленную цену.</p>
-      <p>1.4. Каждая перевозка выполняется на основании Заявки (Приложение 1).</p>
-      <p><strong>1.5. По настоящему Договору местом назначения является «________», именуемое «Место назначения», а местом передачи — адрес «_________» согласно Приложению 1 — «Место передачи», если иное не предусмотрено Заявкой, представленной Экспедитору.</strong></p>
-      <p>1.6. Экспедитор не несёт ответственности за качество, соответствие или фактические характеристики содержимого груза.</p>
-      <h3>2. ОПЛАТА</h3>
-      <p>100% в течение 15 рабочих дней после доставки.</p>
-      <h3>4. ОТВЕТСТВЕННОСТЬ</h3>
-      <p>Пеня за просрочку 0,1%/день. Ответственность экспедитора по CMR.</p>
-      <div class="signature-section">
-        <div class="sig-block"><strong>ЗАКАЗЧИК</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
-        <div class="sig-block"><strong>ЭКСПЕДИТОР (GL)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div>
-      </div>
     `
   },
   carrier: {
-    am: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
+    am: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Թիվ ${contractNum}</strong><br>ք. Երևան | ${d}</p>
-      <p><strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ «Պատվիրատու», և <strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ «Փոխադրող», կնքեցին Պայմանագիր՝</p>
+      <p><strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ <strong>«Պատվիրատու» (Customer)</strong>, և <strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ <strong>«Փոխադրող» (Carrier)</strong>, կնքեցին Պայմանագիր՝</p>
       <h3>1. ԱՌԱՐԿԱՆ</h3>
       <p>1.1. Փոխադրողը կատարում է ավտոմոբիլային բեռնափոխադրումներ Պատվիրատուի պատվերով:</p>
-      <p><strong>1.5. Սույն պայմանագրով նշանակման վայր է համարվում «________», այսուհետ՝ «Նշանակման վայր», իսկ հանձման վայր է համարվում «_________» հասցեն ըստ հավելված մեկի՝ «Հանձնման վայր», եթե այլ բան նախատեսված չէ Տրանսպորտային առաքողին ներկայացված հայտով։</strong></p>
-      <h3>4. ՎՃԱՐՈՒՄ</h3><p>Վճարում առաքումից 5 օր հետո:</p>
+      <p>1.5. Նշանակման վայր՝ «________», Հանձնման վայր՝ «_________»:</p>
       <div class="signature-section">
         <div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ (GL)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div>
-        <div class="sig-block"><strong>ՓՈԽԱԴՐՈՂ</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
+        <div class="sig-block"><strong>ՓՈԽԱԴՐՈՂ (CARRIER)</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
       </div>
     `,
-    en: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
+    ru: (c,t,a,s,p,d,contractNum,sigImg) => `
+      <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
+      <p><strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое <strong>«Заказчик» (Customer)</strong>, и <strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое <strong>«Перевозчик» (Carrier)</strong>, заключили договор:</p>
+      <h3>1. ПРЕДМЕТ</h3>
+      <p>1.1. Перевозчик выполняет автоперевозки по заявкам Заказчика.</p>
+      <div class="signature-section">
+        <div class="sig-block"><strong>ЗАКАЗЧИК (GL)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div>
+        <div class="sig-block"><strong>ПЕРЕВОЗЧИК (CARRIER)</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
+      </div>
+    `,
+    en: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Contract No. ${contractNum}</strong><br>Yerevan | ${d}</p>
-      <p><strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter "Customer", and <strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter "Carrier", agree:</p>
+      <p><strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter <strong>"Customer"</strong>, and <strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter <strong>"Carrier"</strong>, agree:</p>
       <h3>1. SUBJECT</h3>
       <p>1.1. Carrier provides road transportation per Customer's orders.</p>
-      <p><strong>1.5. Under this Agreement, the destination point is "________", hereinafter "Destination", and the handover point is "_________" address according to Appendix 1 — "Handover point", unless otherwise specified in the Order submitted to the Forwarder.</strong></p>
-      <h3>4. PAYMENT</h3><p>Payment within 5 business days after delivery confirmation.</p>
       <div class="signature-section">
         <div class="sig-block"><strong>CUSTOMER (GL)</strong><div class="line"></div><div class="under">Tigran Metsbagyan<br>Director<br>${d}</div></div>
         <div class="sig-block"><strong>CARRIER</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
-      </div>
-    `,
-    ru: (c,t,a,s,p,d,contractNum,sigImg,stampImg) => `
-      <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
-      <p><strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое «Заказчик», и <strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое «Перевозчик», заключили договор:</p>
-      <h3>1. ПРЕДМЕТ</h3>
-      <p>1.1. Перевозчик выполняет автоперевозки по заявкам Заказчика.</p>
-      <p><strong>1.5. По настоящему Договору местом назначения является «________», именуемое «Место назначения», а местом передачи — адрес «_________» согласно Приложению 1 — «Место передачи», если иное не предусмотрено Заявкой, представленной Экспедитору.</strong></p>
-      <h3>4. ОПЛАТА</h3><p>Оплата в течение 5 банковских дней после подтверждения доставки.</p>
-      <div class="signature-section">
-        <div class="sig-block"><strong>ЗАКАЗЧИК (GL)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div>
-        <div class="sig-block"><strong>ПЕРЕВОЗЧИК</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
       </div>
     `
   }
 };
 
 const uiLabels = {
-  en: { form_title:"📄 SIGN CONTRACT", company_label:"COMPANY NAME *", tax_label:"TAX ID / VAT", address_label:"LEGAL ADDRESS", signatory_label:"SIGNATORY FULL NAME *", position_label:"POSITION", date_label:"DATE *", email_label:"YOUR EMAIL (RECEIVE PDF COPY) *", phone_label:"PHONE", upload_stamp:"COMPANY STAMP", upload_signature:"DRAW SIGNATURE", agree_text:"I accept all terms of this Agreement.", submit_btn:"✍️ SIGN & SUBMIT CONTRACT", success_title:"Contract Successfully Signed!", success_msg:"PDF copy generated and sent to your email. We will contact you within 24h." },
-  am: { form_title:"📄 ՍՏՈՐԱԳՐԵԼ", company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *", tax_label:"ՀՎՀՀ", address_label:"ՀԱՍՑԵ", signatory_label:"ՍՏՈՐԱԳՐՈՂ *", position_label:"ՊԱՇՏՈՆ", date_label:"ԱՄՍԱԹԻՎ *", email_label:"ԷԼ. ՓՈՍՏ *", phone_label:"ՀԵՌԱԽՈՍ", upload_stamp:"ԿՆԻՔ", upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ", agree_text:"Ընդունում եմ պայմանագրի պայմանները:", submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ", success_title:"Պայմանագիրը ստորագրված է:", success_msg:"PDF ուղարկված է Ձեր էլ. փոստին:" },
-  ru: { form_title:"📄 ПОДПИСАТЬ ДОГОВОР", company_label:"КОМПАНИЯ *", tax_label:"ИНН", address_label:"АДРЕС", signatory_label:"ФИО ПОДПИСАНТА *", position_label:"ДОЛЖНОСТЬ", date_label:"ДАТА *", email_label:"EMAIL *", phone_label:"ТЕЛЕФОН", upload_stamp:"ПЕЧАТЬ", upload_signature:"ПОДПИСЬ", agree_text:"Принимаю условия договора.", submit_btn:"✍️ ПОДПИСАТЬ", success_title:"Договор подписан!", success_msg:"PDF отправлен на ваш email." }
+  am: { form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ", company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *", tax_label:"ՀՎՀՀ", address_label:"ՀԱՍՑԵ", signatory_label:"ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *", position_label:"ՊԱՇՏՈՆ", date_label:"ԱՄՍԱԹԻՎ *", email_label:"ԷԼ. ՓՈՍՏ *", phone_label:"ՀԵՌԱԽՈՍ", upload_stamp:"ԿՆԻՔ", upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ", agree_text:"Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:", submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ", success_title:"Պայմանագիրը հաջողությամբ ստորագրված է:", success_msg:"PDF պատճենը ուղարկվել է Ձեր էլ. փոստին: Մենք կապ կհաստատենք 24 ժամվա ընթացքում:" },
+  ru: { form_title:"📄 ПОДПИСАТЬ ДОГОВОР", company_label:"КОМПАНИЯ *", tax_label:"ИНН", address_label:"АДРЕС", signatory_label:"ФИО ПОДПИСАНТА *", position_label:"ДОЛЖНОСТЬ", date_label:"ДАТА *", email_label:"EMAIL *", phone_label:"ТЕЛЕФОН", upload_stamp:"ПЕЧАТЬ", upload_signature:"ПОДПИСЬ", agree_text:"Принимаю условия договора.", submit_btn:"✍️ ПОДПИСАТЬ И ОТПРАВИТЬ", success_title:"Договор подписан!", success_msg:"PDF отправлен на ваш email. Мы свяжемся с вами в течение 24 часов." },
+  en: { form_title:"📄 SIGN CONTRACT", company_label:"COMPANY NAME *", tax_label:"TAX ID / VAT", address_label:"LEGAL ADDRESS", signatory_label:"SIGNATORY FULL NAME *", position_label:"POSITION", date_label:"DATE *", email_label:"EMAIL *", phone_label:"PHONE", upload_stamp:"COMPANY STAMP", upload_signature:"DRAW SIGNATURE", agree_text:"I accept all terms of this Agreement.", submit_btn:"✍️ SIGN & SUBMIT", success_title:"Contract Signed!", success_msg:"PDF sent to your email. We will contact you within 24h." }
 };
 
-let currentLang = 'en';
-let currentType = 'client';
+let currentLang = 'am';
+let currentType = 'customer';
 let stampDataUrl = null;
 let signatureDataUrl = null;
 let contractNumber = '';
@@ -529,7 +506,7 @@ const canvas = document.getElementById('signatureCanvas');
 
 function generateContractNumber() {
   const year = new Date().getFullYear();
-  const prefix = currentType === 'client' ? 'GL-C' : 'GL-T';
+  const prefix = currentType === 'customer' ? 'GL-C' : 'GL-T';
   const random = Math.floor(Math.random() * 9000) + 1000;
   return `${prefix}-${year}-${random}`;
 }
@@ -565,9 +542,8 @@ canvas.addEventListener('touchend', captureSignature);
 function captureSignature() {
   if (!signaturePad.isEmpty()) {
     signatureDataUrl = signaturePad.toDataURL('image/png');
-    const sigPreview = document.getElementById('signaturePreview');
-    sigPreview.src = signatureDataUrl;
-    sigPreview.style.display = 'block';
+    document.getElementById('signaturePreview').src = signatureDataUrl;
+    document.getElementById('signaturePreview').style.display = 'block';
     renderContract();
   }
 }
@@ -590,7 +566,7 @@ document.getElementById('stampInput').addEventListener('change', (e) => {
 function renderContract() {
   const c = document.getElementById('company').value.trim() || '[COMPANY]';
   const t = document.getElementById('taxId').value.trim() || '________';
-  const a = document.getElementById('address').value.trim() || 'Yerevan, Armenia';
+  const a = document.getElementById('address').value.trim() || '________';
   const s = document.getElementById('signatory').value.trim() || '[NAME]';
   const p = document.getElementById('position').value.trim() || 'Director';
   const d = document.getElementById('signDate').value || new Date().toISOString().slice(0,10);
@@ -599,7 +575,7 @@ function renderContract() {
 
   const contractFn = contracts[currentType][currentLang];
   const stampHtml = `<div class="stamp-overlay">${stampDataUrl ? `<img src="${stampDataUrl}" alt="stamp">` : ''}</div>`;
-  previewDiv.innerHTML = contractFn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl) + stampHtml;
+  previewDiv.innerHTML = contractFn(c,t,a,s,p,d,contractNumber,signatureDataUrl) + stampHtml;
 }
 
 document.querySelectorAll('.type-btn').forEach(btn => {
@@ -636,18 +612,16 @@ function updateUILabels() {
 });
 document.getElementById('signDate').valueAsDate = new Date();
 
-// ==================== SUBMISSION (Cloudinary + двойная отправка) ====================
+// ==================== SUBMISSION ====================
 document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!document.getElementById('agree').checked) {
     alert(uiLabels[currentLang]?.agree_text || 'Please accept the terms');
     return;
   }
-
   const btn = this.querySelector('.btn-submit');
   btn.disabled = true;
-  btn.innerHTML = '⏳ GENERATING PDF...';
-
+  btn.innerHTML = '⏳ ՍՏԵՂԾՎՈՒՄ Է PDF...';
   try {
     const canvasEl = await html2canvas(previewDiv, { scale: 2, useCORS: true, backgroundColor: '#FFFFFF' });
     const { jsPDF } = window.jspdf;
@@ -659,8 +633,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     const pdfBlob = pdf.output('blob');
     const pdfFile = new File([pdfBlob], `contract_${contractNumber}.pdf`, { type: 'application/pdf' });
 
-    // 1. Upload to Cloudinary
-    btn.innerHTML = '📤 UPLOADING PDF...';
+    btn.innerHTML = '📤 ԲԵՌՆՎՈՒՄ Է...';
     let cloudinaryUrl = '';
     try {
       const cloudForm = new FormData();
@@ -673,15 +646,14 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         console.log('✅ Cloudinary URL:', cloudinaryUrl);
       }
     } catch (cloudErr) {
-      console.warn('Cloudinary upload failed (non-critical):', cloudErr);
+      console.warn('Cloudinary upload failed:', cloudErr);
     }
 
-    btn.innerHTML = '📧 SENDING...';
+    btn.innerHTML = '📧 ՈՒՂԱՐԿՎՈՒՄ Է...';
     const customerEmail = document.getElementById('email').value;
     const companyName = document.getElementById('company').value;
     const signatoryName = document.getElementById('signatory').value;
 
-    // 2. Отправка вам (основная форма)
     const fdMain = new FormData();
     fdMain.append('contract_file', pdfFile);
     fdMain.append('contract_number', contractNumber);
@@ -705,45 +677,33 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       fdMain.append('stamp_image', stampBlob, 'stamp.png');
     }
 
-    const responseMain = await fetch(FORMSPREE_MAIN, {
-      method: 'POST',
-      body: fdMain,
-      headers: { 'Accept': 'application/json' }
-    });
+    const responseMain = await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
 
-    // 3. Отправка копии клиенту (mwvzwgpv)
     try {
       const fdClient = new FormData();
       fdClient.append('contract_file', pdfFile);
       fdClient.append('contract_number', contractNumber);
       fdClient.append('contract_type', currentType);
       fdClient.append('company', companyName);
-      fdClient.append('message', `Dear ${signatoryName},\n\nYour signed contract (No. ${contractNumber}) with GL Logistics is attached.\n\nIf you have any questions, please contact us:\n📞 +374 93 66 14 54\n📧 info@gllogistics.org\n\nBest regards,\nGL Logistics LLC`);
+      fdClient.append('message', `Հարգելի ${signatoryName},\n\nՁեր ստորագրված պայմանագիրը (№ ${contractNumber}) «Ջի Էլ Լոգիստիկս» ՍՊԸ-ի հետ կցվում է:\n\nՀարգանքներով՝\nGL Logistics LLC`);
       fdClient.append('_replyto', customerEmail);
       fdClient.append('_subject', `GL Logistics — Signed Contract ${contractNumber}`);
-
-      await fetch(FORMSPREE_CLIENT_COPY, {
-        method: 'POST',
-        body: fdClient,
-        headers: { 'Accept': 'application/json' }
-      });
-      console.log('✅ Client copy sent to:', customerEmail);
+      await fetch(FORMSPREE_CLIENT_COPY, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+      console.log('✅ Client copy sent');
     } catch (clientErr) {
-      console.warn('Client email copy failed (non-critical):', clientErr);
+      console.warn('Client copy failed:', clientErr);
     }
 
     if (responseMain.ok) {
       document.getElementById('contractForm').style.display = 'none';
       document.getElementById('successMsg').style.display = 'block';
-    } else {
-      throw new Error('Formspree main error');
     }
   } catch (err) {
     console.error(err);
-    alert('⚠️ Error generating contract. Please try again or contact us directly.');
+    alert('⚠️ Սխալ: Խնդրում ենք փորձել կրկին:');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SIGN & SUBMIT';
+    btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'ՍՏՈՐԱԳՐԵԼ';
   }
 });
 
