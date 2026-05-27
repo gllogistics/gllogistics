@@ -110,7 +110,8 @@
 <script>
 const CLOUDINARY_URL='https://api.cloudinary.com/v1_1/drp98zkka/upload';
 const CLOUDINARY_UPLOAD_PRESET='gl_contracts';
-const FORMSPREE_MAIN='https://formspree.io/f/mdajazoz';
+// ✅ ՆՈՐ FORMSPREE - mredrzjr (ձեզ) և mwvzwgpv (հաճախորդին)
+const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
 const FORMSPREE_CLIENT_COPY='https://formspree.io/f/mwvzwgpv';
 
 const contracts={customer:{am:(c,t,a,s,p,d,n,sig,st)=>`<p style="text-align:right"><strong>Թիվ ${n}</strong><br>ք. Երևան | ${d}</p><p><strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ <strong>«Պատվիրատու»</strong>, և <strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ <strong>«Տրանսպորտային առաքող»</strong>, կնքեցին սույն Պայմանագիրը՝</p><h3>1. ԱՌԱՐԿԱՆ</h3><p>1.1. Սույն Պայմանագիրը կարգավորում է Կողմերի հարաբերությունները Տրանսպորտային առաքողի կողմից Պատվիրատուի բեռների փոխադրումների և տրանսպորտային առաքման ծառայության (ՏԱԾ) հետ կապված հանձնարարությունները կատարելիս:</p><p>1.5. Նշանակման վայր՝ «________», Հանձնման վայր՝ «_________»:</p><div class="signature-section"><div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ</strong><div class="line"></div><div class="under">${s}<br>${p}<br>${d}</div></div><div class="sig-block"><strong>ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՈՂ (ՋԻ ԷԼ)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div></div><div class="stamp-sign-row">${sig?`<img class="sig-img-display" src="${sig}" alt="signature">`:''}${st?`<div class="stamp-box"><img src="${st}" alt="stamp"></div>`:''}</div>`,
@@ -139,78 +140,111 @@ function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.qu
 ['company','taxId','address','signatory','position','signDate'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
 document.getElementById('signDate').valueAsDate=new Date();
 
-// ==================== SIMPLE JSON SUBMISSION (NO FILE ATTACHMENTS) ====================
-document.getElementById('contractForm').addEventListener('submit',async function(e){
+// ==================== SUBMISSION (FIXED) ====================
+document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  if(!document.getElementById('agree').checked){alert(uiLabels[currentLang]?.agree_text||'Please accept');return;}
-  const btn=this.querySelector('.btn-submit');
-  btn.disabled=true;btn.innerHTML='⏳ ՍՏԵՂԾՎՈՒՄ Է PDF...';
-  try{
-    const canvasEl=await html2canvas(previewDiv,{scale:1.5,useCORS:true,backgroundColor:'#FFFFFF'});
-    const{jsPDF}=window.jspdf;
-    const pdf=new jsPDF('p','mm','a4');
-    const imgData=canvasEl.toDataURL('image/png');
-    const w=pdf.internal.pageSize.getWidth()-20;
-    const h=(canvasEl.height*w)/canvasEl.width;
-    pdf.addImage(imgData,'PNG',10,10,w,h);
-    const pdfBlob=pdf.output('blob');
-    const pdfFile=new File([pdfBlob],`contract_${contractNumber}.pdf`,{type:'application/pdf'});
-    btn.innerHTML='📤 ԲԵՌՆՎՈՒՄ Է CLOUDINARY...';
+  if (!document.getElementById('agree').checked) {
+    alert(uiLabels[currentLang]?.agree_text || 'Please accept');
+    return;
+  }
+  const btn = this.querySelector('.btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ GENERATING PDF...';
+  
+  try {
+    const canvasEl = await html2canvas(previewDiv, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvasEl.toDataURL('image/png');
+    const w = pdf.internal.pageSize.getWidth() - 20;
+    const h = (canvasEl.height * w) / canvasEl.width;
+    pdf.addImage(imgData, 'PNG', 10, 10, w, h);
+    const pdfBlob = pdf.output('blob');
+    const pdfFile = new File([pdfBlob], `contract_${contractNumber}.pdf`, { type: 'application/pdf' });
 
-    // Upload to Cloudinary
-    let cloudinaryUrl='';
-    try{
-      const cf=new FormData();cf.append('file',pdfFile);cf.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
-      const cr=await fetch(CLOUDINARY_URL,{method:'POST',body:cf});
-      const cd=await cr.json();
-      if(cd.secure_url){cloudinaryUrl=cd.secure_url;console.log('✅ Cloudinary:',cloudinaryUrl);}
-    }catch(ce){console.warn('Cloudinary failed:',ce);}
+    btn.innerHTML = '📤 UPLOADING TO CLOUD...';
+    let cloudinaryUrl = '';
+    try {
+      const cf = new FormData();
+      cf.append('file', pdfFile);
+      cf.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      const cr = await fetch(CLOUDINARY_URL, { method: 'POST', body: cf });
+      const cd = await cr.json();
+      if (cd.secure_url) {
+        cloudinaryUrl = cd.secure_url;
+        console.log('✅ Cloudinary:', cloudinaryUrl);
+      }
+    } catch (ce) {
+      console.warn('Cloudinary failed:', ce);
+    }
 
-    if(!cloudinaryUrl){alert('⚠️ Cloudinary upload failed. Please try again.');btn.disabled=false;btn.innerHTML=uiLabels[currentLang]?.submit_btn;return;}
+    if (!cloudinaryUrl) {
+      alert('Upload failed. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT';
+      return;
+    }
 
-    btn.innerHTML='📧 ՈՒՂԱՐԿՎՈՒՄ Է...';
-    const customerEmail=document.getElementById('email').value;
-    const companyName=document.getElementById('company').value;
-    const signatoryName=document.getElementById('signatory').value;
+    btn.innerHTML = '📧 SENDING EMAIL...';
+    const customerEmail = document.getElementById('email').value;
+    const companyName = document.getElementById('company').value;
+    const signatoryName = document.getElementById('signatory').value;
 
-    // 1. Send to YOU (JSON only, no file)
-    const dataMain={
-      contract_number:contractNumber,
-      contract_type:currentType,
-      language:currentLang,
-      company:companyName,
-      taxId:document.getElementById('taxId').value,
-      address:document.getElementById('address').value,
-      signatory:signatoryName,
-      position:document.getElementById('position').value,
-      date:document.getElementById('signDate').value,
-      customer_email:customerEmail,
-      phone:document.getElementById('phone').value,
-      cloudinary_pdf_url:cloudinaryUrl,
-      message:'Նոր ստորագրված պայմանագիր: PDF՝ '+cloudinaryUrl
-    };
-    await fetch(FORMSPREE_MAIN,{method:'POST',body:JSON.stringify(dataMain),headers:{'Content-Type':'application/json','Accept':'application/json'}});
+    // 1. SEND TO YOU (FormData)
+    const formData = new FormData();
+    formData.append('contract_number', contractNumber);
+    formData.append('contract_type', currentType);
+    formData.append('language', currentLang);
+    formData.append('company', companyName);
+    formData.append('taxId', document.getElementById('taxId').value);
+    formData.append('address', document.getElementById('address').value);
+    formData.append('signatory', signatoryName);
+    formData.append('position', document.getElementById('position').value);
+    formData.append('date', document.getElementById('signDate').value);
+    formData.append('customer_email', customerEmail);
+    formData.append('phone', document.getElementById('phone').value);
+    formData.append('cloudinary_pdf_url', cloudinaryUrl);
+    formData.append('message', `New signed contract №${contractNumber}\nDownload: ${cloudinaryUrl}`);
 
-    // 2. Send to CLIENT (JSON only, no file)
-    const dataClient={
-      contract_number:contractNumber,
-      contract_type:currentType,
-      company:companyName,
-      message:`Հարգելի ${signatoryName},\n\nՁեր ստորագրված պայմանագիրը (№ ${contractNumber}) պատրաստ է:\n\nՆերբեռնեք այստեղ՝ ${cloudinaryUrl}\n\nՀարգանքներով՝\nGL Logistics LLC\n📞 +374 93 66 14 54`,
-      _replyto:customerEmail,
-      _subject:`GL Logistics — Signed Contract ${contractNumber}`
-    };
-    await fetch(FORMSPREE_CLIENT_COPY,{method:'POST',body:JSON.stringify(dataClient),headers:{'Content-Type':'application/json','Accept':'application/json'}});
-    console.log('✅ Both emails sent');
+    const response = await fetch(FORMSPREE_MAIN, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    });
 
-    document.getElementById('contractForm').style.display='none';
-    document.getElementById('successMsg').style.display='block';
-  }catch(err){
+    if (response.ok) {
+      console.log('✅ Main email sent to you');
+    } else {
+      console.warn('Main email failed, status:', response.status);
+    }
+
+    // 2. SEND TO CLIENT (copy)
+    try {
+      const fdClient = new FormData();
+      fdClient.append('contract_number', contractNumber);
+      fdClient.append('contract_type', currentType);
+      fdClient.append('company', companyName);
+      fdClient.append('message', `Dear ${signatoryName},\n\nYour signed contract (No. ${contractNumber}) is ready.\n\nDownload here: ${cloudinaryUrl}\n\nBest regards,\nGL Logistics LLC\n📞 +374 93 66 14 54`);
+      fdClient.append('_replyto', customerEmail);
+      fdClient.append('_subject', `GL Logistics — Signed Contract ${contractNumber}`);
+      const cr = await fetch(FORMSPREE_CLIENT_COPY, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+      if (cr.ok) {
+        console.log('✅ Client copy sent');
+      } else {
+        console.warn('Client copy failed, status:', cr.status);
+      }
+    } catch (ce) {
+      console.warn('Client copy error:', ce);
+    }
+
+    document.getElementById('contractForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  } catch (err) {
     console.error(err);
-    alert('⚠️ Սխալ: Խնդրում ենք փորձել կրկին:');
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML=uiLabels[currentLang]?.submit_btn||'ՍՏՈՐԱԳՐԵԼ';
+    alert('Error. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT';
   }
 });
 
