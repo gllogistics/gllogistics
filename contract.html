@@ -541,45 +541,130 @@ document.getElementById('signDate').valueAsDate=new Date();
 document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!document.getElementById('agree').checked) { alert(uiLabels[currentLang]?.agree_text); return; }
-  const btn = this.querySelector('.btn-submit'); btn.disabled = true; btn.innerHTML = '⏳ GENERATING PDF...';
+
+  const btn = this.querySelector('.btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Ստեղծվում է PDF...';
+
+  const customerEmail  = document.getElementById('email').value.trim();
+  const companyName    = document.getElementById('company').value.trim();
+  const signatoryName  = document.getElementById('signatory').value.trim();
+  const fileName       = 'contract_' + contractNumber + '.pdf';
+
   try {
-    const canvasEl = await html2canvas(previewDiv, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });
-    const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvasEl.toDataURL('image/png');
-    const w = pdf.internal.pageSize.getWidth() - 20;
-    const h = (canvasEl.height * w) / canvasEl.width;
-    pdf.addImage(imgData, 'PNG', 10, 10, w, h);
+    // ── 1. Render canvas ──────────────────────────────────────────────────────
+    const canvasEl = await html2canvas(previewDiv, {
+      scale: 2, useCORS: true, backgroundColor: '#FFFFFF', logging: false
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const usableW = pageW - margin * 2;
+    const imgRatio = canvasEl.height / canvasEl.width;
+    const imgH = usableW * imgRatio;
+
+    // Multi-page support
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(canvasEl.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, imgH);
+    } else {
+      let yOffset = 0;
+      const sliceH = Math.floor(canvasEl.width * (pageH - margin * 2) / usableW);
+      while (yOffset < canvasEl.height) {
+        const slice = document.createElement('canvas');
+        slice.width  = canvasEl.width;
+        slice.height = Math.min(sliceH, canvasEl.height - yOffset);
+        slice.getContext('2d').drawImage(canvasEl, 0, yOffset, canvasEl.width, slice.height, 0, 0, canvasEl.width, slice.height);
+        if (yOffset > 0) pdf.addPage();
+        const sliceImgH = slice.height * usableW / canvasEl.width;
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, sliceImgH);
+        yOffset += sliceH;
+      }
+    }
+
     const pdfBlob = pdf.output('blob');
-    const pdfFile = new File([pdfBlob], `contract_${contractNumber}.pdf`, { type: 'application/pdf' });
-    btn.innerHTML = '📤 UPLOADING...';
+
+    // ── 2. Always download locally (guaranteed) ───────────────────────────────
+    const localUrl = URL.createObjectURL(pdfBlob);
+    const dlLink = document.createElement('a');
+    dlLink.href = localUrl; dlLink.download = fileName;
+    document.body.appendChild(dlLink); dlLink.click();
+    document.body.removeChild(dlLink);
+    setTimeout(() => URL.revokeObjectURL(localUrl), 5000);
+
+    btn.innerHTML = '📤 Ուղարկվում է...';
+
+    // ── 3. Try Cloudinary (optional — best effort) ────────────────────────────
     let cloudinaryUrl = '';
     try {
-      const cf = new FormData(); cf.append('file', pdfFile); cf.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      const cr = await fetch(CLOUDINARY_URL, { method: 'POST', body: cf }); const cd = await cr.json();
-      if (cd.secure_url) { cloudinaryUrl = cd.secure_url; }
-    } catch (ce) {}
-    if (!cloudinaryUrl) { alert('Upload failed.'); btn.disabled = false; btn.innerHTML = uiLabels[currentLang]?.submit_btn; return; }
-    btn.innerHTML = '📧 SENDING...';
-    const customerEmail = document.getElementById('email').value;
-    const companyName = document.getElementById('company').value;
-    const signatoryName = document.getElementById('signatory').value;
-    const fdMain = new FormData();
-    fdMain.append('contract_number', contractNumber); fdMain.append('contract_type', currentType);
-    fdMain.append('company', companyName); fdMain.append('signatory', signatoryName);
-    fdMain.append('customer_email', customerEmail); fdMain.append('cloudinary_pdf_url', cloudinaryUrl);
-    fdMain.append('message', `New signed contract №${contractNumber}\n${cloudinaryUrl}`);
-    await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
-    const fdClient = new FormData();
-    fdClient.append('email', customerEmail);
-    fdClient.append('contract_number', contractNumber); fdClient.append('contract_type', currentType);
-    fdClient.append('company', companyName);
-    fdClient.append('message', `Dear ${signatoryName},\n\nYour signed contract (No. ${contractNumber}) is ready.\n\nDownload: ${cloudinaryUrl}\n\nBest regards,\nGL Logistics LLC\n📞 +374 93 66 14 54`);
-    fdClient.append('_subject', `GL Logistics — Signed Contract ${contractNumber}`);
-    await fetch(FORMSPREE_CLIENT, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      const cf = new FormData();
+      cf.append('file', pdfFile);
+      cf.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      const cr = await fetch(CLOUDINARY_URL, { method: 'POST', body: cf });
+      if (cr.ok) {
+        const cd = await cr.json();
+        if (cd.secure_url) cloudinaryUrl = cd.secure_url;
+      }
+    } catch (_) { /* silent — local download already happened */ }
+
+    // ── 4. Send to GL internal inbox (Formspree main) ─────────────────────────
+    try {
+      const fdMain = new FormData();
+      fdMain.append('contract_number',   contractNumber);
+      fdMain.append('contract_type',     currentType);
+      fdMain.append('language',          currentLang);
+      fdMain.append('company',           companyName);
+      fdMain.append('signatory',         signatoryName);
+      fdMain.append('customer_email',    customerEmail);
+      fdMain.append('cloudinary_pdf_url', cloudinaryUrl || '(locally downloaded by client)');
+      fdMain.append('message',
+        'New signed contract №' + contractNumber + '\n' +
+        'Company: ' + companyName + '\n' +
+        'Signatory: ' + signatoryName + '\n' +
+        'Email: ' + customerEmail + '\n' +
+        (cloudinaryUrl ? 'PDF: ' + cloudinaryUrl : 'PDF: client downloaded locally')
+      );
+      // attach PDF directly if Cloudinary failed
+      if (!cloudinaryUrl) {
+        fdMain.append('attachment', new File([pdfBlob], fileName, { type: 'application/pdf' }));
+      }
+      await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
+    } catch (_) {}
+
+    // ── 5. Send confirmation email to client ──────────────────────────────────
+    try {
+      const fdClient = new FormData();
+      fdClient.append('email',            customerEmail);
+      fdClient.append('contract_number',  contractNumber);
+      fdClient.append('company',          companyName);
+      fdClient.append('_subject',         'GL Logistics — Signed Contract ' + contractNumber);
+      fdClient.append('message',
+        'Dear ' + signatoryName + ',\n\n' +
+        'Your signed contract (No. ' + contractNumber + ') has been successfully submitted.\n\n' +
+        (cloudinaryUrl
+          ? 'Download PDF: ' + cloudinaryUrl
+          : 'Your PDF was automatically downloaded to your device.') +
+        '\n\nBest regards,\nGL Logistics LLC\n📞 +374 93 66 14 54\n🌐 gl-logistics.am'
+      );
+      if (!cloudinaryUrl) {
+        fdClient.append('attachment', new File([pdfBlob], fileName, { type: 'application/pdf' }));
+      }
+      await fetch(FORMSPREE_CLIENT, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+    } catch (_) {}
+
+    // ── 6. Show success ───────────────────────────────────────────────────────
     document.getElementById('contractForm').style.display = 'none';
-    document.getElementById('successMsg').style.display = 'block';
-  } catch (err) { console.error(err); alert('Error: ' + err.message); }
-  finally { btn.disabled = false; btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'SUBMIT'; }
+    document.getElementById('successMsg').style.display  = 'block';
+
+  } catch (err) {
+    console.error('Submit error:', err);
+    alert('Սխալ: ' + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = uiLabels[currentLang]?.submit_btn || '✍️ SUBMIT';
+  }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
