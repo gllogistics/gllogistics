@@ -9,8 +9,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0B171C; font-family: 'Inter', sans-serif; padding: 2rem 1.5rem; color: #EDF4F6; min-height: 100vh; }
@@ -110,13 +108,9 @@
   </div>
 </div>
 <script>
-// ✅ CONFIG
 const CLOUDINARY_URL='https://api.cloudinary.com/v1_1/drp98zkka/upload';
 const CLOUDINARY_UPLOAD_PRESET='gl_contracts';
 const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
-
-// ✅ EmailJS config
-emailjs.init('tDYnExXf5f_2Q1UGINWbd');
 
 const contracts={customer:{am:(c,t,a,s,p,d,n,sig,st)=>`<p style="text-align:right"><strong>Թիվ ${n}</strong><br>ք. Երևան | ${d}</p><p><strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ <strong>«Պատվիրատու»</strong>, և <strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ <strong>«Տրանսպորտային առաքող»</strong>, կնքեցին սույն Պայմանագիրը՝</p><h3>1. ԱՌԱՐԿԱՆ</h3><p>1.5. Նշանակման վայր՝ «________», Հանձնման վայր՝ «_________»:</p><div class="signature-section"><div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ</strong><div class="line"></div><div class="under">${s}<br>${p}<br>${d}</div></div><div class="sig-block"><strong>ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՈՂ (ՋԻ ԷԼ)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div></div><div class="stamp-sign-row">${sig?`<img class="sig-img-display" src="${sig}" alt="signature">`:''}${st?`<div class="stamp-box"><img src="${st}" alt="stamp"></div>`:''}</div>`,
 ru:(c,t,a,s,p,d,n,sig,st)=>`<p style="text-align:right"><strong>Договор № ${n}</strong><br>г. Ереван | ${d}</p><p><strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое <strong>«Заказчик»</strong>, и <strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое <strong>«Экспедитор»</strong>, заключили договор:</p><h3>1. ПРЕДМЕТ</h3><p>1.5. Место назначения: «________», Место передачи: «_________».</p><div class="signature-section"><div class="sig-block"><strong>ЗАКАЗЧИК</strong><div class="line"></div><div class="under">${s}<br>${p}<br>${d}</div></div><div class="sig-block"><strong>ЭКСПЕДИТОР (ДЖИ ЭЛ)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div></div><div class="stamp-sign-row">${sig?`<img class="sig-img-display" src="${sig}" alt="signature">`:''}${st?`<div class="stamp-box"><img src="${st}" alt="stamp"></div>`:''}</div>`,
@@ -144,7 +138,7 @@ function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.qu
 ['company','taxId','address','signatory','position','signDate'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
 document.getElementById('signDate').valueAsDate=new Date();
 
-// ==================== SUBMISSION (FORMSPREE + EMAILJS) ====================
+// ==================== SUBMISSION (FORMSPREE ONLY) ====================
 document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!document.getElementById('agree').checked) {
@@ -182,7 +176,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     const companyName = document.getElementById('company').value;
     const signatoryName = document.getElementById('signatory').value;
 
-    // 1. Formspree → вам
     const fdMain = new FormData();
     fdMain.append('contract_number', contractNumber);
     fdMain.append('contract_type', currentType);
@@ -190,26 +183,18 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     fdMain.append('signatory', signatoryName);
     fdMain.append('customer_email', customerEmail);
     fdMain.append('cloudinary_pdf_url', cloudinaryUrl);
-    fdMain.append('message', `New signed contract №${contractNumber}\n${cloudinaryUrl}`);
-    await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
-    console.log('✅ Formspree sent to you');
+    fdMain.append('message', `New signed contract №${contractNumber}\nDownload: ${cloudinaryUrl}`);
 
-    // 2. EmailJS → клиенту
-    try {
-      await emailjs.send('service_gtd3drc', 'template_idlrjpg', {
-        to_email: customerEmail,
-        signatory_name: signatoryName,
-        contract_number: contractNumber,
-        cloudinary_url: cloudinaryUrl,
-        company: companyName
-      });
-      console.log('✅ EmailJS sent to client:', customerEmail);
-    } catch (ejErr) {
-      console.warn('EmailJS failed:', ejErr);
+    const response = await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
+
+    if (response.ok) {
+      console.log('✅ Form submitted');
+      document.getElementById('contractForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    } else {
+      console.error('Form error:', response.status);
+      alert('Error sending. Please try again.');
     }
-
-    document.getElementById('contractForm').style.display = 'none';
-    document.getElementById('successMsg').style.display = 'block';
   } catch (err) {
     console.error(err);
     alert('Error. Please try again.');
