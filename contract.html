@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>GL Logistics | Պայմանագրի ստորագրում</title>
+  <!-- FAVICON -->
+  <link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -307,7 +309,7 @@
   <div class="top-bar">
     <div class="brand">
       <div class="brand-icon">GL</div>
-      <span>LOGISTICS • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ</span>
+      <span data-i18n="brand_title">Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ</span>
     </div>
     <div class="type-group">
       <button class="type-btn active" data-type="customer" data-i18n="btn_customer">👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ</button>
@@ -490,6 +492,7 @@ const contracts = {
 
 const uiLabels = {
   am: {
+    brand_title: "Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ",
     btn_customer: "👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ",
     btn_carrier: "🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ",
     form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ",
@@ -509,6 +512,7 @@ const uiLabels = {
     success_msg:"PDF պատճենը ուղարկվել է Ձեր էլ. փոստին: Մենք կապ կհաստատենք 24 ժամվա ընթացքում:"
   },
   ru: {
+    brand_title: "Джи Эл Логистикс • Подписание контракта",
     btn_customer: "👤 ЗАКАЗЧИК → ДЖИ ЭЛ",
     btn_carrier: "🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК",
     form_title:"📄 ПОДПИСАТЬ ДОГОВОР",
@@ -528,6 +532,7 @@ const uiLabels = {
     success_msg:"PDF отправлен на ваш email. Мы свяжемся с вами в течение 24 часов."
   },
   en: {
+    brand_title: "GL Logistics • Contract Signing",
     btn_customer: "👤 CUSTOMER → GL",
     btn_carrier: "🚛 GL → CARRIER",
     form_title:"📄 SIGN CONTRACT",
