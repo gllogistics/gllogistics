@@ -118,185 +118,40 @@
       position: relative;
       min-height: 600px;
     }
-    .contract-preview h2 {
-      font-size: 17px;
-      font-weight: 800;
-      text-align: center;
-      margin-bottom: 0.5rem;
-      color: #005f67;
-    }
-    .contract-preview h3 {
-      font-size: 13px;
-      font-weight: 700;
-      margin: 0.8rem 0 0.4rem;
-      color: #1C6D76;
-      border-left: 3px solid #55B7BD;
-      padding-left: 8px;
-    }
+    .contract-preview h2 { font-size: 17px; font-weight: 800; text-align: center; margin-bottom: 0.5rem; color: #005f67; }
+    .contract-preview h3 { font-size: 13px; font-weight: 700; margin: 0.8rem 0 0.4rem; color: #1C6D76; border-left: 3px solid #55B7BD; padding-left: 8px; }
     .contract-preview p { margin-bottom: 0.2rem; text-align: justify; }
 
-    .signature-section {
-      display: flex;
-      justify-content: space-between;
-      margin: 1.5rem 0 1rem;
-      gap: 1rem;
-    }
+    .signature-section { display: flex; justify-content: space-between; margin: 1.5rem 0 1rem; gap: 1rem; }
     .sig-block { width: 48%; }
-    .sig-block .line {
-      border-bottom: 1px solid #2A5E66;
-      margin-top: 1.8rem;
-      margin-bottom: 0.2rem;
-    }
+    .sig-block .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
     .sig-block .under { font-size: 10px; text-align: center; }
-    .sig-block img.signature-img {
-      max-width: 140px;
-      max-height: 50px;
-      object-fit: contain;
-      margin-top: 0.3rem;
-    }
+    .sig-block img.signature-img { max-width: 140px; max-height: 50px; object-fit: contain; margin-top: 0.3rem; }
 
-    .stamp-overlay {
-      position: absolute;
-      bottom: 20px;
-      right: 15px;
-      width: 100px;
-      height: 100px;
-      opacity: 0.85;
-      pointer-events: none;
-      z-index: 5;
-      transform: rotate(-12deg);
-    }
+    .stamp-overlay { position: absolute; bottom: 20px; right: 15px; width: 100px; height: 100px; opacity: 0.85; pointer-events: none; z-index: 5; transform: rotate(-12deg); }
     .stamp-overlay img { width: 100%; object-fit: contain; }
 
-    .form-panel {
-      background: #152A30;
-      border-radius: 28px;
-      padding: 1.5rem;
-      border: 1px solid #2F6C74;
-    }
-    .form-panel h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 1.2rem;
-      color: #55B7BD;
-      border-left: 4px solid #55B7BD;
-      padding-left: 0.8rem;
-    }
+    .form-panel { background: #152A30; border-radius: 28px; padding: 1.5rem; border: 1px solid #2F6C74; }
+    .form-panel h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.2rem; color: #55B7BD; border-left: 4px solid #55B7BD; padding-left: 0.8rem; }
     .input-group { margin-bottom: 0.7rem; }
-    .input-group label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      color: #B9DFE4;
-      display: block;
-      margin-bottom: 0.2rem;
-    }
-    .input-group input {
-      width: 100%;
-      background: #0C2228;
-      border: 1px solid #336D76;
-      border-radius: 22px;
-      padding: 10px 16px;
-      color: white;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-    }
+    .input-group label { font-size: 0.65rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.06em; color: #B9DFE4; display: block; margin-bottom: 0.2rem; }
+    .input-group input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 10px 16px; color: white; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
 
-    .upload-row {
-      display: flex;
-      gap: 0.8rem;
-      margin: 0.6rem 0;
-    }
-    .stamp-upload, .signature-area {
-      flex: 1;
-      background: #0A1F25;
-      border-radius: 18px;
-      padding: 0.8rem;
-      text-align: center;
-      border: 1px dashed #55B7BD;
-      cursor: pointer;
-      font-size: 0.7rem;
-    }
-    .signature-canvas-box {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      margin: 0.4rem 0;
-    }
-    #signatureCanvas {
-      width: 100%;
-      height: 80px;
-      background: #fff;
-      display: block;
-      touch-action: none;
-      cursor: crosshair;
-    }
-    .sig-preview-img {
-      max-width: 100px;
-      max-height: 40px;
-      object-fit: contain;
-      display: none;
-      margin-top: 5px;
-      border-radius: 4px;
-    }
-    .stamp-preview-img {
-      max-width: 60px;
-      max-height: 60px;
-      object-fit: contain;
-      display: none;
-      margin-top: 5px;
-      border-radius: 8px;
-    }
+    .upload-row { display: flex; gap: 0.8rem; margin: 0.6rem 0; }
+    .stamp-upload, .signature-area { flex: 1; background: #0A1F25; border-radius: 18px; padding: 0.8rem; text-align: center; border: 1px dashed #55B7BD; cursor: pointer; font-size: 0.7rem; }
+    .signature-canvas-box { background: white; border-radius: 12px; overflow: hidden; margin: 0.4rem 0; }
+    #signatureCanvas { width: 100%; height: 80px; background: #fff; display: block; touch-action: none; cursor: crosshair; }
+    .sig-preview-img { max-width: 100px; max-height: 40px; object-fit: contain; display: none; margin-top: 5px; border-radius: 4px; }
+    .stamp-preview-img { max-width: 60px; max-height: 60px; object-fit: contain; display: none; margin-top: 5px; border-radius: 8px; }
 
-    .checkbox-group {
-      display: flex;
-      gap: 10px;
-      margin: 0.8rem 0;
-      align-items: flex-start;
-    }
-    .checkbox-group input {
-      margin-top: 3px;
-      accent-color: #55B7BD;
-      transform: scale(1.2);
-    }
-    .btn-submit {
-      width: 100%;
-      background: linear-gradient(100deg, #55B7BD, #31838A);
-      border: none;
-      padding: 13px;
-      border-radius: 50px;
-      font-weight: 800;
-      font-size: 0.95rem;
-      letter-spacing: 0.07em;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      color: #0D1F23;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(85,183,189,0.6);
-    }
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .success-msg {
-      background: #1A423F;
-      border-radius: 24px;
-      padding: 1.5rem;
-      text-align: center;
-      margin-top: 1rem;
-      display: none;
-    }
+    .checkbox-group { display: flex; gap: 10px; margin: 0.8rem 0; align-items: flex-start; }
+    .checkbox-group input { margin-top: 3px; accent-color: #55B7BD; transform: scale(1.2); }
+    .btn-submit { width: 100%; background: linear-gradient(100deg, #55B7BD, #31838A); border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.07em; font-family: 'Plus Jakarta Sans', sans-serif; color: #0D1F23; cursor: pointer; transition: 0.2s; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(85,183,189,0.6); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .success-msg { background: #1A423F; border-radius: 24px; padding: 1.5rem; text-align: center; margin-top: 1rem; display: none; }
     .success-msg h3 { color: #55B7BD; margin-bottom: 0.5rem; }
-    .legal-note {
-      font-size: 0.65rem;
-      text-align: center;
-      margin-top: 0.8rem;
-      color: #9FCBD0;
-    }
+    .legal-note { font-size: 0.65rem; text-align: center; margin-top: 0.8rem; color: #9FCBD0; }
   </style>
 </head>
 <body>
@@ -327,59 +182,21 @@
     <div class="form-panel">
       <h2 data-i18n="form_title">📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ</h2>
       <form id="contractForm">
-        <div class="input-group">
-          <label data-i18n="company_label">ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *</label>
-          <input type="text" id="company" placeholder="ՍՊԸ 'Անվանում'" required>
-        </div>
-        <div class="input-group">
-          <label data-i18n="tax_label">ՀՎՀՀ</label>
-          <input type="text" id="taxId" placeholder="ՀՎՀՀ համար">
-        </div>
-        <div class="input-group">
-          <label data-i18n="address_label">ՀԱՍՑԵ</label>
-          <input type="text" id="address" placeholder="Քաղաք, Փողոց, Շենք">
-        </div>
-        <div class="input-group">
-          <label data-i18n="signatory_label">ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *</label>
-          <input type="text" id="signatory" placeholder="Անուն Ազգանուն" required>
-        </div>
-        <div class="input-group">
-          <label data-i18n="position_label">ՊԱՇՏՈՆ</label>
-          <input type="text" id="position" placeholder="Տնօրեն">
-        </div>
-        <div class="input-group">
-          <label data-i18n="date_label">ԱՄՍԱԹԻՎ *</label>
-          <input type="date" id="signDate" required>
-        </div>
-        <div class="input-group">
-          <label data-i18n="email_label">ԷԼ. ՓՈՍՏ (PDF ԿՈՒՂԱՐԿՎԻ) *</label>
-          <input type="email" id="email" placeholder="your@email.com" required>
-        </div>
-        <div class="input-group">
-          <label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label>
-          <input type="tel" id="phone" placeholder="+374 XX XXX XXX">
-        </div>
+        <div class="input-group"><label data-i18n="company_label">ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *</label><input type="text" id="company" placeholder="ՍՊԸ 'Անվանում'" required></div>
+        <div class="input-group"><label data-i18n="tax_label">ՀՎՀՀ</label><input type="text" id="taxId" placeholder="ՀՎՀՀ համար"></div>
+        <div class="input-group"><label data-i18n="address_label">ՀԱՍՑԵ</label><input type="text" id="address" placeholder="Քաղաք, Փողոց, Շենք"></div>
+        <div class="input-group"><label data-i18n="signatory_label">ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *</label><input type="text" id="signatory" placeholder="Անուն Ազգանուն" required></div>
+        <div class="input-group"><label data-i18n="position_label">ՊԱՇՏՈՆ</label><input type="text" id="position" placeholder="Տնօրեն"></div>
+        <div class="input-group"><label data-i18n="date_label">ԱՄՍԱԹԻՎ *</label><input type="date" id="signDate" required></div>
+        <div class="input-group"><label data-i18n="email_label">ԷԼ. ՓՈՍՏ (PDF ԿՈՒՂԱՐԿՎԻ) *</label><input type="email" id="email" placeholder="your@email.com" required></div>
+        <div class="input-group"><label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label><input type="tel" id="phone" placeholder="+374 XX XXX XXX"></div>
 
         <div class="upload-row">
-          <div class="stamp-upload" id="stampTrigger">
-            🏢 <span data-i18n="upload_stamp">ԿՆԻՔ</span>
-            <input type="file" id="stampInput" accept="image/*" style="display:none;">
-            <img id="stampPreview" class="stamp-preview-img" alt="stamp">
-          </div>
-          <div class="signature-area">
-            ✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span>
-            <div class="signature-canvas-box">
-              <canvas id="signatureCanvas"></canvas>
-            </div>
-            <button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button>
-            <img id="signaturePreview" class="sig-preview-img" alt="signature">
-          </div>
+          <div class="stamp-upload" id="stampTrigger">🏢 <span data-i18n="upload_stamp">ԿՆԻՔ</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
+          <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
         </div>
 
-        <div class="checkbox-group">
-          <input type="checkbox" id="agree" required>
-          <label for="agree" data-i18n="agree_text">Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:</label>
-        </div>
+        <div class="checkbox-group"><input type="checkbox" id="agree" required><label for="agree" data-i18n="agree_text">Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:</label></div>
         <button type="submit" class="btn-submit" data-i18n="submit_btn">✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ</button>
       </form>
       <div class="success-msg" id="successMsg">
@@ -394,11 +211,9 @@
 </div>
 
 <script>
-// ✅ CLOUDINARY CONFIG
+// ✅ CONFIG
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/drp98zkka/upload';
 const CLOUDINARY_UPLOAD_PRESET = 'gl_contracts';
-
-// ✅ FORMSPREE ENDPOINTS
 const FORMSPREE_MAIN = 'https://formspree.io/f/mdajazoz';
 const FORMSPREE_CLIENT_COPY = 'https://formspree.io/f/mwvzwgpv';
 
@@ -415,12 +230,9 @@ const contracts = {
       <p>1.4. Յուրաքանչյուր փոխադրում կատարվում է Հավելված 1-ի հայտի հիման վրա:</p>
       <p><strong>1.5. Սույն պայմանագրով նշանակման վայր է համարվում «________», այսուհետ՝ «Նշանակման վայր», իսկ հանձման վայր է համարվում «_________» հասցեն ըստ հավելված մեկի՝ «Հանձնման վայր», եթե այլ բան նախատեսված չէ Տրանսպորտային առաքողին ներկայացված հայտով։</strong></p>
       <p>1.6. Տրանսպորտային առաքողը պատասխանատվություն չի կրում բեռի պարունակության որակի, համապատասխանության համար:</p>
-      <h3>2. ՀԱՅՏԻ ԿԱՐԳ</h3>
-      <p>2.9. 100% վճարում բեռը հանձնելուց 15 աշխ.օր հետո:</p>
-      <h3>4. ՊԱՏԱՍԽԱՆԱՏՎՈՒԹՅՈՒՆ</h3>
-      <p>4.3. Ուշ վճարման տույժ 0.1% օրական: 4.8. Առաքողի պատասխանատվությունը CMR-ով:</p>
-      <h3>7. ԵԶՐԱՓԱԿԻՉ ԴՐՈՒՅԹՆԵՐ</h3>
-      <p>7.1. Պայմանագիրը գործում է 1 տարի, ավտոմատ երկարաձգմամբ:</p>
+      <h3>2. ՀԱՅՏԻ ԿԱՐԳ</h3><p>2.9. 100% վճարում բեռը հանձնելուց 15 աշխ.օր հետո:</p>
+      <h3>4. ՊԱՏԱՍԽԱՆԱՏՎՈՒԹՅՈՒՆ</h3><p>4.3. Ուշ վճարման տույժ 0.1% օրական: 4.8. Առաքողի պատասխանատվությունը CMR-ով:</p>
+      <h3>7. ԵԶՐԱՓԱԿԻՉ ԴՐՈՒՅԹՆԵՐ</h3><p>7.1. Պայմանագիրը գործում է 1 տարի, ավտոմատ երկարաձգմամբ:</p>
       <div class="signature-section">
         <div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
         <div class="sig-block"><strong>ՏՐԱՆՍՊՈՐՏԱՅԻՆ ԱՌԱՔՈՂ (ՋԻ ԷԼ)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div>
@@ -430,8 +242,7 @@ const contracts = {
     ru: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
       <p><strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое <strong>«Заказчик»</strong>, и <strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое <strong>«Экспедитор»</strong>, заключили договор:</p>
-      <h3>1. ПРЕДМЕТ</h3>
-      <p>1.1. Экспедитор организует международные перевозки; Заказчик оплачивает.</p>
+      <h3>1. ПРЕДМЕТ</h3><p>1.1. Экспедитор организует международные перевозки; Заказчик оплачивает.</p>
       <p>1.5. По настоящему Договору местом назначения является «________», а местом передачи — «_________».</p>
       <div class="signature-section">
         <div class="sig-block"><strong>ЗАКАЗЧИК</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
@@ -441,8 +252,7 @@ const contracts = {
     en: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Contract No. ${contractNum}</strong><br>Yerevan | ${d}</p>
       <p><strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter <strong>"Customer"</strong>, and <strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter <strong>"Forwarder"</strong>, agree:</p>
-      <h3>1. SUBJECT</h3>
-      <p>1.1. Forwarder organizes international cargo transportation; Customer pays agreed price.</p>
+      <h3>1. SUBJECT</h3><p>1.1. Forwarder organizes international cargo transportation; Customer pays agreed price.</p>
       <p>1.5. Under this Agreement, the destination is "________", and the handover point is "_________".</p>
       <div class="signature-section">
         <div class="sig-block"><strong>CUSTOMER</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
@@ -454,8 +264,7 @@ const contracts = {
     am: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Թիվ ${contractNum}</strong><br>ք. Երևան | ${d}</p>
       <p><strong>«Ջի Էլ Լոգիստիկս» ՍՊԸ</strong> (ՀՎՀՀ 00521217), այսուհետ՝ <strong>«Պատվիրատու»</strong>, և <strong>«${c}»</strong> (ՀՎՀՀ ${t||'________'}), հասցե՝ ${a||'________'}, ի դեմս ${s} (${p}), այսուհետ՝ <strong>«Փոխադրող»</strong>, կնքեցին Պայմանագիր՝</p>
-      <h3>1. ԱՌԱՐԿԱՆ</h3>
-      <p>1.1. Փոխադրողը կատարում է ավտոմոբիլային բեռնափոխադրումներ Պատվիրատուի պատվերով:</p>
+      <h3>1. ԱՌԱՐԿԱՆ</h3><p>1.1. Փոխադրողը կատարում է ավտոմոբիլային բեռնափոխադրումներ Պատվիրատուի պատվերով:</p>
       <p>1.5. Նշանակման վայր՝ «________», Հանձնման վայր՝ «_________»:</p>
       <div class="signature-section">
         <div class="sig-block"><strong>ՊԱՏՎԻՐԱՏՈՒ (ՋԻ ԷԼ)</strong><div class="line"></div><div class="under">Տիգրան Մեծպագյան<br>Տնօրեն<br>${d}</div></div>
@@ -465,8 +274,7 @@ const contracts = {
     ru: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Договор № ${contractNum}</strong><br>г. Ереван | ${d}</p>
       <p><strong>ООО «Джи Эл Логистикс»</strong> (ИНН 00521217), именуемое <strong>«Заказчик»</strong>, и <strong>«${c}»</strong> (ИНН ${t||'________'}), адрес: ${a||'________'}, в лице ${s} (${p}), именуемое <strong>«Перевозчик»</strong>, заключили договор:</p>
-      <h3>1. ПРЕДМЕТ</h3>
-      <p>1.1. Перевозчик выполняет автоперевозки по заявкам Заказчика.</p>
+      <h3>1. ПРЕДМЕТ</h3><p>1.1. Перевозчик выполняет автоперевозки по заявкам Заказчика.</p>
       <div class="signature-section">
         <div class="sig-block"><strong>ЗАКАЗЧИК (ДЖИ ЭЛ)</strong><div class="line"></div><div class="under">Тигран Мецпагян<br>Директор<br>${d}</div></div>
         <div class="sig-block"><strong>ПЕРЕВОЗЧИК</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
@@ -475,8 +283,7 @@ const contracts = {
     en: (c,t,a,s,p,d,contractNum,sigImg) => `
       <p style="text-align:right"><strong>Contract No. ${contractNum}</strong><br>Yerevan | ${d}</p>
       <p><strong>GL Logistics LLC</strong> (TIN 00521217), hereinafter <strong>"Customer"</strong>, and <strong>${c}</strong> (TIN ${t||'________'}), address: ${a||'________'}, represented by ${s} (${p}), hereinafter <strong>"Carrier"</strong>, agree:</p>
-      <h3>1. SUBJECT</h3>
-      <p>1.1. Carrier provides road transportation per Customer's orders.</p>
+      <h3>1. SUBJECT</h3><p>1.1. Carrier provides road transportation per Customer's orders.</p>
       <div class="signature-section">
         <div class="sig-block"><strong>CUSTOMER (GL)</strong><div class="line"></div><div class="under">Tigran Metsbagyan<br>Director<br>${d}</div></div>
         <div class="sig-block"><strong>CARRIER</strong><div class="line"></div>${sigImg ? `<img class="signature-img" src="${sigImg}">` : ''}<div class="under">${s}<br>${p}<br>${d}</div></div>
@@ -486,66 +293,9 @@ const contracts = {
 };
 
 const uiLabels = {
-  am: {
-    brand_title: "Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ",
-    btn_customer: "👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ",
-    btn_carrier: "🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ",
-    form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ",
-    company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *",
-    tax_label:"ՀՎՀՀ",
-    address_label:"ՀԱՍՑԵ",
-    signatory_label:"ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *",
-    position_label:"ՊԱՇՏՈՆ",
-    date_label:"ԱՄՍԱԹԻՎ *",
-    email_label:"ԷԼ. ՓՈՍՏ *",
-    phone_label:"ՀԵՌԱԽՈՍ",
-    upload_stamp:"ԿՆԻՔ",
-    upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ",
-    agree_text:"Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:",
-    submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ",
-    success_title:"Պայմանագիրը հաջողությամբ ստորագրված է:",
-    success_msg:"PDF պատճենը ուղարկվել է Ձեր էլ. փոստին: Մենք կապ կհաստատենք 24 ժամվա ընթացքում:"
-  },
-  ru: {
-    brand_title: "Джи Эл Логистикс • Подписание контракта",
-    btn_customer: "👤 ЗАКАЗЧИК → ДЖИ ЭЛ",
-    btn_carrier: "🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК",
-    form_title:"📄 ПОДПИСАТЬ ДОГОВОР",
-    company_label:"КОМПАНИЯ *",
-    tax_label:"ИНН",
-    address_label:"АДРЕС",
-    signatory_label:"ФИО ПОДПИСАНТА *",
-    position_label:"ДОЛЖНОСТЬ",
-    date_label:"ДАТА *",
-    email_label:"EMAIL *",
-    phone_label:"ТЕЛЕФОН",
-    upload_stamp:"ПЕЧАТЬ",
-    upload_signature:"ПОДПИСЬ",
-    agree_text:"Принимаю условия договора.",
-    submit_btn:"✍️ ПОДПИСАТЬ И ОТПРАВИТЬ",
-    success_title:"Договор подписан!",
-    success_msg:"PDF отправлен на ваш email. Мы свяжемся с вами в течение 24 часов."
-  },
-  en: {
-    brand_title: "GL Logistics • Contract Signing",
-    btn_customer: "👤 CUSTOMER → GL",
-    btn_carrier: "🚛 GL → CARRIER",
-    form_title:"📄 SIGN CONTRACT",
-    company_label:"COMPANY NAME *",
-    tax_label:"TAX ID / VAT",
-    address_label:"LEGAL ADDRESS",
-    signatory_label:"SIGNATORY FULL NAME *",
-    position_label:"POSITION",
-    date_label:"DATE *",
-    email_label:"EMAIL *",
-    phone_label:"PHONE",
-    upload_stamp:"COMPANY STAMP",
-    upload_signature:"DRAW SIGNATURE",
-    agree_text:"I accept all terms of this Agreement.",
-    submit_btn:"✍️ SIGN & SUBMIT",
-    success_title:"Contract Signed!",
-    success_msg:"PDF sent to your email. We will contact you within 24h."
-  }
+  am: { brand_title:"Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ", btn_customer:"👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ", btn_carrier:"🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ", form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ", company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *", tax_label:"ՀՎՀՀ", address_label:"ՀԱՍՑԵ", signatory_label:"ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *", position_label:"ՊԱՇՏՈՆ", date_label:"ԱՄՍԱԹԻՎ *", email_label:"ԷԼ. ՓՈՍՏ *", phone_label:"ՀԵՌԱԽՈՍ", upload_stamp:"ԿՆԻՔ", upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ", agree_text:"Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:", submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ", success_title:"Պայմանագիրը հաջողությամբ ստորագրված է:", success_msg:"PDF պատճենը ուղարկվել է Ձեր էլ. փոստին:" },
+  ru: { brand_title:"Джи Эл Логистикс • Подписание контракта", btn_customer:"👤 ЗАКАЗЧИК → ДЖИ ЭЛ", btn_carrier:"🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК", form_title:"📄 ПОДПИСАТЬ ДОГОВОР", company_label:"КОМПАНИЯ *", tax_label:"ИНН", address_label:"АДРЕС", signatory_label:"ФИО ПОДПИСАНТА *", position_label:"ДОЛЖНОСТЬ", date_label:"ДАТА *", email_label:"EMAIL *", phone_label:"ТЕЛЕФОН", upload_stamp:"ПЕЧАТЬ", upload_signature:"ПОДПИСЬ", agree_text:"Принимаю условия договора.", submit_btn:"✍️ ПОДПИСАТЬ И ОТПРАВИТЬ", success_title:"Договор подписан!", success_msg:"PDF отправлен на ваш email." },
+  en: { brand_title:"GL Logistics • Contract Signing", btn_customer:"👤 CUSTOMER → GL", btn_carrier:"🚛 GL → CARRIER", form_title:"📄 SIGN CONTRACT", company_label:"COMPANY NAME *", tax_label:"TAX ID / VAT", address_label:"LEGAL ADDRESS", signatory_label:"SIGNATORY FULL NAME *", position_label:"POSITION", date_label:"DATE *", email_label:"EMAIL *", phone_label:"PHONE", upload_stamp:"COMPANY STAMP", upload_signature:"DRAW SIGNATURE", agree_text:"I accept all terms of this Agreement.", submit_btn:"✍️ SIGN & SUBMIT", success_title:"Contract Signed!", success_msg:"PDF sent to your email." }
 };
 
 let currentLang = 'am';
@@ -559,211 +309,127 @@ const previewDiv = document.getElementById('contractPreview');
 const canvas = document.getElementById('signatureCanvas');
 
 function generateContractNumber() {
-  const year = new Date().getFullYear();
-  const prefix = currentType === 'customer' ? 'GL-C' : 'GL-T';
-  const random = Math.floor(Math.random() * 9000) + 1000;
-  return `${prefix}-${year}-${random}`;
+  const y = new Date().getFullYear();
+  const p = currentType === 'customer' ? 'GL-C' : 'GL-T';
+  const r = Math.floor(Math.random() * 9000) + 1000;
+  return `${p}-${y}-${r}`;
 }
 
 function initSignaturePad() {
   canvas.width = canvas.offsetWidth * 2;
   canvas.height = canvas.offsetHeight * 2;
-  signaturePad = new SignaturePad(canvas, {
-    backgroundColor: 'rgb(255, 255, 255)',
-    penColor: 'rgb(0, 0, 0)',
-    minWidth: 0.8,
-    maxWidth: 2.2
-  });
+  signaturePad = new SignaturePad(canvas, { backgroundColor:'rgb(255,255,255)', penColor:'rgb(0,0,0)', minWidth:0.8, maxWidth:2.2 });
 }
-
 initSignaturePad();
-window.addEventListener('resize', () => {
-  const data = signaturePad.toData();
-  initSignaturePad();
-  if (data && data.length > 0) signaturePad.fromData(data);
-});
+window.addEventListener('resize', () => { const d = signaturePad.toData(); initSignaturePad(); if(d && d.length>0) signaturePad.fromData(d); });
 
-document.getElementById('clearSignature').addEventListener('click', () => {
-  signaturePad.clear();
-  signatureDataUrl = null;
-  document.getElementById('signaturePreview').style.display = 'none';
-  renderContract();
-});
-
-canvas.addEventListener('mouseup', captureSignature);
-canvas.addEventListener('touchend', captureSignature);
-
-function captureSignature() {
-  if (!signaturePad.isEmpty()) {
-    signatureDataUrl = signaturePad.toDataURL('image/png');
-    document.getElementById('signaturePreview').src = signatureDataUrl;
-    document.getElementById('signaturePreview').style.display = 'block';
-    renderContract();
-  }
-}
+document.getElementById('clearSignature').addEventListener('click', () => { signaturePad.clear(); signatureDataUrl=null; document.getElementById('signaturePreview').style.display='none'; renderContract(); });
+canvas.addEventListener('mouseup', () => { if(!signaturePad.isEmpty()){ signatureDataUrl=signaturePad.toDataURL('image/png'); document.getElementById('signaturePreview').src=signatureDataUrl; document.getElementById('signaturePreview').style.display='block'; renderContract(); }});
+canvas.addEventListener('touchend', () => { if(!signaturePad.isEmpty()){ signatureDataUrl=signaturePad.toDataURL('image/png'); document.getElementById('signaturePreview').src=signatureDataUrl; document.getElementById('signaturePreview').style.display='block'; renderContract(); }});
 
 document.getElementById('stampTrigger').addEventListener('click', () => document.getElementById('stampInput').click());
 document.getElementById('stampInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      stampDataUrl = ev.target.result;
-      document.getElementById('stampPreview').src = stampDataUrl;
-      document.getElementById('stampPreview').style.display = 'block';
-      renderContract();
-    };
-    reader.readAsDataURL(file);
-  }
+  const f = e.target.files[0];
+  if(f){ const r = new FileReader(); r.onload=(ev)=>{ stampDataUrl=ev.target.result; document.getElementById('stampPreview').src=stampDataUrl; document.getElementById('stampPreview').style.display='block'; renderContract(); }; r.readAsDataURL(f); }
 });
 
 function renderContract() {
-  const c = document.getElementById('company').value.trim() || '[COMPANY]';
-  const t = document.getElementById('taxId').value.trim() || '________';
-  const a = document.getElementById('address').value.trim() || '________';
-  const s = document.getElementById('signatory').value.trim() || '[NAME]';
-  const p = document.getElementById('position').value.trim() || 'Director';
-  const d = document.getElementById('signDate').value || new Date().toISOString().slice(0,10);
-  if (!contractNumber) contractNumber = generateContractNumber();
-  document.getElementById('contractNumberDisplay').textContent = contractNumber;
-
-  const contractFn = contracts[currentType][currentLang];
-  const stampHtml = `<div class="stamp-overlay">${stampDataUrl ? `<img src="${stampDataUrl}" alt="stamp">` : ''}</div>`;
-  previewDiv.innerHTML = contractFn(c,t,a,s,p,d,contractNumber,signatureDataUrl) + stampHtml;
+  const c=document.getElementById('company').value.trim()||'[COMPANY]';
+  const t=document.getElementById('taxId').value.trim()||'________';
+  const a=document.getElementById('address').value.trim()||'________';
+  const s=document.getElementById('signatory').value.trim()||'[NAME]';
+  const p=document.getElementById('position').value.trim()||'Director';
+  const d=document.getElementById('signDate').value||new Date().toISOString().slice(0,10);
+  if(!contractNumber) contractNumber=generateContractNumber();
+  document.getElementById('contractNumberDisplay').textContent=contractNumber;
+  const fn=contracts[currentType][currentLang];
+  const stamp=`<div class="stamp-overlay">${stampDataUrl?`<img src="${stampDataUrl}" alt="stamp">`:''}</div>`;
+  previewDiv.innerHTML=fn(c,t,a,s,p,d,contractNumber,signatureDataUrl)+stamp;
 }
 
-document.querySelectorAll('.type-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentType = btn.dataset.type;
-    contractNumber = generateContractNumber();
-    renderContract();
-  });
-});
+document.querySelectorAll('.type-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentType=b.dataset.type;contractNumber=generateContractNumber();renderContract();}));
+document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lang-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentLang=b.dataset.lang;updateUILabels();renderContract();}));
 
-document.querySelectorAll('.lang-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentLang = btn.dataset.lang;
-    updateUILabels();
-    renderContract();
-  });
-});
+function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.dataset.i18n;if(t[k])e.innerHTML=t[k];});}
 
-function updateUILabels() {
-  const t = uiLabels[currentLang];
-  if (!t) return;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    if (t[key]) el.innerHTML = t[key];
-  });
-}
+['company','taxId','address','signatory','position','signDate'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
+document.getElementById('signDate').valueAsDate=new Date();
 
-['company','taxId','address','signatory','position','signDate'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', renderContract);
-});
-document.getElementById('signDate').valueAsDate = new Date();
-
-// ==================== SUBMISSION ====================
+// ==================== SUBMISSION (FIXED) ====================
 document.getElementById('contractForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  if (!document.getElementById('agree').checked) {
-    alert(uiLabels[currentLang]?.agree_text || 'Please accept the terms');
-    return;
-  }
-  const btn = this.querySelector('.btn-submit');
-  btn.disabled = true;
-  btn.innerHTML = '⏳ ՍՏԵՂԾՎՈՒՄ Է PDF...';
+  if(!document.getElementById('agree').checked){alert(uiLabels[currentLang]?.agree_text||'Please accept');return;}
+  const btn=this.querySelector('.btn-submit');
+  btn.disabled=true; btn.innerHTML='⏳ ՍՏԵՂԾՎՈՒՄ Է PDF...';
   try {
-    const canvasEl = await html2canvas(previewDiv, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvasEl.toDataURL('image/png');
-    const w = pdf.internal.pageSize.getWidth() - 20;
-    const h = (canvasEl.height * w) / canvasEl.width;
-    pdf.addImage(imgData, 'PNG', 10, 10, w, h);
-    const pdfBlob = pdf.output('blob');
-    const pdfFile = new File([pdfBlob], `contract_${contractNumber}.pdf`, { type: 'application/pdf' });
+    const canvasEl=await html2canvas(previewDiv,{scale:1.5,useCORS:true,backgroundColor:'#FFFFFF'});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF('p','mm','a4');
+    const imgData=canvasEl.toDataURL('image/png');
+    const w=pdf.internal.pageSize.getWidth()-20;
+    const h=(canvasEl.height*w)/canvasEl.width;
+    pdf.addImage(imgData,'PNG',10,10,w,h);
+    const pdfBlob=pdf.output('blob');
+    const pdfFile=new File([pdfBlob],`contract_${contractNumber}.pdf`,{type:'application/pdf'});
 
-    btn.innerHTML = '📤 ԲԵՌՆՎՈՒՄ Է...';
-    let cloudinaryUrl = '';
+    btn.innerHTML='📤 ԲԵՌՆՎՈՒՄ Է...';
+    let cloudinaryUrl='';
     try {
-      const cloudForm = new FormData();
-      cloudForm.append('file', pdfFile);
-      cloudForm.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      const cloudResp = await fetch(CLOUDINARY_URL, { method: 'POST', body: cloudForm });
-      const cloudData = await cloudResp.json();
-      if (cloudData.secure_url) {
-        cloudinaryUrl = cloudData.secure_url;
-        console.log('✅ Cloudinary URL:', cloudinaryUrl);
-      }
-    } catch (cloudErr) {
-      console.warn('Cloudinary upload failed:', cloudErr);
-    }
+      const cf=new FormData(); cf.append('file',pdfFile); cf.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+      const cr=await fetch(CLOUDINARY_URL,{method:'POST',body:cf});
+      const cd=await cr.json();
+      if(cd.secure_url){cloudinaryUrl=cd.secure_url;console.log('✅ Cloudinary:',cloudinaryUrl);}
+    }catch(ce){console.warn('Cloudinary failed:',ce);}
 
-    btn.innerHTML = '📧 ՈՒՂԱՐԿՎՈՒՄ Է...';
-    const customerEmail = document.getElementById('email').value;
-    const companyName = document.getElementById('company').value;
-    const signatoryName = document.getElementById('signatory').value;
+    btn.innerHTML='📧 ՈՒՂԱՐԿՎՈՒՄ Է...';
+    const customerEmail=document.getElementById('email').value;
+    const companyName=document.getElementById('company').value;
+    const signatoryName=document.getElementById('signatory').value;
 
-    const fdMain = new FormData();
-    fdMain.append('contract_file', pdfFile);
-    fdMain.append('contract_number', contractNumber);
-    fdMain.append('contract_type', currentType);
-    fdMain.append('language', currentLang);
-    fdMain.append('company', companyName);
-    fdMain.append('taxId', document.getElementById('taxId').value);
-    fdMain.append('address', document.getElementById('address').value);
-    fdMain.append('signatory', signatoryName);
-    fdMain.append('position', document.getElementById('position').value);
-    fdMain.append('date', document.getElementById('signDate').value);
-    fdMain.append('customer_email', customerEmail);
-    fdMain.append('phone', document.getElementById('phone').value);
-    if (cloudinaryUrl) fdMain.append('cloudinary_pdf_url', cloudinaryUrl);
-    if (signatureDataUrl) {
-      const sigBlob = await (await fetch(signatureDataUrl)).blob();
-      fdMain.append('signature_image', sigBlob, 'signature.png');
-    }
-    if (stampDataUrl) {
-      const stampBlob = await (await fetch(stampDataUrl)).blob();
-      fdMain.append('stamp_image', stampBlob, 'stamp.png');
-    }
+    // 1. SEND TO YOU (with PDF if < 5MB)
+    const fdMain=new FormData();
+    fdMain.append('contract_number',contractNumber);
+    fdMain.append('contract_type',currentType);
+    fdMain.append('language',currentLang);
+    fdMain.append('company',companyName);
+    fdMain.append('taxId',document.getElementById('taxId').value);
+    fdMain.append('address',document.getElementById('address').value);
+    fdMain.append('signatory',signatoryName);
+    fdMain.append('position',document.getElementById('position').value);
+    fdMain.append('date',document.getElementById('signDate').value);
+    fdMain.append('customer_email',customerEmail);
+    fdMain.append('phone',document.getElementById('phone').value);
+    if(cloudinaryUrl) fdMain.append('cloudinary_pdf_url',cloudinaryUrl);
+    if(pdfFile.size<5*1024*1024) fdMain.append('contract_file',pdfFile);
+    await fetch(FORMSPREE_MAIN,{method:'POST',body:fdMain,headers:{'Accept':'application/json'}});
 
-    const responseMain = await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
-
+    // 2. SEND TO CLIENT (only Cloudinary link, no attachment)
     try {
-      const fdClient = new FormData();
-      fdClient.append('contract_file', pdfFile);
-      fdClient.append('contract_number', contractNumber);
-      fdClient.append('contract_type', currentType);
-      fdClient.append('company', companyName);
-      fdClient.append('message', `Հարգելի ${signatoryName},\n\nՁեր ստորագրված պայմանագիրը (№ ${contractNumber}) «Ջի Էլ Լոգիստիկս» ՍՊԸ-ի հետ կցվում է:\n\nՀարգանքներով՝\nGL Logistics LLC`);
-      fdClient.append('_replyto', customerEmail);
-      fdClient.append('_subject', `GL Logistics — Signed Contract ${contractNumber}`);
-      await fetch(FORMSPREE_CLIENT_COPY, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+      const fdClient=new FormData();
+      fdClient.append('contract_number',contractNumber);
+      fdClient.append('contract_type',currentType);
+      fdClient.append('company',companyName);
+      fdClient.append('message',`Հարգելի ${signatoryName},\n\nՁեր ստորագրված պայմանագիրը (№ ${contractNumber}) «Ջի Էլ Լոգիստիկս» ՍՊԸ-ի հետ պատրաստ է:\n\n${cloudinaryUrl?'Ներբեռնեք այստեղ՝ '+cloudinaryUrl:'Շուտով կուղարկենք PDF տարբերակը:'}\n\nՀարգանքներով՝\nGL Logistics LLC\n📞 +374 93 66 14 54`);
+      fdClient.append('_replyto',customerEmail);
+      fdClient.append('_subject',`GL Logistics — Signed Contract ${contractNumber}`);
+      await fetch(FORMSPREE_CLIENT_COPY,{method:'POST',body:fdClient,headers:{'Accept':'application/json'}});
       console.log('✅ Client copy sent');
-    } catch (clientErr) {
-      console.warn('Client copy failed:', clientErr);
-    }
+    }catch(ce){console.warn('Client copy failed:',ce);}
 
-    if (responseMain.ok) {
-      document.getElementById('contractForm').style.display = 'none';
-      document.getElementById('successMsg').style.display = 'block';
-    }
-  } catch (err) {
+    document.getElementById('contractForm').style.display='none';
+    document.getElementById('successMsg').style.display='block';
+  }catch(err){
     console.error(err);
     alert('⚠️ Սխալ: Խնդրում ենք փորձել կրկին:');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = uiLabels[currentLang]?.submit_btn || 'ՍՏՈՐԱԳՐԵԼ';
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=uiLabels[currentLang]?.submit_btn||'ՍՏՈՐԱԳՐԵԼ';
   }
 });
 
 updateUILabels();
-contractNumber = generateContractNumber();
-document.getElementById('contractNumberDisplay').textContent = contractNumber;
+contractNumber=generateContractNumber();
+document.getElementById('contractNumberDisplay').textContent=contractNumber;
 renderContract();
 </script>
 </body>
