@@ -120,10 +120,20 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  if (!sig && !st) return '<div style="border-bottom:1px solid #2A5E66;margin-top:2rem;"></div>';
-  var html = '<div class="stamp-sign-row">';
-  if (sig) html += '<img src="' + sig + '" class="sig-img-display" alt="signature">';
-  if (st)  html += '<div class="stamp-box"><img src="' + st + '" alt="stamp"></div>';
+  // All inline styles — avoids CSS-class issues inside innerHTML
+  var html = '<div style="position:relative;min-height:140px;margin-top:6px;">';
+  if (sig) {
+    html += '<img src="' + sig + '" alt="signature" style="'
+          + 'display:block;max-width:220px;max-height:85px;'
+          + 'object-fit:contain;margin-bottom:4px;">';
+  }
+  html += '<div style="border-bottom:1px solid #2A5E66;width:100%;margin-bottom:3px;"></div>';
+  if (st) {
+    html += '<img src="' + st + '" alt="stamp" style="'
+          + 'position:absolute;top:-10px;right:5px;'
+          + 'width:190px;height:190px;object-fit:contain;'
+          + 'opacity:0.8;transform:rotate(-13deg);">';
+  }
   html += '</div>';
   return html;
 }
@@ -609,49 +619,64 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       }
     } catch (_) { /* silent — local download already happened */ }
 
-    // ── 4. Send to GL internal inbox (Formspree main) ─────────────────────────
+    // ── 4. Send to GL internal inbox (Formspree main → info@gllogistics.org) ──
     try {
-      const fdMain = new FormData();
-      fdMain.append('contract_number',   contractNumber);
-      fdMain.append('contract_type',     currentType);
-      fdMain.append('language',          currentLang);
-      fdMain.append('company',           companyName);
-      fdMain.append('signatory',         signatoryName);
-      fdMain.append('customer_email',    customerEmail);
-      fdMain.append('cloudinary_pdf_url', cloudinaryUrl || '(locally downloaded by client)');
-      fdMain.append('message',
-        'New signed contract №' + contractNumber + '\n' +
-        'Company: ' + companyName + '\n' +
-        'Signatory: ' + signatoryName + '\n' +
-        'Email: ' + customerEmail + '\n' +
-        (cloudinaryUrl ? 'PDF: ' + cloudinaryUrl : 'PDF: client downloaded locally')
-      );
-      // attach PDF directly if Cloudinary failed
-      if (!cloudinaryUrl) {
-        fdMain.append('attachment', new File([pdfBlob], fileName, { type: 'application/pdf' }));
-      }
-      await fetch(FORMSPREE_MAIN, { method: 'POST', body: fdMain, headers: { 'Accept': 'application/json' } });
+      const glBody = {
+        _subject:        'GL Logistics — New Contract ' + contractNumber,
+        contract_number: contractNumber,
+        contract_type:   currentType,
+        language:        currentLang,
+        company:         companyName,
+        signatory:       signatoryName,
+        customer_email:  customerEmail,
+        pdf_link:        cloudinaryUrl || '(client downloaded locally)',
+        message: [
+          'New signed contract №' + contractNumber,
+          'Company:   ' + companyName,
+          'Signatory: ' + signatoryName,
+          'Email:     ' + customerEmail,
+          'PDF:       ' + (cloudinaryUrl || 'client downloaded locally')
+        ].join('\n')
+      };
+      await fetch(FORMSPREE_MAIN, {
+        method: 'POST',
+        body:    JSON.stringify(glBody),
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+      });
     } catch (_) {}
 
-    // ── 5. Send confirmation email to client ──────────────────────────────────
+    // ── 5. Send confirmation email to client (Formspree auto-response) ────────
     try {
-      const fdClient = new FormData();
-      fdClient.append('email',            customerEmail);
-      fdClient.append('contract_number',  contractNumber);
-      fdClient.append('company',          companyName);
-      fdClient.append('_subject',         'GL Logistics — Signed Contract ' + contractNumber);
-      fdClient.append('message',
-        'Dear ' + signatoryName + ',\n\n' +
-        'Your signed contract (No. ' + contractNumber + ') has been successfully submitted.\n\n' +
-        (cloudinaryUrl
-          ? 'Download PDF: ' + cloudinaryUrl
-          : 'Your PDF was automatically downloaded to your device.') +
-        '\n\nBest regards,\nGL Logistics LLC\n📞 +374 93 66 14 54\n🌐 gl-logistics.am'
-      );
-      if (!cloudinaryUrl) {
-        fdClient.append('attachment', new File([pdfBlob], fileName, { type: 'application/pdf' }));
-      }
-      await fetch(FORMSPREE_CLIENT, { method: 'POST', body: fdClient, headers: { 'Accept': 'application/json' } });
+      const clientBody = {
+        // "email" field triggers Formspree auto-response to this address
+        email:           customerEmail,
+        _replyto:        'info@gllogistics.org',
+        _subject:        'GL Logistics — Your Contract ' + contractNumber + ' is signed',
+        contract_number: contractNumber,
+        company:         companyName,
+        signatory:       signatoryName,
+        message: [
+          'Dear ' + signatoryName + ',',
+          '',
+          'Your contract No. ' + contractNumber + ' has been successfully signed and submitted to GL Logistics.',
+          '',
+          cloudinaryUrl ? 'Download your PDF here: ' + cloudinaryUrl
+                        : 'Your PDF was automatically downloaded to your device.',
+          '',
+          'Thank you for choosing GL Logistics!',
+          '',
+          'Best regards,',
+          'GL Logistics LLC',
+          '📞 +374 93 66 14 54',
+          '🌐 gl-logistics.am',
+          '✉️  info@gllogistics.org'
+        ].join('\n')
+      };
+      await fetch(FORMSPREE_CLIENT, {
+        method: 'POST',
+        body:    JSON.stringify(clientBody),
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+      });
     } catch (_) {}
 
     // ── 6. Show success ───────────────────────────────────────────────────────
