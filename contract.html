@@ -120,20 +120,28 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  // All inline styles — avoids CSS-class issues inside innerHTML
-  var html = '<div style="position:relative;min-height:140px;margin-top:6px;">';
+  // Signature left, stamp right — side by side, nothing overlaps
+  var html = '<div style="display:flex;align-items:flex-end;gap:12px;margin-top:6px;">';
+
+  // Left: signature above the line
+  html += '<div style="flex:1;min-width:0;">';
   if (sig) {
     html += '<img src="' + sig + '" alt="signature" style="'
-          + 'display:block;max-width:220px;max-height:85px;'
+          + 'display:block;max-width:200px;max-height:80px;'
           + 'object-fit:contain;margin-bottom:4px;">';
   }
-  html += '<div style="border-bottom:1px solid #2A5E66;width:100%;margin-bottom:3px;"></div>';
+  html += '<div style="border-bottom:1px solid #2A5E66;width:100%;"></div>';
+  html += '</div>';
+
+  // Right: stamp — separate block, does NOT overlap signature
   if (st) {
+    html += '<div style="flex-shrink:0;width:160px;height:160px;">';
     html += '<img src="' + st + '" alt="stamp" style="'
-          + 'position:absolute;top:-10px;right:5px;'
-          + 'width:190px;height:190px;object-fit:contain;'
-          + 'opacity:0.8;transform:rotate(-13deg);">';
+          + 'width:100%;height:100%;object-fit:contain;'
+          + 'opacity:0.82;transform:rotate(-13deg);display:block;">';
+    html += '</div>';
   }
+
   html += '</div>';
   return html;
 }
