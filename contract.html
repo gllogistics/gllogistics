@@ -677,7 +677,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   btn.disabled = true;
   btn.innerHTML = '⏳ ՍՏԵՂԾՎՈՒՄ Է PDF...';
   try {
-    const canvasEl = await html2canvas(previewDiv, { scale: 2, useCORS: true, backgroundColor: '#FFFFFF' });
+    const canvasEl = await html2canvas(previewDiv, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgData = canvasEl.toDataURL('image/png');
