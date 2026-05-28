@@ -166,7 +166,6 @@ const CLOUDINARY_UPLOAD_PRESET='gl_contracts';
 const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
 const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
-// ── sigStamp helper ───────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
   var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
   if (st) {
@@ -180,7 +179,6 @@ function sigStamp(sig, st) {
   return h;
 }
 
-// ── haytTable: builds the 13-row application table ───────────────────────────
 function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
   var rows = [
     ['1',
@@ -244,7 +242,6 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
   return html;
 }
 
-// ── Full templates ────────────────────────────────────────────────────────────
 var templates = {
   customer: {
     am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
@@ -258,9 +255,7 @@ var templates = {
         + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
-        + '</div>'
+        // нижнюю повторяющуюся строку удалили
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Պատվիրատու</strong><br>'
         + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
@@ -289,9 +284,6 @@ var templates = {
         + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
-        + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Заказчик</strong><br>'
         + 'Банк: «'+(bk||'_________________')+'» ЗАО<br>'
@@ -320,9 +312,6 @@ var templates = {
         + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
-        + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Customer</strong><br>'
         + 'Bank: «'+(bk||'_________________')+'» OJSC<br>'
@@ -353,9 +342,7 @@ var templates = {
         + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
-        + '</div>'
+        // нижнюю повторяющуюся строку удалили
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Տրանսպորտային առաքող</strong><br>'
         + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
@@ -384,9 +371,6 @@ var templates = {
         + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
-        + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Экспедитор</strong><br>'
         + 'Банк: «'+(bk||'_________________')+'» ЗАО<br>'
@@ -415,9 +399,6 @@ var templates = {
         + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
-        + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
-        + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Freight Forwarder</strong><br>'
         + 'Bank: «'+(bk||'_________________')+'» OJSC<br>'
@@ -438,14 +419,12 @@ var templates = {
   }
 };
 
-// ── i18n ──────────────────────────────────────────────────────────────────────
 var uiLabels = {
   am:{brand_title:'Ջի Էլ Լոգիստիկս • ՀԱՅՏ',btn_customer:'👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ',btn_carrier:'🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ',form_title:'📋 ԼՐԱՑՆԵԼ ՀԱՅՏԸ',s_company:'🏢 ԸՆԿԵՐՈՒԹՅՈՒՆ',company_label:'ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *',tax_label:'ՀՎՀՀ',address_label:'ԳՐԱՆՑՄԱՆ ՀԱՍՑԵ',signatory_label:'ՍՏՈՐԱԳՐՈՂ *',position_label:'ՊԱՇՏՈՆ',date_label:'ԱՄՍԱԹԻՎ *',bank_label:'ԲԱՆԿ',acc_label:'Հ/Հ',email_label:'ԷԼ. ՓՈՍՏ *',phone_label:'ՀԵՌԱԽՈՍ',s_cargo:'📦 ԲԵՌ ԵՎ ԵՐԹՈՒՂԻ',l_f1:'1. ԸՆԴՈՒՆՄԱՆ ՎԱՅՐԸ ԵՎ ԱՄՍԱԹԻՎԸ *',l_f2:'2. ՆՇԱՆԱԿՄԱՆ ՎԱՅՐԸ',l_f3:'3. ԲԵՌԻ ՆԿԱՐԱԳԻՐԸ',l_f4:'4. ՍՏԱՑՈՂԻ ԱՆՈՒՆԸ ԵՎ ՀԱՍՑԵՆ',s_transport:'🚛 ՏՐԱՆՍՊՈՐՏ',l_f5:'5. ՏՐԱՆՍՊ. ՄԻՋՈՑՆԵՐ',l_f6:'6. ԲԵՌՆՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f7:'7. ՆԱԽԱՊԱՏՐԱՍՏՈՒՄ',l_f9:'9. ՄԱՔՍԱՅԻՆ ՀՐԱՀԱՆԳՆԵՐ',l_f10:'10. ԵՐԹՈՒՂԻ',s_rate:'💰 ԳԻՆ',l_f11:'11. ԳԻՆ ԵՎ ՎՃԱՐՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f12:'12. ԱՌԱՔՄԱՆ ԺԱՄԿԵՏ',l_f13:'13. ԼՐԱՑՈՒՄՆԵՐ',s_sign:'✍️ ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ ԵՎ ԿՆԻՔ',upload_stamp:'ԿՆԻՔ',upload_signature:'ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ',clear_btn:'Մաքրել',agree_text:'Հաստատում եմ հայտի ճշտությունը և ընդունում պայմանները։',submit_btn:'📤 ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ',success_title:'Հայտը հաջողությամբ ուղարկված է։',success_msg:'PDF-ը ուղարկվել է Ձեր էլ. փոստին։'},
   ru:{brand_title:'Джи Эл Логистикс • ЗАЯВКА',btn_customer:'👤 ЗАКАЗЧИК → ДЖИ ЭЛ',btn_carrier:'🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК',form_title:'📋 ЗАПОЛНИТЬ ЗАЯВКУ',s_company:'🏢 КОМПАНИЯ',company_label:'КОМПАНИЯ *',tax_label:'ИНН',address_label:'ЮР. АДРЕС',signatory_label:'ФИО ПОДПИСАНТА *',position_label:'ДОЛЖНОСТЬ',date_label:'ДАТА *',bank_label:'БАНК',acc_label:'Р/С',email_label:'EMAIL *',phone_label:'ТЕЛЕФОН',s_cargo:'📦 ГРУЗ И МАРШРУТ',l_f1:'1. МЕСТО И ДАТА ПРИЁМА ГРУЗА *',l_f2:'2. МЕСТО НАЗНАЧЕНИЯ',l_f3:'3. ОПИСАНИЕ ГРУЗА',l_f4:'4. ИМЯ И АДРЕС ПОЛУЧАТЕЛЯ',s_transport:'🚛 ТРАНСПОРТ',l_f5:'5. ТИП И КОЛ-ВО ТС',l_f6:'6. УСЛОВИЯ ПОГРУЗКИ/РАЗГРУЗКИ',l_f7:'7. ПОДГОТОВКА ГРУЗА',l_f9:'9. ТАМОЖЕННЫЕ ИНСТРУКЦИИ',l_f10:'10. МАРШРУТ',s_rate:'💰 ЦЕНА И ОПЛАТА',l_f11:'11. ЦЕНА И УСЛОВИЯ ОПЛАТЫ',l_f12:'12. МАКС. СРОК ДОСТАВКИ',l_f13:'13. ДОПОЛНЕНИЯ',s_sign:'✍️ ПОДПИСЬ И ПЕЧАТЬ',upload_stamp:'ПЕЧАТЬ',upload_signature:'ПОДПИСЬ',clear_btn:'Очистить',agree_text:'Подтверждаю заявку и принимаю её условия.',submit_btn:'📤 ПОДПИСАТЬ И ОТПРАВИТЬ',success_title:'Заявка успешно отправлена!',success_msg:'PDF отправлен на ваш email.'},
   en:{brand_title:'GL Logistics • APPLICATION',btn_customer:'👤 CUSTOMER → GL',btn_carrier:'🚛 GL → CARRIER',form_title:'📋 FILL APPLICATION',s_company:'🏢 COMPANY',company_label:'COMPANY *',tax_label:'TAX ID',address_label:'LEGAL ADDRESS',signatory_label:'SIGNATORY *',position_label:'POSITION',date_label:'DATE *',bank_label:'BANK',acc_label:'ACCOUNT NO.',email_label:'EMAIL *',phone_label:'PHONE',s_cargo:'📦 CARGO & ROUTE',l_f1:'1. PICKUP LOCATION & DATE *',l_f2:'2. DELIVERY DESTINATION',l_f3:'3. CARGO DESCRIPTION',l_f4:'4. RECIPIENT NAME & ADDRESS',s_transport:'🚛 TRANSPORT',l_f5:'5. VEHICLE TYPE & QTY',l_f6:'6. LOADING/UNLOADING CONDITIONS',l_f7:'7. CARGO PREPARATION',l_f9:'9. CUSTOMS INSTRUCTIONS',l_f10:'10. ROUTE',s_rate:'💰 PRICE & PAYMENT',l_f11:'11. PRICE & PAYMENT TERMS',l_f12:'12. MAX. DELIVERY TIME',l_f13:'13. ADDITIONAL CONDITIONS',s_sign:'✍️ SIGNATURE & STAMP',upload_stamp:'STAMP',upload_signature:'SIGNATURE',clear_btn:'Clear',agree_text:'I confirm the accuracy of this application and accept its terms.',submit_btn:'📤 SIGN & SEND',success_title:'Application sent successfully!',success_msg:'PDF was sent to your email.'}
 };
 
-// ── State ─────────────────────────────────────────────────────────────────────
 var currentLang='am', currentType='customer';
 var stampDataUrl=null, signatureDataUrl=null, contractNumber='', signaturePad;
 
@@ -457,7 +436,6 @@ function generateContractNumber() {
   return p+'-'+y+'-'+r;
 }
 
-// ── Signature pad ─────────────────────────────────────────────────────────────
 function captureSignature() {
   if (signaturePad && !signaturePad.isEmpty()) {
     signatureDataUrl = signaturePad.toDataURL('image/png');
@@ -484,17 +462,14 @@ document.getElementById('clearSignature').addEventListener('click', function() {
   document.getElementById('signaturePreview').style.display='none'; renderContract();
 });
 
-// ── Stamp upload ──────────────────────────────────────────────────────────────
 document.getElementById('stampTrigger').addEventListener('click', function(){document.getElementById('stampInput').click();});
 document.getElementById('stampInput').addEventListener('change', function(e) {
   var f=e.target.files[0]; if(!f)return;
   var r=new FileReader(); r.onload=function(ev){stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';renderContract();}; r.readAsDataURL(f);
 });
 
-// ── Helper: get field value ───────────────────────────────────────────────────
 function fv(id, def) { var el=document.getElementById(id); return (el&&el.value.trim())?el.value.trim():(def||''); }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function renderContract() {
   var c=fv('company','[COMPANY]'), t=fv('taxId','________'), a=fv('address','________');
   var s=fv('signatory','[NAME]'), p=fv('position',''), d=fv('signDate',new Date().toISOString().slice(0,10));
@@ -509,7 +484,6 @@ function renderContract() {
   previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN);
 }
 
-// ── Bind all inputs ───────────────────────────────────────────────────────────
 ['haytNum','contractNum','company','taxId','address','signatory','position','signDate','bankName','bankAcc',
  'email','phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'
 ].forEach(function(id){
@@ -535,7 +509,6 @@ function updateUILabels(){
   document.querySelectorAll('[data-i18n]').forEach(function(e){var k=e.dataset.i18n;if(t[k])e.innerHTML=t[k];});
 }
 
-// ── PDF ───────────────────────────────────────────────────────────────────────
 async function makePdf() {
   var cv = await html2canvas(previewDiv,{scale:2,useCORS:true,backgroundColor:'#FFFEF8',logging:false});
   var {jsPDF}=window.jspdf, pdf=new jsPDF('p','mm','a4');
@@ -555,7 +528,6 @@ document.getElementById('dlBtn').addEventListener('click', async function(){
   b.disabled=false; b.textContent='⬇ PDF';
 });
 
-// ── Submit ────────────────────────────────────────────────────────────────────
 document.getElementById('contractForm').addEventListener('submit', async function(e){
   e.preventDefault();
   if(!document.getElementById('agree').checked){alert(uiLabels[currentLang]?.agree_text);return;}
@@ -565,17 +537,14 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   var fname='Application_'+contractNumber+'.pdf';
   try {
     var pdf=await makePdf(), blob=pdf.output('blob');
-    // Local download (guaranteed)
     var url=URL.createObjectURL(blob), a=document.createElement('a');
     a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){URL.revokeObjectURL(url);},5000);
     btn.textContent='📤 Uploading...';
-    // Cloudinary (optional)
     var pdfUrl='';
     try{var cf=new FormData();cf.append('file',new File([blob],fname,{type:'application/pdf'}));cf.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
       var cr=await fetch(CLOUDINARY_URL,{method:'POST',body:cf});if(cr.ok){var cd=await cr.json();if(cd.secure_url)pdfUrl=cd.secure_url;}}catch(_){}
     btn.textContent='📧 Sending...';
-    // GL inbox
     await fetch(FORMSPREE_MAIN,{method:'POST',body:JSON.stringify({
       _subject:'New Application '+contractNumber, app_number:contractNumber, type:currentType, lang:currentLang,
       company:company, signatory:signatory, email:email,
@@ -583,7 +552,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       pdf_link:pdfUrl||'(downloaded locally)',
       message:'Application #'+contractNumber+'\nCompany: '+company+'\nSignatory: '+signatory+'\nEmail: '+email+'\nPickup: '+fv('f1')+'\nDelivery: '+fv('f2')+'\nPDF: '+(pdfUrl||'locally downloaded')
     }),headers:{'Accept':'application/json','Content-Type':'application/json'}});
-    // Client confirmation
     await fetch(FORMSPREE_CLIENT,{method:'POST',body:JSON.stringify({
       email:email, _replyto:'info@gllogistics.org', _subject:'GL Logistics — Application '+contractNumber,
       message:'Dear '+signatory+',\n\nYour application #'+contractNumber+' has been submitted to GL Logistics LLC.\n\nPickup: '+fv('f1')+'\nDelivery: '+fv('f2')+'\nCargo: '+fv('f3')+'\n\n'+(pdfUrl?'Download PDF: '+pdfUrl:'PDF downloaded locally.')+'\n\nGL Logistics LLC\n+374 93 66 14 54\ninfo@gllogistics.org'
@@ -594,7 +562,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   finally{btn.disabled=false; btn.textContent=uiLabels[currentLang]?.submit_btn||'SUBMIT';}
 });
 
-// ── Init ──────────────────────────────────────────────────────────────────────
 contractNumber = generateContractNumber();
 document.getElementById('contractNumberDisplay').textContent = contractNumber;
 document.getElementById('signDate').valueAsDate = new Date();
