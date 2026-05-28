@@ -62,6 +62,8 @@
     .success-msg h3 { color: #55B7BD; margin-bottom: 0.5rem; }
     .legal-note { font-size: 0.65rem; text-align: center; margin-top: 0.8rem; color: #9FCBD0; }
     .sep { border: none; border-top: 1px solid #ccc; margin: 0.5rem 0; }
+    /* Футер справа в самом низу */
+    .doc-footer { position: absolute; bottom: 2px; right: 10px; font-size: 7px; color: #4a7a80; text-align: right; opacity: 0.8; pointer-events: none; z-index: 2; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -86,6 +88,8 @@
     <div class="form-panel">
       <h2 data-i18n="form_title">📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ</h2>
       <form id="contractForm">
+        <!-- НОМЕР ДОГОВОРА ВРУЧНУЮ -->
+        <div class="input-group"><label data-i18n="contract_number_label">ՊԱՅՄԱՆԱԳՐԻ ՀԱՄԱՐ (ԹԻՎ)</label><input type="text" id="contractNumberInput" placeholder="GL-C-2026-XXXX"></div>
         <div class="input-group"><label data-i18n="company_label">ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *</label><input type="text" id="company" placeholder="ՍՊԸ 'Անվանում'" required></div>
         <div class="input-group"><label data-i18n="tax_label">ՀՎՀՀ</label><input type="text" id="taxId" placeholder="ՀՎՀՀ համար"></div>
         <div class="input-group"><label data-i18n="address_label">ՀԱՍՑԵ</label><input type="text" id="address" placeholder="Քաղաք, Փողոց, Շենք"></div>
@@ -122,11 +126,8 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  // Row: [signature block] [stamp block] — never overlapping
   var row = 'display:table;width:100%;border-collapse:separate;border-spacing:10px 0;margin-top:8px;';
   var html = '<div style="' + row + '">';
-
-  // Left cell: signature image + underline
   html += '<div style="display:table-cell;vertical-align:bottom;width:60%;">';
   if (sig) {
     html += '<img src="' + sig + '" alt="signature" '
@@ -135,8 +136,6 @@ function sigStamp(sig, st) {
   }
   html += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
   html += '</div>';
-
-  // Right cell: stamp (only if provided)
   if (st) {
     html += '<div style="display:table-cell;vertical-align:middle;width:40%;text-align:center;">';
     html += '<img src="' + st + '" alt="stamp" '
@@ -144,12 +143,21 @@ function sigStamp(sig, st) {
           + 'opacity:0.82;transform:rotate(-12deg);display:inline-block;">';
     html += '</div>';
   }
-
   html += '</div>';
   return html;
 }
 
-// ── shared body sections (identical text for customer & carrier per language) ─
+// Водяной знак
+function watermark() {
+  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.12; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
+}
+
+// Футер — одна строка в самом низу справа
+function docFooter() {
+  return '<div class="doc-footer">GL Logistics LLC &nbsp;|&nbsp; VAT: 00521217 &nbsp;|&nbsp; www.gllogistics.org &nbsp;|&nbsp; +374 93 66 14 54</div>';
+}
+
+// ── shared body sections ──────────────────────────────────────────────────────
 function bodyAM() {
   return `
 <h3>1. ՊԱՅՄԱՆԱԳՐԻ ԱՌԱՐԿԱՆ</h3>
@@ -330,9 +338,6 @@ function bodyEN() {
 // ── CONTRACT GENERATORS ───────────────────────────────────────────────────────
 const contracts = {
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // CUSTOMER → GL
-  // ════════════════════════════════════════════════════════════════════════════
   customer: {
 
     am: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
@@ -420,9 +425,6 @@ const contracts = {
       </div>`
   },
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // GL → CARRIER
-  // ════════════════════════════════════════════════════════════════════════════
   carrier: {
 
     am: (c,t,a,s,p,d,n,sig,st,bk,ba) => `
@@ -512,13 +514,11 @@ const contracts = {
 };
 
 // ── UI labels ─────────────────────────────────────────────────────────────────
-const uiLabels={am:{brand_title:"Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ",btn_customer:"👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ",btn_carrier:"🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ",form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ",company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *",tax_label:"ՀՎՀՀ",address_label:"ՀԱՍՑԵ",signatory_label:"ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *",position_label:"ՊԱՇՏՈՆ",date_label:"ԱՄՍԱԹԻՎ *",email_label:"ԷԼ. ՓՈՍՏ *",phone_label:"ՀԵՌԱԽՈՍ",upload_stamp:"ԿՆԻՔ",upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ",agree_text:"Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:",submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ",success_title:"Պայմանագիրը հաջողությամբ ստորագրված է:",success_msg:"PDF հղումը ուղարկվել է Ձեր էլ. փոստին:"},ru:{brand_title:"Джи Эл Логистикс • Подписание контракта",btn_customer:"👤 ЗАКАЗЧИК → ДЖИ ЭЛ",btn_carrier:"🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК",form_title:"📄 ПОДПИСАТЬ ДОГОВОР",company_label:"КОМПАНИЯ *",tax_label:"ИНН",address_label:"АДРЕС",signatory_label:"ФИО ПОДПИСАНТА *",position_label:"ДОЛЖНОСТЬ",date_label:"ДАТА *",email_label:"EMAIL *",phone_label:"ТЕЛЕФОН",upload_stamp:"ПЕЧАТЬ",upload_signature:"ПОДПИСЬ",agree_text:"Принимаю условия договора.",submit_btn:"✍️ ПОДПИСАТЬ И ОТПРАВИТЬ",success_title:"Договор подписан!",success_msg:"Ссылка на PDF отправлена на ваш email."},en:{brand_title:"GL Logistics • Contract Signing",btn_customer:"👤 CUSTOMER → GL",btn_carrier:"🚛 GL → CARRIER",form_title:"📄 SIGN CONTRACT",company_label:"COMPANY NAME *",tax_label:"TAX ID / VAT",address_label:"LEGAL ADDRESS",signatory_label:"SIGNATORY FULL NAME *",position_label:"POSITION",date_label:"DATE *",email_label:"EMAIL *",phone_label:"PHONE",upload_stamp:"COMPANY STAMP",upload_signature:"DRAW SIGNATURE",agree_text:"I accept all terms of this Agreement.",submit_btn:"✍️ SIGN & SUBMIT",success_title:"Contract Signed!",success_msg:"PDF link sent to your email."}};
+const uiLabels={am:{contract_number_label:"ՊԱՅՄԱՆԱԳՐԻ ՀԱՄԱՐ (ԹԻՎ)",brand_title:"Ջի Էլ Լոգիստիկս • ՊԱՅՄԱՆԱԳՐԻ ՍՏՈՐԱԳՐՈՒՄ",btn_customer:"👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ",btn_carrier:"🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ",form_title:"📄 ՍՏՈՐԱԳՐԵԼ ՊԱՅՄԱՆԱԳԻՐԸ",company_label:"ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *",tax_label:"ՀՎՀՀ",address_label:"ՀԱՍՑԵ",signatory_label:"ՍՏՈՐԱԳՐՈՂԻ ԱՆՈՒՆ *",position_label:"ՊԱՇՏՈՆ",date_label:"ԱՄՍԱԹԻՎ *",email_label:"ԷԼ. ՓՈՍՏ *",phone_label:"ՀԵՌԱԽՈՍ",upload_stamp:"ԿՆԻՔ",upload_signature:"ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ",agree_text:"Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:",submit_btn:"✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ",success_title:"Պայմանագիրը հաջողությամբ ստորագրված է:",success_msg:"PDF հղումը ուղարկվել է Ձեր էլ. փոստին:"},ru:{contract_number_label:"НОМЕР ДОГОВОРА",brand_title:"Джи Эл Логистикс • Подписание контракта",btn_customer:"👤 ЗАКАЗЧИК → ДЖИ ЭЛ",btn_carrier:"🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК",form_title:"📄 ПОДПИСАТЬ ДОГОВОР",company_label:"КОМПАНИЯ *",tax_label:"ИНН",address_label:"АДРЕС",signatory_label:"ФИО ПОДПИСАНТА *",position_label:"ДОЛЖНОСТЬ",date_label:"ДАТА *",email_label:"EMAIL *",phone_label:"ТЕЛЕФОН",upload_stamp:"ПЕЧАТЬ",upload_signature:"ПОДПИСЬ",agree_text:"Принимаю условия договора.",submit_btn:"✍️ ПОДПИСАТЬ И ОТПРАВИТЬ",success_title:"Договор подписан!",success_msg:"Ссылка на PDF отправлена на ваш email."},en:{contract_number_label:"CONTRACT NUMBER",brand_title:"GL Logistics • Contract Signing",btn_customer:"👤 CUSTOMER → GL",btn_carrier:"🚛 GL → CARRIER",form_title:"📄 SIGN CONTRACT",company_label:"COMPANY NAME *",tax_label:"TAX ID / VAT",address_label:"LEGAL ADDRESS",signatory_label:"SIGNATORY FULL NAME *",position_label:"POSITION",date_label:"DATE *",email_label:"EMAIL *",phone_label:"PHONE",upload_stamp:"COMPANY STAMP",upload_signature:"DRAW SIGNATURE",agree_text:"I accept all terms of this Agreement.",submit_btn:"✍️ SIGN & SUBMIT",success_title:"Contract Signed!",success_msg:"PDF link sent to your email."}};
 
 // ── State & core logic ────────────────────────────────────────────────────────
-let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUrl=null, contractNumber='', signaturePad;
+let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUrl=null, signaturePad;
 const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
-
-function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
 
 function captureSignature(){
   if(signaturePad && !signaturePad.isEmpty()){
@@ -554,16 +554,20 @@ function renderContract(){
         p=document.getElementById('position').value.trim()||'Տնօրեն',
         d=document.getElementById('signDate').value||new Date().toISOString().slice(0,10),
         bk=document.getElementById('bankName').value.trim()||'_______________',
-        ba=document.getElementById('bankAccount').value.trim()||'________________________';
-  if(!contractNumber) contractNumber=generateContractNumber();
+        ba=document.getElementById('bankAccount').value.trim()||'________________________',
+        // Номер из ручного поля
+        manualNumber=document.getElementById('contractNumberInput').value.trim();
+  const contractNumber = manualNumber || generateContractNumber();
   document.getElementById('contractNumberDisplay').textContent=contractNumber;
   const fn=contracts[currentType][currentLang];
-  previewDiv.innerHTML=fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
+  previewDiv.innerHTML=watermark() + docFooter() + fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
 }
+
+function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
 
 document.querySelectorAll('.type-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');currentType=b.dataset.type;contractNumber=generateContractNumber();renderContract();
+  b.classList.add('active');currentType=b.dataset.type;renderContract();
 }));
 document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.lang-btn').forEach(x=>x.classList.remove('active'));
@@ -572,7 +576,7 @@ document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=
 
 function updateUILabels(){const t=uiLabels[currentLang];if(!t)return;document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.dataset.i18n;if(t[k])e.innerHTML=t[k];});}
 
-['company','taxId','address','signatory','position','signDate','bankName','bankAccount'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
+['contractNumberInput','company','taxId','address','signatory','position','signDate','bankName','bankAccount'].forEach(id=>{document.getElementById(id)?.addEventListener('input',renderContract);});
 document.getElementById('signDate').valueAsDate=new Date();
 
 // ── Submit ────────────────────────────────────────────────────────────────────
@@ -587,10 +591,10 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   const customerEmail  = document.getElementById('email').value.trim();
   const companyName    = document.getElementById('company').value.trim();
   const signatoryName  = document.getElementById('signatory').value.trim();
+  const contractNumber = document.getElementById('contractNumberInput').value.trim() || generateContractNumber();
   const fileName       = 'contract_' + contractNumber + '.pdf';
 
   try {
-    // ── 1. Render canvas ──────────────────────────────────────────────────────
     const canvasEl = await html2canvas(previewDiv, {
       scale: 2, useCORS: true, backgroundColor: '#FFFFFF', logging: false
     });
@@ -603,7 +607,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     const imgRatio = canvasEl.height / canvasEl.width;
     const imgH = usableW * imgRatio;
 
-    // Multi-page support
     if (imgH <= pageH - margin * 2) {
       pdf.addImage(canvasEl.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, imgH);
     } else {
@@ -623,7 +626,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     const pdfBlob = pdf.output('blob');
 
-    // ── 2. Always download locally (guaranteed) ───────────────────────────────
+    // Local download
     const localUrl = URL.createObjectURL(pdfBlob);
     const dlLink = document.createElement('a');
     dlLink.href = localUrl; dlLink.download = fileName;
@@ -633,7 +636,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     btn.innerHTML = '📤 Ուղարկվում է...';
 
-    // ── 3. Try Cloudinary (optional — best effort) ────────────────────────────
     let cloudinaryUrl = '';
     try {
       const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -645,9 +647,8 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         const cd = await cr.json();
         if (cd.secure_url) cloudinaryUrl = cd.secure_url;
       }
-    } catch (_) { /* silent — local download already happened */ }
+    } catch (_) {}
 
-    // ── 4. Send to GL internal inbox (Formspree main → info@gllogistics.org) ──
     try {
       const glBody = {
         _subject:        'GL Logistics — New Contract ' + contractNumber,
@@ -673,10 +674,8 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       });
     } catch (_) {}
 
-    // ── 5. Send confirmation email to client (Formspree auto-response) ────────
     try {
       const clientBody = {
-        // "email" field triggers Formspree auto-response to this address
         email:           customerEmail,
         _replyto:        'info@gllogistics.org',
         _subject:        'GL Logistics — Your Contract ' + contractNumber + ' is signed',
@@ -707,7 +706,6 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       });
     } catch (_) {}
 
-    // ── 6. Show success ───────────────────────────────────────────────────────
     document.getElementById('contractForm').style.display = 'none';
     document.getElementById('successMsg').style.display  = 'block';
 
@@ -722,8 +720,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateUILabels();
-contractNumber = generateContractNumber();
-document.getElementById('contractNumberDisplay').textContent = contractNumber;
+document.getElementById('contractNumberDisplay').textContent = generateContractNumber();
 renderContract();
 </script>
 </body>
