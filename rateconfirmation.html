@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0B171C; font-family: 'Inter', sans-serif; padding: 2rem 1.5rem; color: #EDF4F6; min-height: 100vh; }
@@ -31,10 +30,6 @@
     .contract-preview { font-family: 'Times New Roman', 'Georgia', serif; font-size: 12px; line-height: 1.5; color: #1E2F33; position: relative; min-height: 600px; }
     .contract-preview h2 { font-size: 15px; font-weight: 800; text-align: center; margin-bottom: 0.4rem; color: #005f67; }
     .contract-preview .center { text-align: center; }
-    .contract-preview .parties-row { display: flex; justify-content: space-between; gap: 1rem; margin: 0.8rem 0; }
-    .contract-preview .party-col { width: 48%; }
-    .contract-preview .party-col p { margin-bottom: 0.15rem; }
-    .party-col .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
     .hayt-tbl { width: 100%; border-collapse: collapse; margin: 0.6rem 0 0.8rem; }
     .hayt-tbl td { border: 1px solid #4a9aa0; padding: 4px 7px; vertical-align: top; font-size: 11px; }
     .hayt-tbl td.num { width: 24px; text-align: center; font-weight: 700; color: #005f67; background: #f0fafa; }
@@ -50,22 +45,10 @@
     .input-group textarea { border-radius: 14px; resize: vertical; min-height: 60px; padding: 8px 14px; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
     .sec-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: #55B7BD; font-weight: 700; border-left: 3px solid #55B7BD; padding-left: 8px; margin: 0.9rem 0 0.5rem; }
-    .upload-row { display: flex; gap: 0.8rem; margin: 0.6rem 0; }
-    .stamp-upload, .signature-area { flex: 1; background: #0A1F25; border-radius: 18px; padding: 0.8rem; text-align: center; border: 1px dashed #55B7BD; cursor: pointer; font-size: 0.7rem; }
-    .signature-canvas-box { background: white; border-radius: 12px; overflow: hidden; margin: 0.4rem 0; }
-    #signatureCanvas { width: 100%; height: 80px; background: #fff; display: block; touch-action: none; cursor: crosshair; }
-    .sig-preview-img { max-width: 100px; max-height: 40px; object-fit: contain; display: none; margin-top: 5px; }
+    .stamp-upload { background: #0A1F25; border-radius: 18px; padding: 0.8rem; text-align: center; border: 1px dashed #55B7BD; cursor: pointer; font-size: 0.7rem; }
     .stamp-preview-img { max-width: 60px; max-height: 60px; object-fit: contain; display: none; margin-top: 5px; }
-    .checkbox-group { display: flex; gap: 10px; margin: 0.8rem 0; align-items: flex-start; }
-    .checkbox-group input { margin-top: 3px; accent-color: #55B7BD; transform: scale(1.2); }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.8rem; }
-    .btn-submit { background: linear-gradient(100deg, #55B7BD, #31838A); border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.07em; font-family: 'Plus Jakarta Sans', sans-serif; color: #0D1F23; cursor: pointer; transition: 0.2s; }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(85,183,189,0.6); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .btn-dl { background: #1E3B42; border: 1px solid #55B7BD; padding: 13px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; color: #55B7BD; cursor: pointer; transition: 0.2s; }
+    .btn-dl { width: 100%; background: #1E3B42; border: 1px solid #55B7BD; padding: 13px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; color: #55B7BD; cursor: pointer; transition: 0.2s; margin-top: 0.8rem; }
     .btn-dl:hover { background: #2a5060; }
-    .success-msg { background: #1A423F; border-radius: 24px; padding: 1.5rem; text-align: center; margin-top: 1rem; display: none; }
-    .success-msg h3 { color: #55B7BD; margin-bottom: 0.5rem; }
     .legal-note { font-size: 0.65rem; text-align: center; margin-top: 0.8rem; color: #9FCBD0; }
   </style>
 </head>
@@ -111,10 +94,7 @@
           <div class="input-group"><label data-i18n="bank_label">ԲԱՆԿ</label><input type="text" id="bankName"></div>
           <div class="input-group"><label data-i18n="acc_label">Հ/Հ · Р/С</label><input type="text" id="bankAcc"></div>
         </div>
-        <div class="two-col">
-          <div class="input-group"><label data-i18n="email_label">ԷԼ. ՓՈՍՏ *</label><input type="email" id="email" required></div>
-          <div class="input-group"><label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label><input type="tel" id="phone"></div>
-        </div>
+        <div class="input-group"><label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label><input type="tel" id="phone"></div>
 
         <div class="sec-label" data-i18n="s_cargo">📦 ԲԵՌ ԵՎ ԵՐԹՈՒՂԻ</div>
         <div class="input-group"><label data-i18n="l_f1">1. ԸՆԴՈՒՆՄԱՆ ՎԱՅՐԸ ԵՎ ԱՄՍԱԹԻՎԸ *</label><input type="text" id="f1" required></div>
@@ -138,42 +118,33 @@
         </div>
         <div class="input-group"><label data-i18n="l_f13">13. ԼՐԱՑՈՒՄՆԵՐ</label><textarea id="f13"></textarea></div>
 
-        <div class="sec-label" data-i18n="s_sign">✍️ ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ ԵՎ ԿՆԻՔ</div>
-        <div class="upload-row">
-          <div class="stamp-upload" id="stampTrigger">🔏 <span data-i18n="upload_stamp">ԿՆԻՔ</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
-          <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60;border:none;color:white;padding:4px 12px;border-radius:20px;margin-top:5px;cursor:pointer;font-size:0.7rem;" data-i18n="clear_btn">Մաքրել</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
+        <div class="sec-label" data-i18n="s_sign">🔏 ԿՆԻՔ</div>
+        <div class="stamp-upload" id="stampTrigger">
+          <span data-i18n="upload_stamp">ԿՆԻՔ</span>
+          <input type="file" id="stampInput" accept="image/*" style="display:none;">
+          <img id="stampPreview" class="stamp-preview-img" alt="stamp">
         </div>
-        <div class="checkbox-group"><input type="checkbox" id="agree" required><label for="agree" data-i18n="agree_text">Հաստատում եմ հայտի ճշտությունը և ընդունում պայմանները։</label></div>
-        <div class="btn-row">
-          <button type="button" class="btn-dl" id="dlBtn">⬇ PDF</button>
-          <button type="submit" class="btn-submit" data-i18n="submit_btn">📤 ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ</button>
-        </div>
+
+        <button type="button" class="btn-dl" id="dlBtn">⬇ Ներբեռնել PDF</button>
       </form>
-      <div class="success-msg" id="successMsg">
-        <span style="font-size:2.5rem;">✅</span>
-        <h3 data-i18n="success_title">Հայտը հաջողությամբ ուղարկված է։</h3>
-        <p data-i18n="success_msg">PDF-ը ուղարկվել է Ձեր էլ. փոստին։</p>
-        <p style="font-size:0.8rem;color:#B9DFE4;margin-top:10px;">№ <span id="contractNumberDisplay">---</span></p>
-      </div>
       <div class="legal-note">🔒 GL Logistics LLC · TIN 00521217 · info@gllogistics.org</div>
     </div>
   </div>
 </div>
 
 <script>
-const CLOUDINARY_URL='https://api.cloudinary.com/v1_1/drp98zkka/upload';
-const CLOUDINARY_UPLOAD_PRESET='gl_contracts';
-const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
-const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
+// Водяной знак
+function watermark() {
+  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.06; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
+}
 
-function sigStamp(sig, st) {
+// Печать (без подписи)
+function sigStamp(st) {
   var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
   if (st) {
     h += '<img src="'+st+'" alt="stamp" style="position:absolute;top:-10px;right:0;width:150px;height:150px;object-fit:contain;opacity:0.82;transform:rotate(-12deg);">';
   }
-  h += '<div style="padding-right:'+(st?'160px':'0px')+';padding-bottom:4px;">';
-  if (sig) h += '<img src="'+sig+'" alt="sig" style="display:block;max-width:190px;max-height:68px;object-fit:contain;margin-bottom:4px;">';
-  h += '</div>';
+  h += '<div style="padding-right:'+(st?'160px':'0px')+';padding-bottom:4px;"></div>';
   h += '<div style="height:1px;background:#2A5E66;width:'+(st?'calc(100% - 160px)':'100%')+';"></div>';
   h += '</div>';
   return h;
@@ -181,62 +152,22 @@ function sigStamp(sig, st) {
 
 function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
   var rows = [
-    ['1',
-      {am:'Բեռի ընդունման վայրը և ամսաթիվը', ru:'Место и дата приёма груза', en:'Pickup location and date'},
-      f1 || '___________________________________  __.__.202_'
-    ],
-    ['2',
-      {am:'Առաքման նշանակման վայրը', ru:'Место назначения', en:'Delivery destination'},
-      f2 || 'ՀՀ, ք. Երևան'
-    ],
-    ['3',
-      {am:'Բեռի նկարագիրը (անվանում, քանակ, ծավալ, փաթեթավորում, վտանգավորության դաս, ջերմաստիճանային ռեժիմ, այլ տվյալներ)', ru:'Описание груза — наименование, количество, объём, упаковка, опасность, температурный режим', en:'Cargo description — name, qty, volume, packaging, hazard class, temperature'},
-      f3 || '_______________________________'
-    ],
-    ['4',
-      {am:'Ստացողի անունը և հասցեն', ru:'Имя и адрес получателя', en:'Recipient name and address'},
-      f4 || '&nbsp;'
-    ],
-    ['5',
-      {am:'Տրանսպորտային միջոց(ներ)ի տեսակը, քանակը', ru:'Тип и количество транспортных средств', en:'Vehicle type and quantity'},
-      f5 || '<em>_______________________________________</em>'
-    ],
-    ['6',
-      {am:'Տրանսպորտային միջոցների տրամադրման, բեռնման ու բեռնաթափման աշխատանքների իրականացման պայմաններ', ru:'Условия предоставления ТС, погрузки и разгрузки', en:'Loading/unloading conditions'},
-      f6 || '<em>__________________</em>'
-    ],
-    ['7',
-      {am:'Բեռը տրանսպորտային փոխադրման նախապատրաստելու պայմաններ', ru:'Условия подготовки груза к перевозке', en:'Cargo preparation conditions'},
-      f7 || '<em>__________________</em>'
-    ],
-    ['9',
-      {am:'Մաքսային կամ այլ ձևակերպումների համար պահանջվող հրահանգներ', ru:'Инструкции для таможенных или иных формальностей', en:'Customs or other formalities instructions'},
-      f9 || '<em>__________________</em>'
-    ],
-    ['10',
-      {am:'Երթուղի', ru:'Маршрут', en:'Route'},
-      f10 || '<em>__________________</em>'
-    ],
-    ['11',
-      {am:'Գինը և վճարման պայմանները', ru:'Цена и условия оплаты', en:'Price and payment terms'},
-      f11 || '<em>__________________</em>'
-    ],
-    ['12',
-      {am:'Առաքման առավելագույն ժամկետը', ru:'Максимальный срок доставки', en:'Maximum delivery time'},
-      f12 || '<em>__________________</em>'
-    ],
-    ['13',
-      {am:'Լրացումներ, այլ պայմաններ', ru:'Дополнения, иные условия', en:'Additional conditions'},
-      f13 || '&nbsp;'
-    ]
+    ['1',{am:'Բեռի ընդունման վայրը և ամսաթիվը',ru:'Место и дата приёма груза',en:'Pickup location and date'},f1||'___________________________________  __.__.202_'],
+    ['2',{am:'Առաքման նշանակման վայրը',ru:'Место назначения',en:'Delivery destination'},f2||'ՀՀ, ք. Երևան'],
+    ['3',{am:'Բեռի նկարագիրը (անվանում, քանակ, ծավալ, փաթեթավորում, վտանգավորության դաս, ջերմաստիճանային ռեժիմ, այլ տվյալներ)',ru:'Описание груза',en:'Cargo description'},f3||'_______________________________'],
+    ['4',{am:'Ստացողի անունը և հասցեն',ru:'Имя и адрес получателя',en:'Recipient name and address'},f4||'&nbsp;'],
+    ['5',{am:'Տրանսպորտային միջոց(ներ)ի տեսակը, քանակը',ru:'Тип и количество ТС',en:'Vehicle type and quantity'},f5||'<em>_______________________________________</em>'],
+    ['6',{am:'Տրանսպորտային միջոցների տրամադրման, բեռնման ու բեռնաթափման աշխատանքների իրականացման պայմաններ',ru:'Условия погрузки/разгрузки',en:'Loading/unloading conditions'},f6||'<em>__________________</em>'],
+    ['7',{am:'Բեռը տրանսպորտային փոխադրման նախապատրաստելու պայմաններ',ru:'Подготовка груза',en:'Cargo preparation'},f7||'<em>__________________</em>'],
+    ['9',{am:'Մաքսային կամ այլ ձևակերպումների համար պահանջվող հրահանգներ',ru:'Таможенные инструкции',en:'Customs instructions'},f9||'<em>__________________</em>'],
+    ['10',{am:'Երթուղի',ru:'Маршрут',en:'Route'},f10||'<em>__________________</em>'],
+    ['11',{am:'Գինը և վճարման պայմանները',ru:'Цена и условия оплаты',en:'Price and payment terms'},f11||'<em>__________________</em>'],
+    ['12',{am:'Առաքման առավելագույն ժամկետը',ru:'Макс. срок доставки',en:'Maximum delivery time'},f12||'<em>__________________</em>'],
+    ['13',{am:'Լրացումներ, այլ պայմաններ',ru:'Дополнения',en:'Additional conditions'},f13||'&nbsp;']
   ];
   var html = '<table class="hayt-tbl">';
   rows.forEach(function(r) {
-    html += '<tr>'
-      + '<td class="num">'+r[0]+'</td>'
-      + '<td class="lbl">'+(r[1][lang]||r[1].ru)+'</td>'
-      + '<td class="val">'+r[2]+'</td>'
-      + '</tr>';
+    html += '<tr><td class="num">'+r[0]+'</td><td class="lbl">'+(r[1][lang]||r[1].ru)+'</td><td class="val">'+r[2]+'</td></tr>';
   });
   html += '</table>';
   return html;
@@ -244,223 +175,97 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
 
 var templates = {
   customer: {
-    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Երևան</span>'
-        + '<span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
-        // нижнюю повторяющуюся строку удалили
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Պատվիրատու</strong><br>'
-        + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
-        + 'Շահառու՝ «'+(c||'___________________')+'»<br>'
-        + 'Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>'
-        + 'Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Տրանսպորտային առաքող</strong><br>'
-        + 'Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>'
-        + 'Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
-        + 'Շահառուի հաշվեհամար՝ 1660030207153200<br>'
-        + 'Տնօրեն` Տիգրան Մեծպագյան<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">' +
+        '<span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     },
-    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>ЗАЯВКА</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>г. Ереван</span>'
-        + '<span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Заказчик</strong><br>'
-        + 'Банк: «'+(bk||'_________________')+'» ЗАО<br>'
-        + 'Получатель: «'+(c||'___________________')+'»<br>'
-        + 'Р/С: '+(ba||'_________________')+'<br>'
-        + 'Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Экспедитор</strong><br>'
-        + 'Банк: ЗАО «Эвокабанк»<br>'
-        + 'Получатель: ООО «Джи Эл Логистикс»<br>'
-        + 'Р/С: 1660030207153200<br>'
-        + 'Директор: Тигран Мецпагян<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>ЗАЯВКА</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Заказчик</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Экспедитор</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     },
-    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>APPLICATION FORM</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Yerevan</span>'
-        + '<span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Customer</strong><br>'
-        + 'Bank: «'+(bk||'_________________')+'» OJSC<br>'
-        + 'Beneficiary: «'+(c||'___________________')+'»<br>'
-        + 'Acc.: '+(ba||'_________________')+'<br>'
-        + 'Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Freight Forwarder</strong><br>'
-        + 'Bank: "Evocabank" OJSC<br>'
-        + 'Beneficiary: "GL Logistics" LLC<br>'
-        + 'Acc.: 1660030207153200<br>'
-        + 'Director: Tigran Metspaghyan<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>APPLICATION FORM</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr+'</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Customer</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Freight Forwarder</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     }
   },
   carrier: {
-    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>ՓՈԽԱԴՐՈՂ</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Երևան</span>'
-        + '<span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
-        // нижнюю повторяющуюся строку удалили
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Տրանսպորտային առաքող</strong><br>'
-        + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
-        + 'Շահառու՝ «'+(c||'___________________')+'»<br>'
-        + 'Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>'
-        + 'Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Պատվիրատու</strong><br>'
-        + 'Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>'
-        + 'Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
-        + 'Շահառուի հաշվեհամար՝ 1660030207153200<br>'
-        + 'Տնօրեն` Տիգրան Մեծպագյան<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>ՓՈԽԱԴՐՈՂ</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     },
-    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>ЗАЯВКА</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>г. Ереван</span>'
-        + '<span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Экспедитор</strong><br>'
-        + 'Банк: «'+(bk||'_________________')+'» ЗАО<br>'
-        + 'Получатель: «'+(c||'___________________')+'»<br>'
-        + 'Р/С: '+(ba||'_________________')+'<br>'
-        + 'Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Заказчик</strong><br>'
-        + 'Банк: ЗАО «Эвокабанк»<br>'
-        + 'Получатель: ООО «Джи Эл Логистикс»<br>'
-        + 'Р/С: 1660030207153200<br>'
-        + 'Директор: Тигран Мецпагян<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>ЗАЯВКА</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Экспедитор</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Заказчик</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     },
-    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
+    en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>APPLICATION FORM</h2>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Yerevan</span>'
-        + '<span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
-        + '</div>'
-        + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
-        + '</div>'
-        + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
-        + '<table class="party-tbl"><tr>'
-        + '<td><strong>Freight Forwarder</strong><br>'
-        + 'Bank: «'+(bk||'_________________')+'» OJSC<br>'
-        + 'Beneficiary: «'+(c||'___________________')+'»<br>'
-        + 'Acc.: '+(ba||'_________________')+'<br>'
-        + 'Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
-        + sigStamp(sig,st)
-        + '</td>'
-        + '<td><strong>Customer</strong><br>'
-        + 'Bank: "Evocabank" OJSC<br>'
-        + 'Beneficiary: "GL Logistics" LLC<br>'
-        + 'Acc.: 1660030207153200<br>'
-        + 'Director: Tigran Metspaghyan<br>'
-        + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
-        + '</td>'
-        + '</tr></table>';
+      return watermark() +
+        '<h2>APPLICATION FORM</h2>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr+'</div>' +
+        haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
+        '<table class="party-tbl"><tr>' +
+        '<td><strong>Freight Forwarder</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Customer</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
+        '</tr></table>';
     }
   }
 };
 
 var uiLabels = {
-  am:{brand_title:'Ջի Էլ Լոգիստիկս • ՀԱՅՏ',btn_customer:'👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ',btn_carrier:'🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ',form_title:'📋 ԼՐԱՑՆԵԼ ՀԱՅՏԸ',s_company:'🏢 ԸՆԿԵՐՈՒԹՅՈՒՆ',company_label:'ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *',tax_label:'ՀՎՀՀ',address_label:'ԳՐԱՆՑՄԱՆ ՀԱՍՑԵ',signatory_label:'ՍՏՈՐԱԳՐՈՂ *',position_label:'ՊԱՇՏՈՆ',date_label:'ԱՄՍԱԹԻՎ *',bank_label:'ԲԱՆԿ',acc_label:'Հ/Հ',email_label:'ԷԼ. ՓՈՍՏ *',phone_label:'ՀԵՌԱԽՈՍ',s_cargo:'📦 ԲԵՌ ԵՎ ԵՐԹՈՒՂԻ',l_f1:'1. ԸՆԴՈՒՆՄԱՆ ՎԱՅՐԸ ԵՎ ԱՄՍԱԹԻՎԸ *',l_f2:'2. ՆՇԱՆԱԿՄԱՆ ՎԱՅՐԸ',l_f3:'3. ԲԵՌԻ ՆԿԱՐԱԳԻՐԸ',l_f4:'4. ՍՏԱՑՈՂԻ ԱՆՈՒՆԸ ԵՎ ՀԱՍՑԵՆ',s_transport:'🚛 ՏՐԱՆՍՊՈՐՏ',l_f5:'5. ՏՐԱՆՍՊ. ՄԻՋՈՑՆԵՐ',l_f6:'6. ԲԵՌՆՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f7:'7. ՆԱԽԱՊԱՏՐԱՍՏՈՒՄ',l_f9:'9. ՄԱՔՍԱՅԻՆ ՀՐԱՀԱՆԳՆԵՐ',l_f10:'10. ԵՐԹՈՒՂԻ',s_rate:'💰 ԳԻՆ',l_f11:'11. ԳԻՆ ԵՎ ՎՃԱՐՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f12:'12. ԱՌԱՔՄԱՆ ԺԱՄԿԵՏ',l_f13:'13. ԼՐԱՑՈՒՄՆԵՐ',s_sign:'✍️ ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ ԵՎ ԿՆԻՔ',upload_stamp:'ԿՆԻՔ',upload_signature:'ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ',clear_btn:'Մաքրել',agree_text:'Հաստատում եմ հայտի ճշտությունը և ընդունում պայմանները։',submit_btn:'📤 ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ',success_title:'Հայտը հաջողությամբ ուղարկված է։',success_msg:'PDF-ը ուղարկվել է Ձեր էլ. փոստին։'},
-  ru:{brand_title:'Джи Эл Логистикс • ЗАЯВКА',btn_customer:'👤 ЗАКАЗЧИК → ДЖИ ЭЛ',btn_carrier:'🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК',form_title:'📋 ЗАПОЛНИТЬ ЗАЯВКУ',s_company:'🏢 КОМПАНИЯ',company_label:'КОМПАНИЯ *',tax_label:'ИНН',address_label:'ЮР. АДРЕС',signatory_label:'ФИО ПОДПИСАНТА *',position_label:'ДОЛЖНОСТЬ',date_label:'ДАТА *',bank_label:'БАНК',acc_label:'Р/С',email_label:'EMAIL *',phone_label:'ТЕЛЕФОН',s_cargo:'📦 ГРУЗ И МАРШРУТ',l_f1:'1. МЕСТО И ДАТА ПРИЁМА ГРУЗА *',l_f2:'2. МЕСТО НАЗНАЧЕНИЯ',l_f3:'3. ОПИСАНИЕ ГРУЗА',l_f4:'4. ИМЯ И АДРЕС ПОЛУЧАТЕЛЯ',s_transport:'🚛 ТРАНСПОРТ',l_f5:'5. ТИП И КОЛ-ВО ТС',l_f6:'6. УСЛОВИЯ ПОГРУЗКИ/РАЗГРУЗКИ',l_f7:'7. ПОДГОТОВКА ГРУЗА',l_f9:'9. ТАМОЖЕННЫЕ ИНСТРУКЦИИ',l_f10:'10. МАРШРУТ',s_rate:'💰 ЦЕНА И ОПЛАТА',l_f11:'11. ЦЕНА И УСЛОВИЯ ОПЛАТЫ',l_f12:'12. МАКС. СРОК ДОСТАВКИ',l_f13:'13. ДОПОЛНЕНИЯ',s_sign:'✍️ ПОДПИСЬ И ПЕЧАТЬ',upload_stamp:'ПЕЧАТЬ',upload_signature:'ПОДПИСЬ',clear_btn:'Очистить',agree_text:'Подтверждаю заявку и принимаю её условия.',submit_btn:'📤 ПОДПИСАТЬ И ОТПРАВИТЬ',success_title:'Заявка успешно отправлена!',success_msg:'PDF отправлен на ваш email.'},
-  en:{brand_title:'GL Logistics • APPLICATION',btn_customer:'👤 CUSTOMER → GL',btn_carrier:'🚛 GL → CARRIER',form_title:'📋 FILL APPLICATION',s_company:'🏢 COMPANY',company_label:'COMPANY *',tax_label:'TAX ID',address_label:'LEGAL ADDRESS',signatory_label:'SIGNATORY *',position_label:'POSITION',date_label:'DATE *',bank_label:'BANK',acc_label:'ACCOUNT NO.',email_label:'EMAIL *',phone_label:'PHONE',s_cargo:'📦 CARGO & ROUTE',l_f1:'1. PICKUP LOCATION & DATE *',l_f2:'2. DELIVERY DESTINATION',l_f3:'3. CARGO DESCRIPTION',l_f4:'4. RECIPIENT NAME & ADDRESS',s_transport:'🚛 TRANSPORT',l_f5:'5. VEHICLE TYPE & QTY',l_f6:'6. LOADING/UNLOADING CONDITIONS',l_f7:'7. CARGO PREPARATION',l_f9:'9. CUSTOMS INSTRUCTIONS',l_f10:'10. ROUTE',s_rate:'💰 PRICE & PAYMENT',l_f11:'11. PRICE & PAYMENT TERMS',l_f12:'12. MAX. DELIVERY TIME',l_f13:'13. ADDITIONAL CONDITIONS',s_sign:'✍️ SIGNATURE & STAMP',upload_stamp:'STAMP',upload_signature:'SIGNATURE',clear_btn:'Clear',agree_text:'I confirm the accuracy of this application and accept its terms.',submit_btn:'📤 SIGN & SEND',success_title:'Application sent successfully!',success_msg:'PDF was sent to your email.'}
+  am:{brand_title:'Ջի Էլ Լոգիստիկս • ՀԱՅՏ',btn_customer:'👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ',btn_carrier:'🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ',form_title:'📋 ԼՐԱՑՆԵԼ ՀԱՅՏԸ',s_company:'🏢 ԸՆԿԵՐՈՒԹՅՈՒՆ',company_label:'ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *',tax_label:'ՀՎՀՀ',address_label:'ԳՐԱՆՑՄԱՆ ՀԱՍՑԵ',signatory_label:'ՍՏՈՐԱԳՐՈՂ *',position_label:'ՊԱՇՏՈՆ',date_label:'ԱՄՍԱԹԻՎ *',bank_label:'ԲԱՆԿ',acc_label:'Հ/Հ',phone_label:'ՀԵՌԱԽՈՍ',s_cargo:'📦 ԲԵՌ ԵՎ ԵՐԹՈՒՂԻ',l_f1:'1. ԸՆԴՈՒՆՄԱՆ ՎԱՅՐԸ ԵՎ ԱՄՍԱԹԻՎԸ *',l_f2:'2. ՆՇԱՆԱԿՄԱՆ ՎԱՅՐԸ',l_f3:'3. ԲԵՌԻ ՆԿԱՐԱԳԻՐԸ',l_f4:'4. ՍՏԱՑՈՂԻ ԱՆՈՒՆԸ ԵՎ ՀԱՍՑԵՆ',s_transport:'🚛 ՏՐԱՆՍՊՈՐՏ',l_f5:'5. ՏՐԱՆՍՊ. ՄԻՋՈՑՆԵՐ',l_f6:'6. ԲԵՌՆՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f7:'7. ՆԱԽԱՊԱՏՐԱՍՏՈՒՄ',l_f9:'9. ՄԱՔՍԱՅԻՆ ՀՐԱՀԱՆԳՆԵՐ',l_f10:'10. ԵՐԹՈՒՂԻ',s_rate:'💰 ԳԻՆ',l_f11:'11. ԳԻՆ ԵՎ ՎՃԱՐՄԱՆ ՊԱՅՄԱՆՆԵՐ',l_f12:'12. ԱՌԱՔՄԱՆ ԺԱՄԿԵՏ',l_f13:'13. ԼՐԱՑՈՒՄՆԵՐ',s_sign:'🔏 ԿՆԻՔ',upload_stamp:'ԿՆԻՔ'},
+  ru:{brand_title:'Джи Эл Логистикс • ЗАЯВКА',btn_customer:'👤 ЗАКАЗЧИК → ДЖИ ЭЛ',btn_carrier:'🚛 ДЖИ ЭЛ → ПЕРЕВОЗЧИК',form_title:'📋 ЗАПОЛНИТЬ ЗАЯВКУ',s_company:'🏢 КОМПАНИЯ',company_label:'КОМПАНИЯ *',tax_label:'ИНН',address_label:'ЮР. АДРЕС',signatory_label:'ФИО ПОДПИСАНТА *',position_label:'ДОЛЖНОСТЬ',date_label:'ДАТА *',bank_label:'БАНК',acc_label:'Р/С',phone_label:'ТЕЛЕФОН',s_cargo:'📦 ГРУЗ И МАРШРУТ',l_f1:'1. МЕСТО И ДАТА ПРИЁМА ГРУЗА *',l_f2:'2. МЕСТО НАЗНАЧЕНИЯ',l_f3:'3. ОПИСАНИЕ ГРУЗА',l_f4:'4. ИМЯ И АДРЕС ПОЛУЧАТЕЛЯ',s_transport:'🚛 ТРАНСПОРТ',l_f5:'5. ТИП И КОЛ-ВО ТС',l_f6:'6. УСЛОВИЯ ПОГРУЗКИ/РАЗГРУЗКИ',l_f7:'7. ПОДГОТОВКА ГРУЗА',l_f9:'9. ТАМОЖЕННЫЕ ИНСТРУКЦИИ',l_f10:'10. МАРШРУТ',s_rate:'💰 ЦЕНА И ОПЛАТА',l_f11:'11. ЦЕНА И УСЛОВИЯ ОПЛАТЫ',l_f12:'12. МАКС. СРОК ДОСТАВКИ',l_f13:'13. ДОПОЛНЕНИЯ',s_sign:'🔏 ПЕЧАТЬ',upload_stamp:'ПЕЧАТЬ'},
+  en:{brand_title:'GL Logistics • APPLICATION',btn_customer:'👤 CUSTOMER → GL',btn_carrier:'🚛 GL → CARRIER',form_title:'📋 FILL APPLICATION',s_company:'🏢 COMPANY',company_label:'COMPANY *',tax_label:'TAX ID',address_label:'LEGAL ADDRESS',signatory_label:'SIGNATORY *',position_label:'POSITION',date_label:'DATE *',bank_label:'BANK',acc_label:'ACCOUNT NO.',phone_label:'PHONE',s_cargo:'📦 CARGO & ROUTE',l_f1:'1. PICKUP LOCATION & DATE *',l_f2:'2. DELIVERY DESTINATION',l_f3:'3. CARGO DESCRIPTION',l_f4:'4. RECIPIENT NAME & ADDRESS',s_transport:'🚛 TRANSPORT',l_f5:'5. VEHICLE TYPE & QTY',l_f6:'6. LOADING/UNLOADING CONDITIONS',l_f7:'7. CARGO PREPARATION',l_f9:'9. CUSTOMS INSTRUCTIONS',l_f10:'10. ROUTE',s_rate:'💰 PRICE & PAYMENT',l_f11:'11. PRICE & PAYMENT TERMS',l_f12:'12. MAX. DELIVERY TIME',l_f13:'13. ADDITIONAL CONDITIONS',s_sign:'🔏 STAMP',upload_stamp:'STAMP'}
 };
 
-var currentLang='am', currentType='customer';
-var stampDataUrl=null, signatureDataUrl=null, contractNumber='', signaturePad;
-
+var currentLang='am', currentType='customer', stampDataUrl=null, contractNumber='';
 const previewDiv = document.getElementById('contractPreview');
-const canvas     = document.getElementById('signatureCanvas');
 
 function generateContractNumber() {
   var y=new Date().getFullYear(), p=currentType==='customer'?'APP-C':'APP-T', r=Math.floor(Math.random()*9000)+1000;
   return p+'-'+y+'-'+r;
 }
-
-function captureSignature() {
-  if (signaturePad && !signaturePad.isEmpty()) {
-    signatureDataUrl = signaturePad.toDataURL('image/png');
-    document.getElementById('signaturePreview').src = signatureDataUrl;
-    document.getElementById('signaturePreview').style.display = 'block';
-    renderContract();
-  }
-}
-function initSignaturePad() {
-  canvas.width  = canvas.offsetWidth  || 300;
-  canvas.height = canvas.offsetHeight || 80;
-  signaturePad  = new SignaturePad(canvas, {
-    backgroundColor:'rgba(255,255,255,0)', penColor:'rgb(10,10,10)',
-    minWidth:1, maxWidth:2.8, onEnd: captureSignature
-  });
-}
-initSignaturePad();
-window.addEventListener('resize', function() {
-  var d=signaturePad.toData(); initSignaturePad();
-  if(d&&d.length>0){signaturePad.fromData(d); captureSignature();}
-});
-document.getElementById('clearSignature').addEventListener('click', function() {
-  signaturePad.clear(); signatureDataUrl=null;
-  document.getElementById('signaturePreview').style.display='none'; renderContract();
-});
 
 document.getElementById('stampTrigger').addEventListener('click', function(){document.getElementById('stampInput').click();});
 document.getElementById('stampInput').addEventListener('change', function(e) {
@@ -479,13 +284,12 @@ function renderContract() {
   var f4=fv('f4',''), f5=fv('f5',''), f6=fv('f6',''), f7=fv('f7','');
   var f9=fv('f9',''), f10=fv('f10',''), f11=fv('f11',''), f12=fv('f12',''), f13=fv('f13','');
   if (!contractNumber) contractNumber = generateContractNumber();
-  document.getElementById('contractNumberDisplay').textContent = contractNumber;
   var fn = templates[currentType][currentLang];
-  previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN);
+  previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN);
 }
 
 ['haytNum','contractNum','company','taxId','address','signatory','position','signDate','bankName','bankAcc',
- 'email','phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'
+ 'phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'
 ].forEach(function(id){
   var el=document.getElementById(id);
   if(el) el.addEventListener('input', renderContract);
@@ -525,45 +329,10 @@ document.getElementById('dlBtn').addEventListener('click', async function(){
   var b=this; b.disabled=true; b.textContent='⏳...'; renderContract();
   try{var pdf=await makePdf();pdf.save('Application_'+contractNumber+'.pdf');}
   catch(e){alert('PDF error: '+e.message);}
-  b.disabled=false; b.textContent='⬇ PDF';
-});
-
-document.getElementById('contractForm').addEventListener('submit', async function(e){
-  e.preventDefault();
-  if(!document.getElementById('agree').checked){alert(uiLabels[currentLang]?.agree_text);return;}
-  var btn=this.querySelector('.btn-submit'); btn.disabled=true; btn.textContent='⏳ PDF...';
-  renderContract();
-  var email=fv('email'), company=fv('company'), signatory=fv('signatory');
-  var fname='Application_'+contractNumber+'.pdf';
-  try {
-    var pdf=await makePdf(), blob=pdf.output('blob');
-    var url=URL.createObjectURL(blob), a=document.createElement('a');
-    a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(url);},5000);
-    btn.textContent='📤 Uploading...';
-    var pdfUrl='';
-    try{var cf=new FormData();cf.append('file',new File([blob],fname,{type:'application/pdf'}));cf.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
-      var cr=await fetch(CLOUDINARY_URL,{method:'POST',body:cf});if(cr.ok){var cd=await cr.json();if(cd.secure_url)pdfUrl=cd.secure_url;}}catch(_){}
-    btn.textContent='📧 Sending...';
-    await fetch(FORMSPREE_MAIN,{method:'POST',body:JSON.stringify({
-      _subject:'New Application '+contractNumber, app_number:contractNumber, type:currentType, lang:currentLang,
-      company:company, signatory:signatory, email:email,
-      pickup:fv('f1'), delivery:fv('f2'), cargo:fv('f3'), route:fv('f10'), price:fv('f11'),
-      pdf_link:pdfUrl||'(downloaded locally)',
-      message:'Application #'+contractNumber+'\nCompany: '+company+'\nSignatory: '+signatory+'\nEmail: '+email+'\nPickup: '+fv('f1')+'\nDelivery: '+fv('f2')+'\nPDF: '+(pdfUrl||'locally downloaded')
-    }),headers:{'Accept':'application/json','Content-Type':'application/json'}});
-    await fetch(FORMSPREE_CLIENT,{method:'POST',body:JSON.stringify({
-      email:email, _replyto:'info@gllogistics.org', _subject:'GL Logistics — Application '+contractNumber,
-      message:'Dear '+signatory+',\n\nYour application #'+contractNumber+' has been submitted to GL Logistics LLC.\n\nPickup: '+fv('f1')+'\nDelivery: '+fv('f2')+'\nCargo: '+fv('f3')+'\n\n'+(pdfUrl?'Download PDF: '+pdfUrl:'PDF downloaded locally.')+'\n\nGL Logistics LLC\n+374 93 66 14 54\ninfo@gllogistics.org'
-    }),headers:{'Accept':'application/json','Content-Type':'application/json'}});
-    document.getElementById('contractForm').style.display='none';
-    document.getElementById('successMsg').style.display='block';
-  } catch(err){alert('Error: '+err.message);}
-  finally{btn.disabled=false; btn.textContent=uiLabels[currentLang]?.submit_btn||'SUBMIT';}
+  b.disabled=false; b.textContent='⬇ Ներբեռնել PDF';
 });
 
 contractNumber = generateContractNumber();
-document.getElementById('contractNumberDisplay').textContent = contractNumber;
 document.getElementById('signDate').valueAsDate = new Date();
 document.getElementById('f2').value = 'ՀՀ, ք. Երևան';
 updateUILabels();
