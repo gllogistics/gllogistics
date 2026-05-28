@@ -30,8 +30,7 @@
     .contract-preview { font-family: 'Times New Roman', 'Georgia', serif; font-size: 12px; line-height: 1.5; color: #1E2F33; position: relative; min-height: 600px; }
     .contract-preview h2 { font-size: 15px; font-weight: 800; text-align: center; margin-bottom: 0.4rem; color: #005f67; }
     .contract-preview .center { text-align: center; }
-    /* Футер справа */
-    .doc-footer { position: absolute; bottom: 15px; right: 20px; font-size: 9px; color: #4a7a80; text-align: right; line-height: 1.5; opacity: 0.8; pointer-events: none; z-index: 2; }
+    .doc-footer { position: absolute; bottom: 2px; right: 10px; font-size: 8px; color: #4a7a80; text-align: right; opacity: 0.8; pointer-events: none; z-index: 2; white-space: nowrap; }
     .hayt-tbl { width: 100%; border-collapse: collapse; margin: 0.6rem 0 0.8rem; }
     .hayt-tbl td { border: 1px solid #4a9aa0; padding: 4px 7px; vertical-align: top; font-size: 11px; }
     .hayt-tbl td.num { width: 24px; text-align: center; font-weight: 700; color: #005f67; background: #f0fafa; }
@@ -140,9 +139,9 @@ function watermark() {
   return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.18; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
 }
 
-// Футер справа
+// Футер — одна строка в самом низу справа
 function docFooter() {
-  return '<div class="doc-footer">GL Logistics LLC<br>VAT: 00521217<br>www.gllogistics.org<br>+374 93 66 14 54</div>';
+  return '<div class="doc-footer">GL Logistics LLC &nbsp;|&nbsp; VAT: 00521217 &nbsp;|&nbsp; www.gllogistics.org &nbsp;|&nbsp; +374 93 66 14 54</div>';
 }
 
 // Форматирование даты
