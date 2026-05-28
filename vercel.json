@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/contract", "destination": "/contract.html" }
+    { "source": "/contract", "destination": "/contract.html" },
+    { "source": "/rateconfirmation", "destination": "/rateconfirmation.html" }
   ]
 }
