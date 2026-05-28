@@ -93,6 +93,11 @@
     <div class="form-panel">
       <h2 data-i18n="form_title">📋 ЛРАЦНЕЛ HAYTĔ</h2>
       <form id="contractForm">
+        <div class="sec-label">📋 Հayt &amp; Пaymanagri</div>
+        <div class="two-col">
+          <div class="input-group"><label>Հayt №</label><input type="text" id="haytNum" placeholder="01/____/1"></div>
+          <div class="input-group"><label>Пaymanagri №</label><input type="text" id="contractNum" placeholder="01/______/01"></div>
+        </div>
         <div class="sec-label" data-i18n="s_company">🏢 YNDKERУTYUN</div>
         <div class="two-col">
           <div class="input-group"><label data-i18n="company_label">YNDKERУTYUN *</label><input type="text" id="company" required></div>
@@ -165,16 +170,17 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── sigStamp helper ───────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  var h = '<div style="display:table;width:100%;margin-top:6px;">';
-  h += '<div style="display:table-cell;vertical-align:bottom;width:62%;">';
-  if (sig) h += '<img src="'+sig+'" alt="sig" style="display:block;max-width:200px;max-height:72px;object-fit:contain;margin-bottom:3px;">';
-  h += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
-  h += '</div>';
+  // Signature block (full width) + stamp floated hard right
+  var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
+  // Stamp — absolutely positioned top-right, never overlaps signature text
   if (st) {
-    h += '<div style="display:table-cell;vertical-align:middle;width:38%;text-align:center;">';
-    h += '<img src="'+st+'" alt="stamp" style="width:130px;height:130px;object-fit:contain;opacity:0.82;transform:rotate(-12deg);display:inline-block;">';
-    h += '</div>';
+    h += '<img src="'+st+'" alt="stamp" style="position:absolute;top:-10px;right:0;width:150px;height:150px;object-fit:contain;opacity:0.82;transform:rotate(-12deg);">';
   }
+  // Signature — left side, padded so it doesn't go under stamp
+  h += '<div style="padding-right:'+(st?'160px':'0px')+';padding-bottom:4px;">';
+  if (sig) h += '<img src="'+sig+'" alt="sig" style="display:block;max-width:190px;max-height:68px;object-fit:contain;margin-bottom:4px;">';
+  h += '</div>';
+  h += '<div style="height:1px;background:#2A5E66;width:'+(st?'calc(100% - 160px)':'100%')+';"></div>';
   h += '</div>';
   return h;
 }
@@ -249,20 +255,20 @@ var templates = {
   // ═══════════════ CUSTOMER → GL (Пatviraтu → Dji El) ═══════════════════════
   customer: {
 
-    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>Պատվիրատու</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Yerеvan</span>'
-        + '<span>Hayт / Nօ. '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'թ.</span>'
+        + '<span>Ք. Երеvan</span>'
+        + '<span>Հайт /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հавелвads №1 «__» ________ '+yr+'թ. knkvads №01/______/01 paymanagri'
+        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հавелвads №1 «__» ________ '+yr+'թ. knkvads №01/______/01 paymanagri'
+        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
         + '</div>'
         + '<table class="party-tbl"><tr>'
         // LEFT = Пататviraтu (client)
@@ -284,20 +290,20 @@ var templates = {
         + '</tr></table>';
     },
 
-    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>ЗАЯВКА</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
         + '<span>г. Ереван</span>'
-        + '<span>Заявка № '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
+        + '<span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Приложение №1 к Договору №01/______/01 от «__» ________ '+yr+' г.'
+        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Приложение №1 к Договору №01/______/01 от «__» ________ '+yr+' г.'
+        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Заказчик</strong><br>'
@@ -317,20 +323,20 @@ var templates = {
         + '</tr></table>';
     },
 
-    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>APPLICATION FORM</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
         + '<span>Yerevan</span>'
-        + '<span>Application No. '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
+        + '<span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Annex No.1 to Agreement No.01/______/01 dated «__» ________ '+yr
+        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Annex No.1 to Agreement No.01/______/01 dated «__» ________ '+yr
+        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Customer</strong><br>'
@@ -354,20 +360,20 @@ var templates = {
   // ═══════════════ GL → CARRIER (Dji El → Pokhadrogh) ══════════════════════
   carrier: {
 
-    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>Պատվիրատու</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Yerеvan</span>'
-        + '<span>Hayт / Nօ. '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'թ.</span>'
+        + '<span>Ք. Երеvan</span>'
+        + '<span>Հайт /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հавелвads №1 «__» ________ '+yr+'թ. knkvads №01/______/01 paymanagri'
+        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հавелвads №1 «__» ________ '+yr+'թ. knkvads №01/______/01 paymanagri'
+        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
         + '</div>'
         + '<table class="party-tbl"><tr>'
         // LEFT = Տranspоrtayn arakogh (carrier/forwarder — the client signing)
@@ -389,20 +395,20 @@ var templates = {
         + '</tr></table>';
     },
 
-    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>ЗАЯВКА</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
         + '<span>г. Ереван</span>'
-        + '<span>Заявка № '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
+        + '<span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Приложение №1 к Договору №01/______/01 от «__» ________ '+yr+' г.'
+        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Приложение №1 к Договору №01/______/01 от «__» ________ '+yr+' г.'
+        + 'Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.'
         + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Экспедитор</strong><br>'
@@ -422,20 +428,20 @@ var templates = {
         + '</tr></table>';
     },
 
-    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13) {
+    en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>APPLICATION FORM</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
         + '<span>Yerevan</span>'
-        + '<span>Application No. '+appNo+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
+        + '<span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Annex No.1 to Agreement No.01/______/01 dated «__» ________ '+yr
+        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Annex No.1 to Agreement No.01/______/01 dated «__» ________ '+yr
+        + 'Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr
         + '</div>'
         + '<table class="party-tbl"><tr>'
         + '<td><strong>Freight Forwarder</strong><br>'
@@ -518,17 +524,18 @@ function renderContract() {
   var c=fv('company','[COMPANY]'), t=fv('taxId','________'), a=fv('address','________');
   var s=fv('signatory','[NAME]'), p=fv('position',''), d=fv('signDate',new Date().toISOString().slice(0,10));
   var bk=fv('bankName',''), ba=fv('bankAcc','');
-  var f1=fv('f1',''), f2=fv('f2','ՀՀ, ք. Yerеvan'), f3=fv('f3','');
+  var haytN=fv('haytNum','__/_______/1'), contrN=fv('contractNum','__/______/__');
+  var f1=fv('f1',''), f2=fv('f2','ՀՀ, ք. Երевan'), f3=fv('f3','');
   var f4=fv('f4',''), f5=fv('f5',''), f6=fv('f6',''), f7=fv('f7','');
   var f9=fv('f9',''), f10=fv('f10',''), f11=fv('f11',''), f12=fv('f12',''), f13=fv('f13','');
   if (!contractNumber) contractNumber = generateContractNumber();
   document.getElementById('contractNumberDisplay').textContent = contractNumber;
   var fn = templates[currentType][currentLang];
-  previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13);
+  previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN);
 }
 
 // ── Bind all inputs ───────────────────────────────────────────────────────────
-['company','taxId','address','signatory','position','signDate','bankName','bankAcc',
+['haytNum','contractNum','company','taxId','address','signatory','position','signDate','bankName','bankAcc',
  'email','phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'
 ].forEach(function(id){
   var el=document.getElementById(id);
