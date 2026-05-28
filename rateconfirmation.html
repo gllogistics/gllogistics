@@ -35,7 +35,6 @@
     .contract-preview .party-col { width: 48%; }
     .contract-preview .party-col p { margin-bottom: 0.15rem; }
     .party-col .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
-    /* Application table */
     .hayt-tbl { width: 100%; border-collapse: collapse; margin: 0.6rem 0 0.8rem; }
     .hayt-tbl td { border: 1px solid #4a9aa0; padding: 4px 7px; vertical-align: top; font-size: 11px; }
     .hayt-tbl td.num { width: 24px; text-align: center; font-weight: 700; color: #005f67; background: #f0fafa; }
@@ -43,7 +42,6 @@
     .hayt-tbl td.val { font-weight: 500; color: #0d2226; }
     .party-tbl { width: 100%; border-collapse: collapse; margin-top: 8px; }
     .party-tbl td { width: 50%; border: 1px solid #4a9aa0; padding: 6px 8px; vertical-align: top; font-size: 11px; }
-    /* Sig stamp */
     .form-panel { background: #152A30; border-radius: 28px; padding: 1.5rem; border: 1px solid #2F6C74; }
     .form-panel h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.2rem; color: #55B7BD; border-left: 4px solid #55B7BD; padding-left: 0.8rem; }
     .input-group { margin-bottom: 0.7rem; }
@@ -76,11 +74,11 @@
   <div class="top-bar">
     <a href="/" class="brand">
       <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics" class="brand-logo">
-      <span data-i18n="brand_title">Ջի Էլ Լոգիստիկս • ՀАЙТ</span>
+      <span data-i18n="brand_title">Ջի Էլ Լոգիստիկս • ՀԱՅՏ</span>
     </a>
     <div class="type-group">
-      <button class="type-btn active" data-type="customer" data-i18n="btn_customer">👤 ПԱՏVIRAТУ → ՋԻ ԷԼ</button>
-      <button class="type-btn" data-type="carrier" data-i18n="btn_carrier">🚛 ՋԻ ԷԼ → ՓОКHАДРОGH</button>
+      <button class="type-btn active" data-type="customer" data-i18n="btn_customer">👤 ՊԱՏՎԻՐԱՏՈՒ → ՋԻ ԷԼ</button>
+      <button class="type-btn" data-type="carrier" data-i18n="btn_carrier">🚛 ՋԻ ԷԼ → ՓՈԽԱԴՐՈՂ</button>
     </div>
     <div class="lang-group">
       <button class="lang-btn active" data-lang="am">🇦🇲 HAY</button>
@@ -91,70 +89,70 @@
   <div class="dashboard">
     <div class="contract-card"><div class="contract-scroll"><div class="contract-preview" id="contractPreview"></div></div></div>
     <div class="form-panel">
-      <h2 data-i18n="form_title">📋 ЛРАЦНЕЛ HAYTĔ</h2>
+      <h2 data-i18n="form_title">📋 ԼՐԱՑՆԵԼ ՀԱՅՏԸ</h2>
       <form id="contractForm">
-        <div class="sec-label">📋 Հayt &amp; Пaymanagri</div>
+        <div class="sec-label">📋 Հայտ և Պայմանագիր</div>
         <div class="two-col">
-          <div class="input-group"><label>Հayt №</label><input type="text" id="haytNum" placeholder="01/____/1"></div>
-          <div class="input-group"><label>Пaymanagri №</label><input type="text" id="contractNum" placeholder="01/______/01"></div>
+          <div class="input-group"><label>Հայտ №</label><input type="text" id="haytNum" placeholder="01/____/1"></div>
+          <div class="input-group"><label>Պայմանագրի №</label><input type="text" id="contractNum" placeholder="01/______/01"></div>
         </div>
-        <div class="sec-label" data-i18n="s_company">🏢 YNDKERУTYUN</div>
+        <div class="sec-label" data-i18n="s_company">🏢 ԸՆԿԵՐՈՒԹՅՈՒՆ</div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="company_label">YNDKERУTYUN *</label><input type="text" id="company" required></div>
-          <div class="input-group"><label data-i18n="tax_label">HVHH / ИНН</label><input type="text" id="taxId"></div>
+          <div class="input-group"><label data-i18n="company_label">ԸՆԿԵՐՈՒԹՅԱՆ ԱՆՎԱՆՈՒՄ *</label><input type="text" id="company" required></div>
+          <div class="input-group"><label data-i18n="tax_label">ՀՎՀՀ / ИНН</label><input type="text" id="taxId"></div>
         </div>
-        <div class="input-group"><label data-i18n="address_label">HASCE / АДРЕС</label><input type="text" id="address"></div>
-        <div class="input-group"><label data-i18n="signatory_label">STVОAGROGH *</label><input type="text" id="signatory" required></div>
+        <div class="input-group"><label data-i18n="address_label">ԳՐԱՆՑՄԱՆ ՀԱՍՑԵ</label><input type="text" id="address"></div>
+        <div class="input-group"><label data-i18n="signatory_label">ՍՏՈՐԱԳՐՈՂ *</label><input type="text" id="signatory" required></div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="position_label">ПОGHTON</label><input type="text" id="position"></div>
-          <div class="input-group"><label data-i18n="date_label">АМSATIV *</label><input type="date" id="signDate" required></div>
+          <div class="input-group"><label data-i18n="position_label">ՊԱՇՏՈՆ</label><input type="text" id="position"></div>
+          <div class="input-group"><label data-i18n="date_label">ԱՄՍԱԹԻՎ *</label><input type="date" id="signDate" required></div>
         </div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="bank_label">БАНК</label><input type="text" id="bankName"></div>
+          <div class="input-group"><label data-i18n="bank_label">ԲԱՆԿ</label><input type="text" id="bankName"></div>
           <div class="input-group"><label data-i18n="acc_label">Հ/Հ · Р/С</label><input type="text" id="bankAcc"></div>
         </div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="email_label">ԷЛ. ПОСТ *</label><input type="email" id="email" required></div>
-          <div class="input-group"><label data-i18n="phone_label">HERAKHOS</label><input type="tel" id="phone"></div>
+          <div class="input-group"><label data-i18n="email_label">ԷԼ. ՓՈՍՏ *</label><input type="email" id="email" required></div>
+          <div class="input-group"><label data-i18n="phone_label">ՀԵՌԱԽՈՍ</label><input type="tel" id="phone"></div>
         </div>
 
-        <div class="sec-label" data-i18n="s_cargo">📦 BEŘ EV ERTUГHI</div>
-        <div class="input-group"><label data-i18n="l_f1">1. YNTUNMAN VAYR EV АМSATIV *</label><input type="text" id="f1" required></div>
-        <div class="input-group"><label data-i18n="l_f2">2. NSHANAKMAN VAYR</label><input type="text" id="f2" value="ՀՀ, ք. Երևan"></div>
-        <div class="input-group"><label data-i18n="l_f3">3. BEŘI NKARAGIR</label><textarea id="f3"></textarea></div>
-        <div class="input-group"><label data-i18n="l_f4">4. STACOGHI ANUN EV HASCE</label><input type="text" id="f4"></div>
+        <div class="sec-label" data-i18n="s_cargo">📦 ԲԵՌ ԵՎ ԵՐԹՈՒՂԻ</div>
+        <div class="input-group"><label data-i18n="l_f1">1. ԸՆԴՈՒՆՄԱՆ ՎԱՅՐԸ ԵՎ ԱՄՍԱԹԻՎԸ *</label><input type="text" id="f1" required></div>
+        <div class="input-group"><label data-i18n="l_f2">2. ՆՇԱՆԱԿՄԱՆ ՎԱՅՐԸ</label><input type="text" id="f2" value="ՀՀ, ք. Երևան"></div>
+        <div class="input-group"><label data-i18n="l_f3">3. ԲԵՌԻ ՆԿԱՐԱԳԻՐԸ</label><textarea id="f3"></textarea></div>
+        <div class="input-group"><label data-i18n="l_f4">4. ՍՏԱՑՈՂԻ ԱՆՈՒՆԸ ԵՎ ՀԱՍՑԵՆ</label><input type="text" id="f4"></div>
 
-        <div class="sec-label" data-i18n="s_transport">🚛 ТРАНСПОРТ</div>
-        <div class="input-group"><label data-i18n="l_f5">5. TRANSP. MIJOCNER</label><input type="text" id="f5"></div>
-        <div class="input-group"><label data-i18n="l_f6">6. BERNMAN PAYMANNER</label><input type="text" id="f6"></div>
-        <div class="input-group"><label data-i18n="l_f7">7. NAKHAPRASTMAN</label><input type="text" id="f7"></div>
+        <div class="sec-label" data-i18n="s_transport">🚛 ՏՐԱՆՍՊՈՐՏ</div>
+        <div class="input-group"><label data-i18n="l_f5">5. ՏՐԱՆՍՊ. ՄԻՋՈՑՆԵՐ</label><input type="text" id="f5"></div>
+        <div class="input-group"><label data-i18n="l_f6">6. ԲԵՌՆՄԱՆ ՊԱՅՄԱՆՆԵՐ</label><input type="text" id="f6"></div>
+        <div class="input-group"><label data-i18n="l_f7">7. ՆԱԽԱՊԱՏՐԱՍՏՈՒՄ</label><input type="text" id="f7"></div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="l_f9">9. MAQSAYIN HMUSH</label><input type="text" id="f9"></div>
-          <div class="input-group"><label data-i18n="l_f10">10. ERTUGHI</label><input type="text" id="f10"></div>
+          <div class="input-group"><label data-i18n="l_f9">9. ՄԱՔՍԱՅԻՆ ՀՐԱՀԱՆԳՆԵՐ</label><input type="text" id="f9"></div>
+          <div class="input-group"><label data-i18n="l_f10">10. ԵՐԹՈՒՂԻ</label><input type="text" id="f10"></div>
         </div>
 
-        <div class="sec-label" data-i18n="s_rate">💰 ГИН</div>
+        <div class="sec-label" data-i18n="s_rate">💰 ԳԻՆ</div>
         <div class="two-col">
-          <div class="input-group"><label data-i18n="l_f11">11. ГИН EV ВCHАРMAN</label><input type="text" id="f11"></div>
-          <div class="input-group"><label data-i18n="l_f12">12. ЖАМKJET</label><input type="text" id="f12"></div>
+          <div class="input-group"><label data-i18n="l_f11">11. ԳԻՆ ԵՎ ՎՃԱՐՄԱՆ ՊԱՅՄԱՆՆԵՐ</label><input type="text" id="f11"></div>
+          <div class="input-group"><label data-i18n="l_f12">12. ԱՌԱՔՄԱՆ ԺԱՄԿԵՏ</label><input type="text" id="f12"></div>
         </div>
-        <div class="input-group"><label data-i18n="l_f13">13. ЛРАЦУМNER</label><textarea id="f13"></textarea></div>
+        <div class="input-group"><label data-i18n="l_f13">13. ԼՐԱՑՈՒՄՆԵՐ</label><textarea id="f13"></textarea></div>
 
-        <div class="sec-label" data-i18n="s_sign">✍️ STVОAGR. EV КNIK</div>
+        <div class="sec-label" data-i18n="s_sign">✍️ ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ ԵՎ ԿՆԻՔ</div>
         <div class="upload-row">
-          <div class="stamp-upload" id="stampTrigger">🔏 <span data-i18n="upload_stamp">КNIK</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
-          <div class="signature-area">✍️ <span data-i18n="upload_signature">STVОAGR.</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60;border:none;color:white;padding:4px 12px;border-radius:20px;margin-top:5px;cursor:pointer;font-size:0.7rem;" data-i18n="clear_btn">Маqрel</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
+          <div class="stamp-upload" id="stampTrigger">🔏 <span data-i18n="upload_stamp">ԿՆԻՔ</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
+          <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60;border:none;color:white;padding:4px 12px;border-radius:20px;margin-top:5px;cursor:pointer;font-size:0.7rem;" data-i18n="clear_btn">Մաքրել</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
         </div>
-        <div class="checkbox-group"><input type="checkbox" id="agree" required><label for="agree" data-i18n="agree_text">Hastatagrum em hayti cartĕ ev @ndunumem paymannerĕ.</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="agree" required><label for="agree" data-i18n="agree_text">Հաստատում եմ հայտի ճշտությունը և ընդունում պայմանները։</label></div>
         <div class="btn-row">
           <button type="button" class="btn-dl" id="dlBtn">⬇ PDF</button>
-          <button type="submit" class="btn-submit" data-i18n="submit_btn">📤 STVОAGREL EV OTARKEL</button>
+          <button type="submit" class="btn-submit" data-i18n="submit_btn">📤 ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ</button>
         </div>
       </form>
       <div class="success-msg" id="successMsg">
         <span style="font-size:2.5rem;">✅</span>
-        <h3 data-i18n="success_title">Hajtĕ hajoghуtyамb оtarkvats e!</h3>
-        <p data-i18n="success_msg">PDF оtаrkvats e Jer el. postetin.</p>
+        <h3 data-i18n="success_title">Հայտը հաջողությամբ ուղարկված է։</h3>
+        <p data-i18n="success_msg">PDF-ը ուղարկվել է Ձեր էլ. փոստին։</p>
         <p style="font-size:0.8rem;color:#B9DFE4;margin-top:10px;">№ <span id="contractNumberDisplay">---</span></p>
       </div>
       <div class="legal-note">🔒 GL Logistics LLC · TIN 00521217 · info@gllogistics.org</div>
@@ -170,13 +168,10 @@ const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
 
 // ── sigStamp helper ───────────────────────────────────────────────────────────
 function sigStamp(sig, st) {
-  // Signature block (full width) + stamp floated hard right
   var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
-  // Stamp — absolutely positioned top-right, never overlaps signature text
   if (st) {
     h += '<img src="'+st+'" alt="stamp" style="position:absolute;top:-10px;right:0;width:150px;height:150px;object-fit:contain;opacity:0.82;transform:rotate(-12deg);">';
   }
-  // Signature — left side, padded so it doesn't go under stamp
   h += '<div style="padding-right:'+(st?'160px':'0px')+';padding-bottom:4px;">';
   if (sig) h += '<img src="'+sig+'" alt="sig" style="display:block;max-width:190px;max-height:68px;object-fit:contain;margin-bottom:4px;">';
   h += '</div>';
@@ -194,10 +189,10 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
     ],
     ['2',
       {am:'Առաքման նշանակման վայրը', ru:'Место назначения', en:'Delivery destination'},
-      f2 || 'ՀՀ, ք. Երևan'
+      f2 || 'ՀՀ, ք. Երևան'
     ],
     ['3',
-      {am:'Բեռի նկարագիրը անվանումը- քանակությունը ծավալը փաթեթավորումը վտանգավորության կարգը ջերմաստիճանային ռեժիմը այլ տվյալներ', ru:'Описание груза — наименование, количество, объём, упаковка, опасность, температурный режим', en:'Cargo description — name, qty, volume, packaging, hazard class, temperature'},
+      {am:'Բեռի նկարագիրը (անվանում, քանակ, ծավալ, փաթեթավորում, վտանգավորության դաս, ջերմաստիճանային ռեժիմ, այլ տվյալներ)', ru:'Описание груза — наименование, количество, объём, упаковка, опасность, температурный режим', en:'Cargo description — name, qty, volume, packaging, hazard class, temperature'},
       f3 || '_______________________________'
     ],
     ['4',
@@ -209,11 +204,11 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
       f5 || '<em>_______________________________________</em>'
     ],
     ['6',
-      {am:'Տրանսպորտային միջոցների տրամադրման, բեռնման ու բեռնաթափման աշխատնքների իրականացնելու պայմաններ', ru:'Условия предоставления ТС, погрузки и разгрузки', en:'Loading/unloading conditions'},
+      {am:'Տրանսպորտային միջոցների տրամադրման, բեռնման ու բեռնաթափման աշխատանքների իրականացման պայմաններ', ru:'Условия предоставления ТС, погрузки и разгрузки', en:'Loading/unloading conditions'},
       f6 || '<em>__________________</em>'
     ],
     ['7',
-      {am:'Բեռը Տրանսպորտային փոխադրման նախապատրաստելու պայմաններ', ru:'Условия подготовки груза к перевозке', en:'Cargo preparation conditions'},
+      {am:'Բեռը տրանսպորտային փոխադրման նախապատրաստելու պայմաններ', ru:'Условия подготовки груза к перевозке', en:'Cargo preparation conditions'},
       f7 || '<em>__________________</em>'
     ],
     ['9',
@@ -251,47 +246,39 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
 
 // ── Full templates ────────────────────────────────────────────────────────────
 var templates = {
-
-  // ═══════════════ CUSTOMER → GL (Пatviraтu → Dji El) ═══════════════════════
   customer: {
-
     am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>Պատվիրատու</h2>'
+      return '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Երеvan</span>'
-        + '<span>Հайт /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
+        + '<span>Ք. Երևան</span>'
+        + '<span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
+        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
+        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + '<table class="party-tbl"><tr>'
-        // LEFT = Пататviraтu (client)
         + '<td><strong>Պատվիրատու</strong><br>'
-        + 'Շահառուի Բանկ։ «'+(bk||'_________________')+'» ФБТ<br>'
-        + 'Շահառու։ «'+(c||'___________________')+'»<br>'
-        + 'Շահառուի հաշվեհամար։ _________________. '+(ba||'_________________')+'<br>'
-        + 'Տնօրեն&#96; '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
+        + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
+        + 'Շահառու՝ «'+(c||'___________________')+'»<br>'
+        + 'Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>'
+        + 'Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
         + sigStamp(sig,st)
         + '</td>'
-        // RIGHT = Տranspоrtayn arakogh (GL)
         + '<td><strong>Տրանսպորտային առաքող</strong><br>'
-        + 'Շահառուի Բանկ։ «Евокабанк» ФБТ<br>'
-        + 'Շահառու։ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
-        + 'Շататvираtу hашvеhаmar. 1660030207153200<br>'
-        + 'Տնօրեն&#96; Տիգրան Մեծպագյան<br>'
+        + 'Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>'
+        + 'Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
+        + 'Շահառուի հաշվեհամար՝ 1660030207153200<br>'
+        + 'Տնօրեն` Տիգրան Մեծպագյան<br>'
         + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
         + '</td>'
         + '</tr></table>';
     },
-
     ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>ЗАЯВКА</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
@@ -317,14 +304,12 @@ var templates = {
         + 'Банк: ЗАО «Эвокабанк»<br>'
         + 'Получатель: ООО «Джи Эл Логистикс»<br>'
         + 'Р/С: 1660030207153200<br>'
-        + 'Директор: Տիգրան Մեծպագյան<br>'
+        + 'Директор: Тигран Мецпагян<br>'
         + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
         + '</td>'
         + '</tr></table>';
     },
-
     en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>APPLICATION FORM</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
@@ -356,47 +341,39 @@ var templates = {
         + '</tr></table>';
     }
   },
-
-  // ═══════════════ GL → CARRIER (Dji El → Pokhadrogh) ══════════════════════
   carrier: {
-
     am: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
-      return '<h2>Պատվիրատու</h2>'
+      return '<h2>ՓՈԽԱԴՐՈՂ</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
-        + '<span>Ք. Երеvan</span>'
-        + '<span>Հайт /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
+        + '<span>Ք. Երևան</span>'
+        + '<span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span>'
         + '</div>'
         + '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">'
-        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
+        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am')
         + '<div style="font-size:10px;color:#4a7080;border-top:1px solid #c0dde0;padding-top:5px;margin-bottom:8px;text-align:center;">'
-        + 'Հавелвads Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թvakanayin knkvads  № '+contrN+' paymanagri'
+        + 'Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի'
         + '</div>'
         + '<table class="party-tbl"><tr>'
-        // LEFT = Տranspоrtayn arakogh (carrier/forwarder — the client signing)
         + '<td><strong>Տրանսպորտային առաքող</strong><br>'
-        + 'Շահառուի Բանկ։ «'+(bk||'_________________')+'» ФБТ<br>'
-        + 'Շահառու։ «'+(c||'___________________')+'»<br>'
-        + 'Շататvираtу hашвеhаmar. '+(ba||'_________________')+'<br>'
-        + 'Տնօրեն&#96; '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
+        + 'Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>'
+        + 'Շահառու՝ «'+(c||'___________________')+'»<br>'
+        + 'Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>'
+        + 'Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'
         + sigStamp(sig,st)
         + '</td>'
-        // RIGHT = Пататviraтu (GL)
         + '<td><strong>Պատվիրատու</strong><br>'
-        + 'Շահառուի Բանկ։ «Евокабанк» ФБТ<br>'
-        + 'Շահառու։ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
-        + 'Շататvираtу hашvеhаmar. 1660030207153200<br>'
-        + 'Տնօրեն&#96; Տիգրան Մեծպագյան<br>'
+        + 'Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>'
+        + 'Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>'
+        + 'Շահառուի հաշվեհամար՝ 1660030207153200<br>'
+        + 'Տնօրեն` Տիգրան Մեծպագյան<br>'
         + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
         + '</td>'
         + '</tr></table>';
     },
-
     ru: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>ЗАЯВКА</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
@@ -422,14 +399,12 @@ var templates = {
         + 'Банк: ЗАО «Эвокабанк»<br>'
         + 'Получатель: ООО «Джи Эл Логистикс»<br>'
         + 'Р/С: 1660030207153200<br>'
-        + 'Директор: Տիգրան Մեծպագյան<br>'
+        + 'Директор: Тигран Мецпагян<br>'
         + '<div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div>'
         + '</td>'
         + '</tr></table>';
     },
-
     en: function(c,t,a,s,p,d,n,sig,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var appNo = '01/' + n.split('-').slice(-1)[0] + '/1';
       var yr = d ? d.substring(0,4) : '202_';
       return '<h2>APPLICATION FORM</h2>'
         + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">'
@@ -525,7 +500,7 @@ function renderContract() {
   var s=fv('signatory','[NAME]'), p=fv('position',''), d=fv('signDate',new Date().toISOString().slice(0,10));
   var bk=fv('bankName',''), ba=fv('bankAcc','');
   var haytN=fv('haytNum','__/_______/1'), contrN=fv('contractNum','__/______/__');
-  var f1=fv('f1',''), f2=fv('f2','ՀՀ, ք. Երевan'), f3=fv('f3','');
+  var f1=fv('f1',''), f2=fv('f2','ՀՀ, ք. Երևան'), f3=fv('f3','');
   var f4=fv('f4',''), f5=fv('f5',''), f6=fv('f6',''), f7=fv('f7','');
   var f9=fv('f9',''), f10=fv('f10',''), f11=fv('f11',''), f12=fv('f12',''), f13=fv('f13','');
   if (!contractNumber) contractNumber = generateContractNumber();
@@ -623,7 +598,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 contractNumber = generateContractNumber();
 document.getElementById('contractNumberDisplay').textContent = contractNumber;
 document.getElementById('signDate').valueAsDate = new Date();
-document.getElementById('f2').value = 'ՀՀ, ք. Երεван';
+document.getElementById('f2').value = 'ՀՀ, ք. Երևան';
 updateUILabels();
 renderContract();
 </script>
