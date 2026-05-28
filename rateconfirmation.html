@@ -30,6 +30,8 @@
     .contract-preview { font-family: 'Times New Roman', 'Georgia', serif; font-size: 12px; line-height: 1.5; color: #1E2F33; position: relative; min-height: 600px; }
     .contract-preview h2 { font-size: 15px; font-weight: 800; text-align: center; margin-bottom: 0.4rem; color: #005f67; }
     .contract-preview .center { text-align: center; }
+    /* Футер справа */
+    .doc-footer { position: absolute; bottom: 15px; right: 20px; font-size: 9px; color: #4a7a80; text-align: right; line-height: 1.5; opacity: 0.8; pointer-events: none; z-index: 2; }
     .hayt-tbl { width: 100%; border-collapse: collapse; margin: 0.6rem 0 0.8rem; }
     .hayt-tbl td { border: 1px solid #4a9aa0; padding: 4px 7px; vertical-align: top; font-size: 11px; }
     .hayt-tbl td.num { width: 24px; text-align: center; font-weight: 700; color: #005f67; background: #f0fafa; }
@@ -133,9 +135,14 @@
 </div>
 
 <script>
-// Водяной знак более тёмный
+// Водяной знак
 function watermark() {
   return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.18; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
+}
+
+// Футер справа
+function docFooter() {
+  return '<div class="doc-footer">GL Logistics LLC<br>VAT: 00521217<br>www.gllogistics.org<br>+374 93 66 14 54</div>';
 }
 
 // Форматирование даты
@@ -155,7 +162,7 @@ function formatDate(dateStr, lang) {
   }
 }
 
-// Печать теперь размещается в правой колонке (GL)
+// Печать
 function sigStamp(st) {
   var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
   if (st) {
@@ -194,7 +201,7 @@ var templates = {
   customer: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'am');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">' +
         '<span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
@@ -207,7 +214,7 @@ var templates = {
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'ru');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>ЗАЯВКА</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
@@ -219,7 +226,7 @@ var templates = {
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'en');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>APPLICATION FORM</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
@@ -233,7 +240,7 @@ var templates = {
   carrier: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'am');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>ՓՈԽԱԴՐՈՂ</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
@@ -245,7 +252,7 @@ var templates = {
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'ru');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>ЗАЯВКА</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
@@ -257,7 +264,7 @@ var templates = {
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
       var fDate = formatDate(d, 'en');
-      return watermark() +
+      return watermark() + docFooter() +
         '<h2>APPLICATION FORM</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
