@@ -133,12 +133,28 @@
 </div>
 
 <script>
-// Водяной знак
+// Водяной знак темнее
 function watermark() {
-  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.06; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
+  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.12; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
 }
 
-// Печать (без подписи)
+// Форматирование даты
+function formatDate(dateStr, lang) {
+  if (!dateStr) return '________';
+  var parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  var y = parts[0], m = parts[1], d = parts[2];
+  if (lang === 'am') {
+    var months = ['հունվարի','փետրվարի','մարտի','ապրիլի','մայիսի','հունիսի','հուլիսի','օգոստոսի','սեպտեմբերի','հոկտեմբերի','նոյեմբերի','դեկտեմբերի'];
+    return d + ' ' + months[parseInt(m)-1] + ' ' + y;
+  } else if (lang === 'ru') {
+    var months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    return d + ' ' + months[parseInt(m)-1] + ' ' + y;
+  } else {
+    return d + '.' + m + '.' + y;
+  }
+}
+
 function sigStamp(st) {
   var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
   if (st) {
@@ -176,12 +192,12 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
 var templates = {
   customer: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'am');
       return watermark() +
         '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">' +
-        '<span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        '<span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
@@ -189,11 +205,11 @@ var templates = {
         '</tr></table>';
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'ru');
       return watermark() +
         '<h2>ЗАЯВКА</h2>' +
-        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Заказчик</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
@@ -201,11 +217,11 @@ var templates = {
         '</tr></table>';
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'en');
       return watermark() +
         '<h2>APPLICATION FORM</h2>' +
-        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr+'</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Customer</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
@@ -215,11 +231,11 @@ var templates = {
   },
   carrier: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'am');
       return watermark() +
         '<h2>ՓՈԽԱԴՐՈՂ</h2>' +
-        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;«__» __________ '+yr+'թ.</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;«__» ________&nbsp;&nbsp;'+yr+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
@@ -227,11 +243,11 @@ var templates = {
         '</tr></table>';
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'ru');
       return watermark() +
         '<h2>ЗАЯВКА</h2>' +
-        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+' г.</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от «__» ________ '+yr+' г.</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Экспедитор</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
@@ -239,11 +255,11 @@ var templates = {
         '</tr></table>';
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var yr = d ? d.substring(0,4) : '202_';
+      var fDate = formatDate(d, 'en');
       return watermark() +
         '<h2>APPLICATION FORM</h2>' +
-        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;«__» ________ '+yr+'</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated «__» ________ '+yr+'</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
         '<table class="party-tbl"><tr>' +
         '<td><strong>Freight Forwarder</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
