@@ -131,6 +131,7 @@ async function api(path, method='GET', body=null) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API_URL + path, opts);
+  if (!res.ok) { const err = await res.text(); throw new Error(err); }
   return res.json();
 }
 
@@ -193,32 +194,37 @@ async function saveCargo() {
   const cn = f('fClient'), crn = f('fCarrier');
   if (!cn || !crn) return alert('Введите клиента и перевозчика');
 
-  if (!clientsData.find(c => c.name === cn)) { await addClient(cn); clientsData = await loadClients(); }
-  if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
+  try {
+    if (!clientsData.find(c => c.name === cn)) { await addClient(cn); clientsData = await loadClients(); }
+    if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
 
-  let logistToSave = f('fLogist') || user;
-  if (editId && !isAdmin) {
-    const orig = allCargoData.find(c => c.id == editId);
-    if (orig) logistToSave = orig.logist;
+    let logistToSave = f('fLogist') || user;
+    if (editId && !isAdmin) {
+      const orig = allCargoData.find(c => c.id == editId);
+      if (orig) logistToSave = orig.logist;
+    }
+
+    const cargo = {
+      product: f('fProduct'), route: f('fRoute'),
+      load_date: f('fLoadDate'), unload_date: f('fUnloadDate'),
+      status: f('fStatus'),
+      client_price: parseFloat(f('fClientPrice')) || 0,
+      carrier_price: parseFloat(f('fCarrierPrice')) || 0,
+      commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
+      logist: logistToSave,
+      client_name: cn, carrier_name: crn,
+      invoice_client: await fileToBase64('fInvoiceClient') || '',
+      invoice_carrier: await fileToBase64('fInvoiceCarrier') || ''
+    };
+    if (!cargo.product) return alert('Введите товар');
+
+    if (editId) { await updateCargo(editId, cargo); } else { await addCargo(cargo); }
+    await refreshData();
+    toggleForm(false);
+  } catch (err) {
+    alert('Ошибка сохранения: ' + err.message);
+    console.error(err);
   }
-
-  const cargo = {
-    product: f('fProduct'), route: f('fRoute'),
-    load_date: f('fLoadDate'), unload_date: f('fUnloadDate'),
-    status: f('fStatus'),
-    client_price: parseFloat(f('fClientPrice')) || 0,
-    carrier_price: parseFloat(f('fCarrierPrice')) || 0,
-    commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
-    logist: logistToSave,
-    client_name: cn, carrier_name: crn,
-    invoice_client: await fileToBase64('fInvoiceClient') || '',
-    invoice_carrier: await fileToBase64('fInvoiceCarrier') || ''
-  };
-  if (!cargo.product) return alert('Введите товар');
-
-  if (editId) { await updateCargo(editId, cargo); } else { await addCargo(cargo); }
-  await refreshData();
-  toggleForm(false);
 }
 
 function fileToBase64(id) {
@@ -261,11 +267,16 @@ async function deleteCargo(id) {
 function clearFilter() { document.getElementById('filterStart').value = document.getElementById('filterEnd').value = ''; document.getElementById('filterLogist').value = 'all'; renderAll(); }
 
 async function refreshData() {
-  allCargoData = await loadCargo();
-  clientsData = await loadClients();
-  carriersData = await loadCarriers();
-  populateDatalists();
-  renderAll();
+  try {
+    allCargoData = await loadCargo();
+    clientsData = await loadClients();
+    carriersData = await loadCarriers();
+    populateDatalists();
+    renderAll();
+  } catch (err) {
+    console.error('Ошибка загрузки данных:', err);
+    document.getElementById('emptyMsg').textContent = 'Ошибка загрузки. Проверьте соединение.';
+  }
 }
 
 function renderAll() {
