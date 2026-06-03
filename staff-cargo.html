@@ -151,7 +151,16 @@ if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 function getList(k) { return JSON.parse(localStorage.getItem(k) || '[]'); }
 function saveList(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-function getCargo() { const a = getList(CARGO_KEY); return isAdmin ? a : a.filter(c => c.logist === user); }
+
+// ВСЕ сделки (для статистики админа)
+function getAllCargo() { return getList(CARGO_KEY); }
+
+// Сделки для отображения: админ видит всё, логист — только свои
+function getCargo() { 
+  const all = getList(CARGO_KEY); 
+  return isAdmin ? all : all.filter(c => c.logist === user); 
+}
+
 function getClients() { return getList(CLIENTS_KEY); }
 function getCarriers() { return getList(CARRIERS_KEY); }
 
@@ -213,7 +222,7 @@ async function saveCargo() {
     product: f('fProduct'), route: f('fRoute'), loadDate: f('fLoadDate'), unloadDate: f('fUnloadDate'),
     status: f('fStatus'), clientPrice: f('fClientPrice'), carrierPrice: f('fCarrierPrice'),
     commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
-    logist: isAdmin ? f('fLogist') : user, clientName: cn, carrierName: crn,
+    logist: f('fLogist') || user, clientName: cn, carrierName: crn,
     invoiceClient: await fileToBase64('fInvoiceClient') || (editId ? list[editId]?.invoiceClient : ''),
     invoiceCarrier: await fileToBase64('fInvoiceCarrier') || (editId ? list[editId]?.invoiceCarrier : '')
   };
@@ -232,7 +241,10 @@ function f(id) { return document.getElementById(id).value.trim(); }
 
 function editCargo(i) {
   const list = getList(CARGO_KEY), c = list[i];
-  if (!c || (!isAdmin && c.logist !== user)) return alert('Нет доступа');
+  if (!c) return alert('Сделка не найдена');
+  // Логист может редактировать только свои, админ — все
+  if (!isAdmin && c.logist !== user) return alert('Нет доступа');
+  
   populateDatalists();
   document.getElementById('editId').value = i;
   document.getElementById('fClient').value = c.clientName || '';
@@ -252,7 +264,7 @@ function editCargo(i) {
 
 function deleteCargo(i) {
   const list = getList(CARGO_KEY);
-  if (!isAdmin && list[i]?.logist !== user) return;
+  if (!isAdmin && list[i]?.logist !== user) return alert('Нет доступа');
   if (confirm('Удалить?')) { list.splice(i,1); saveList(CARGO_KEY, list); renderAll(); }
 }
 
@@ -270,13 +282,21 @@ function renderAll() {
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   
   if (isAdmin) {
-    const all = getList(CARGO_KEY);
+    const all = getAllCargo();
     const logists = [...new Set(all.map(c => c.logist).filter(Boolean))];
     document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
   }
   
-  const profit = list.reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
-  document.getElementById('statsRow').innerHTML = `<div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div><div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>`;
+  // Прибыль: для админа — общая по всем, для логиста — своя
+  const profitSource = isAdmin ? getAllCargo() : getCargo();
+  const filteredProfit = start || end ? list : profitSource;
+  const profit = filteredProfit.reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
+  
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
+    <div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>
+    ${isAdmin ? `<div class="stat-card"><div class="num">${getAllCargo().length}</div><div class="lbl">Всего сделок</div></div>` : ''}
+  `;
   
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
