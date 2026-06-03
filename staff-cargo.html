@@ -10,7 +10,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F5FAFA; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
     .app-wrapper { max-width: 1400px; margin: 0 auto; }
-    .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; border: 1px solid rgba(85,183,189,0.25); box-shadow: 0 2px 12px rgba(85,183,189,0.06); }
+    .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; border: 1px solid rgba(85,183,189,0.25); }
     .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; color: #1a1a1a; }
     .top-bar .brand img { height: 40px; width: auto; }
     .btn-logout { background: #1E3B42; border: none; color: white; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; }
@@ -21,7 +21,7 @@
     .nav-links a.active, .nav-links a:hover { background: #55B7BD; color: #0D1F23; }
     .filter-bar { background: #FFFFFF; border-radius: 16px; padding: 12px 16px; margin-bottom: 1rem; border: 1px solid rgba(85,183,189,0.2); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .filter-bar label { font-size: 0.7rem; color: #55B7BD; font-weight: 600; }
-    .filter-bar input, .filter-bar select { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 10px; padding: 6px 10px; font-size: 0.8rem; outline: none; }
+    .filter-bar input, .filter-bar select { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 10px; padding: 6px 10px; font-size: 0.8rem; }
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1rem; }
     .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; }
     .stat-card .num { font-size: 1.5rem; font-weight: 800; color: #55B7BD; }
@@ -49,7 +49,6 @@
     .profit-positive { color: #3d9aa0; font-weight: 700; }
     .btn-del { background: none; border: none; color: #C62828; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; }
     .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
-    .file-link { color: #55B7BD; font-size: 0.7rem; text-decoration: underline; cursor: pointer; }
     .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
   </style>
 </head>
@@ -112,12 +111,12 @@
       <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Маршрут</th><th>Загрузка</th><th>Выгрузка</th><th>Статус</th><th>Клиент $</th><th>Перевоз $</th><th>Прибыль</th><th>Логист</th><th></th></tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
-    <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Нет сделок</p>
+    <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Загрузка...</p>
   </div>
 </div>
 
 <script>
-const CARGO_KEY = 'gl_cargo_v3', CLIENTS_KEY = 'gl_clients_v3', CARRIERS_KEY = 'gl_carriers_v3';
+const API_URL = 'https://gl-api.gltransam.workers.dev';
 const ADMIN_USER = 'TigranMetspagyan';
 const user = localStorage.getItem('gl_staff_user');
 if (!user) { document.body.innerHTML = '<div style="text-align:center;padding:100px;">Пожалуйста, <a href="staff.html">войдите</a></div>'; }
@@ -126,12 +125,26 @@ document.getElementById('userInfo').textContent = '👤 ' + user;
 if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
 
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
-function getList(k) { return JSON.parse(localStorage.getItem(k) || '[]'); }
-function saveList(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-function allCargo() { return getList(CARGO_KEY); }
-function myCargo() { const all = allCargo(); return isAdmin ? all : all.filter(c => c.logist === user); }
-function getClients() { return getList(CLIENTS_KEY); }
-function getCarriers() { return getList(CARRIERS_KEY); }
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_URL + path, opts);
+  return res.json();
+}
+
+async function loadCargo() { return api('/api/cargo'); }
+async function addCargo(data) { return api('/api/cargo', 'POST', data); }
+async function updateCargo(id, data) { return api('/api/cargo/' + id, 'PUT', data); }
+async function removeCargo(id) { return api('/api/cargo/' + id, 'DELETE'); }
+async function loadClients() { return api('/api/clients'); }
+async function addClient(name) { return api('/api/clients', 'POST', { name }); }
+async function loadCarriers() { return api('/api/carriers'); }
+async function addCarrier(name) { return api('/api/carriers', 'POST', { name }); }
+
+let allCargoData = [];
+let clientsData = [];
+let carriersData = [];
 
 function calcCommission() {
   const cp = parseFloat(document.getElementById('fClientPrice').value) || 0;
@@ -140,23 +153,13 @@ function calcCommission() {
 }
 
 function populateDatalists() {
-  document.getElementById('clientList').innerHTML = getClients().map(c => `<option value="${esc(c.name)}">`).join('');
-  document.getElementById('carrierList').innerHTML = getCarriers().map(c => `<option value="${esc(c.name)}">`).join('');
-}
-
-function addIfNew(key, name) {
-  if (!name) return;
-  const list = getList(key);
-  if (!list.find(x => x.name.toLowerCase() === name.toLowerCase())) {
-    list.push({ name, inn: '', address: '', phone: '', email: '', contact: '' });
-    saveList(key, list);
-  }
+  document.getElementById('clientList').innerHTML = clientsData.map(c => `<option value="${esc(c.name)}">`).join('');
+  document.getElementById('carrierList').innerHTML = carriersData.map(c => `<option value="${esc(c.name)}">`).join('');
 }
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
   if (show) {
-    populateDatalists();
     document.getElementById('fLogist').value = user;
   } else {
     ['editId','fProduct','fRoute','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier','fLogist'].forEach(id => document.getElementById(id).value = '');
@@ -185,39 +188,35 @@ function handleFileSelect(inp, zoneId) {
 }
 
 async function saveCargo() {
-  const all = allCargo();
   const editId = document.getElementById('editId').value;
   const cn = f('fClient'), crn = f('fCarrier');
   if (!cn || !crn) return alert('Введите клиента и перевозчика');
-  addIfNew(CLIENTS_KEY, cn); addIfNew(CARRIERS_KEY, crn);
+
+  if (!clientsData.find(c => c.name === cn)) { await addClient(cn); clientsData = await loadClients(); }
+  if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
 
   let logistToSave = f('fLogist') || user;
-
-  // При редактировании: если админ не менял логиста вручную, оставляем оригинал
-  if (editId && all[editId]) {
-    const original = all[editId];
-    // Если поле логиста совпадает с текущим пользователем или пустое — сохраняем оригинального логиста
-    if (!f('fLogist') || f('fLogist') === user) {
-      logistToSave = original.logist;
-    }
+  if (editId && !isAdmin) {
+    const orig = allCargoData.find(c => c.id == editId);
+    if (orig) logistToSave = orig.logist;
   }
 
   const cargo = {
     product: f('fProduct'), route: f('fRoute'),
-    loadDate: f('fLoadDate'), unloadDate: f('fUnloadDate'),
+    load_date: f('fLoadDate'), unload_date: f('fUnloadDate'),
     status: f('fStatus'),
-    clientPrice: f('fClientPrice'), carrierPrice: f('fCarrierPrice'),
+    client_price: parseFloat(f('fClientPrice')) || 0,
+    carrier_price: parseFloat(f('fCarrierPrice')) || 0,
     commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
     logist: logistToSave,
-    clientName: cn, carrierName: crn,
-    invoiceClient: await fileToBase64('fInvoiceClient') || (editId ? all[editId]?.invoiceClient : ''),
-    invoiceCarrier: await fileToBase64('fInvoiceCarrier') || (editId ? all[editId]?.invoiceCarrier : '')
+    client_name: cn, carrier_name: crn,
+    invoice_client: await fileToBase64('fInvoiceClient') || '',
+    invoice_carrier: await fileToBase64('fInvoiceCarrier') || ''
   };
   if (!cargo.product) return alert('Введите товар');
 
-  if (editId) { all[editId] = cargo; } else { all.push(cargo); }
-  saveList(CARGO_KEY, all);
-  renderAll();
+  if (editId) { await updateCargo(editId, cargo); } else { await addCargo(cargo); }
+  await refreshData();
   toggleForm(false);
 }
 
@@ -229,72 +228,76 @@ function fileToBase64(id) {
 
 function f(id) { return document.getElementById(id).value.trim(); }
 
-function editCargo(i) {
-  const all = allCargo();
-  const c = all[i];
+async function editCargo(id) {
+  const c = allCargoData.find(x => x.id == id);
   if (!c) return;
   if (!isAdmin && c.logist !== user) return alert('Нет доступа');
-
   populateDatalists();
-  document.getElementById('editId').value = i;
-  document.getElementById('fClient').value = c.clientName || '';
-  document.getElementById('fCarrier').value = c.carrierName || '';
+  document.getElementById('editId').value = c.id;
+  document.getElementById('fClient').value = c.client_name || '';
+  document.getElementById('fCarrier').value = c.carrier_name || '';
   document.getElementById('fProduct').value = c.product || '';
   document.getElementById('fRoute').value = c.route || '';
-  document.getElementById('fLoadDate').value = c.loadDate || '';
-  document.getElementById('fUnloadDate').value = c.unloadDate || '';
+  document.getElementById('fLoadDate').value = c.load_date || '';
+  document.getElementById('fUnloadDate').value = c.unload_date || '';
   document.getElementById('fStatus').value = c.status || 'loading';
-  document.getElementById('fClientPrice').value = c.clientPrice || '';
-  document.getElementById('fCarrierPrice').value = c.carrierPrice || '';
-  document.getElementById('fCommission').value = (parseFloat(c.clientPrice||0) - parseFloat(c.carrierPrice||0)).toFixed(2);
+  document.getElementById('fClientPrice').value = c.client_price || '';
+  document.getElementById('fCarrierPrice').value = c.carrier_price || '';
+  document.getElementById('fCommission').value = (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0)).toFixed(2);
   document.getElementById('fLogist').value = c.logist || user;
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
 
-function deleteCargo(i) {
-  const all = allCargo();
-  if (!isAdmin && all[i]?.logist !== user) return alert('Нет доступа');
-  if (confirm('Удалить?')) { all.splice(i, 1); saveList(CARGO_KEY, all); renderAll(); }
+async function deleteCargo(id) {
+  if (!isAdmin) {
+    const c = allCargoData.find(x => x.id == id);
+    if (c && c.logist !== user) return alert('Нет доступа');
+  }
+  if (confirm('Удалить?')) { await removeCargo(id); await refreshData(); }
 }
 
 function clearFilter() { document.getElementById('filterStart').value = document.getElementById('filterEnd').value = ''; document.getElementById('filterLogist').value = 'all'; renderAll(); }
 
+async function refreshData() {
+  allCargoData = await loadCargo();
+  clientsData = await loadClients();
+  carriersData = await loadCarriers();
+  populateDatalists();
+  renderAll();
+}
+
 function renderAll() {
   const start = document.getElementById('filterStart').value, end = document.getElementById('filterEnd').value, fl = document.getElementById('filterLogist').value;
-  let list = myCargo();
-  if (start) list = list.filter(c => c.loadDate >= start);
-  if (end) list = list.filter(c => c.loadDate <= end);
+  let list = isAdmin ? allCargoData : allCargoData.filter(c => c.logist === user);
+  if (start) list = list.filter(c => c.load_date >= start);
+  if (end) list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
 
   if (isAdmin) {
-    const logists = [...new Set(allCargo().map(c => c.logist).filter(Boolean))];
-    const sel = document.getElementById('filterLogist');
-    sel.innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
+    const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
+    document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
   }
 
-  const profitList = (start || end || fl !== 'all') ? list : (isAdmin ? allCargo() : list);
-  const profit = profitList.reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
-
+  const profit = list.reduce((s,c) => s + (parseFloat(c.client_price||0)-parseFloat(c.carrier_price||0)), 0);
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
     <div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>
-    ${isAdmin ? `<div class="stat-card"><div class="num">${allCargo().length}</div><div class="lbl">Всего в системе</div></div>` : ''}
+    ${isAdmin ? `<div class="stat-card"><div class="num">${allCargoData.length}</div><div class="lbl">Всего</div></div>` : ''}
   `;
 
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-
   document.getElementById('emptyMsg').style.display = list.length ? 'none' : 'block';
   document.getElementById('tableBody').innerHTML = list.map((c, idx) => {
-    const p = (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0));
-    const ri = allCargo().indexOf(c);
-    return `<tr><td>${idx+1}</td><td>${esc(c.clientName)}</td><td>${esc(c.carrierName)}</td><td>${esc(c.product)}</td><td>${esc(c.route)}</td><td>${c.loadDate||'-'}</td><td>${c.unloadDate||'-'}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td>$${parseFloat(c.clientPrice||0).toLocaleString()}</td><td>$${parseFloat(c.carrierPrice||0).toLocaleString()}</td><td class="${p>=0?'profit-positive':''}">$${p.toLocaleString()}</td><td>${esc(c.logist)}</td><td><button class="btn-edit" onclick="editCargo(${ri})">✏️</button><button class="btn-del" onclick="deleteCargo(${ri})">🗑️</button></td></tr>`;
+    const p = (parseFloat(c.client_price||0)-parseFloat(c.carrier_price||0));
+    return `<tr><td>${idx+1}</td><td>${esc(c.client_name)}</td><td>${esc(c.carrier_name)}</td><td>${esc(c.product)}</td><td>${esc(c.route)}</td><td>${c.load_date||'-'}</td><td>${c.unload_date||'-'}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td>$${parseFloat(c.client_price||0).toLocaleString()}</td><td>$${parseFloat(c.carrier_price||0).toLocaleString()}</td><td class="${p>=0?'profit-positive':''}">$${p.toLocaleString()}</td><td>${esc(c.logist)}</td><td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button><button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button></td></tr>`;
   }).join('');
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
-renderAll();
+
+refreshData();
 </script>
 </body>
 </html>
