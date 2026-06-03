@@ -28,6 +28,11 @@
     th { color: #55B7BD; text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(85,183,189,0.2); font-size: 0.65rem; text-transform: uppercase; background: #F5FAFA; }
     td { padding: 8px; border-bottom: 1px solid #EEF4F4; color: #2d3a3d; }
     .profit-positive { color: #3d9aa0; font-weight: 700; }
+    .status-badge { padding: 3px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 700; display: inline-block; }
+    .status-loading { background: #FFF3E0; color: #E65100; }
+    .status-onroad { background: #E3F2FD; color: #1565C0; }
+    .status-loaded { background: #E8F5F5; color: #3d9aa0; }
+    .status-completed { background: #EDE7F6; color: #4527A0; }
   </style>
 </head>
 <body>
@@ -47,32 +52,61 @@
   <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
   
   <h3 class="section-title">📦 Последние сделки</h3>
-  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Маршрут</th><th>Статус</th><th>Прибыль</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
 </div>
 
 <script>
+const API_URL = 'https://gl-api.gltransam.workers.dev';
+const ADMIN_USER = 'TigranMetspagyan';
 const user = localStorage.getItem('gl_staff_user');
 if (!user) window.location.href = 'staff.html';
+const isAdmin = user === ADMIN_USER;
+if (!isAdmin) window.location.href = 'staff-cargo.html';
+
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 
-const cargo = JSON.parse(localStorage.getItem('gl_cargo_v3') || '[]');
-const tp = (c) => (parseFloat(c.clientPrice||0) - parseFloat(c.carrierPrice||0));
+async function loadData() {
+  try {
+    const res = await fetch(API_URL + '/api/cargo');
+    const cargo = await res.json();
+    
+    const tp = (c) => (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0));
+    const totalProfit = cargo.reduce((s,c) => s + tp(c), 0);
+    
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Всего сделок</div></div>
+      <div class="stat-card stat-profit"><div class="num">$${totalProfit.toLocaleString()}</div><div class="lbl">Общая прибыль</div></div>
+    `;
+    
+    // По логистам
+    const lm = {};
+    cargo.forEach(c => {
+      const l = c.logist || '—';
+      if (!lm[l]) lm[l] = { count: 0, turnover: 0, profit: 0 };
+      lm[l].count++;
+      lm[l].turnover += parseFloat(c.client_price||0);
+      lm[l].profit += tp(c);
+    });
+    document.getElementById('logistTable').innerHTML = Object.entries(lm).map(([n,d]) => 
+      `<tr><td>${esc(n)}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`
+    ).join('');
+    
+    // Последние 10
+    const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
+    const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
+    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => 
+      `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${esc(c.logist||'—')}</td></tr>`
+    ).join('');
+    
+  } catch (err) {
+    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>';
+    console.error(err);
+  }
+}
 
-document.getElementById('statsRow').innerHTML = `
-  <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Всего сделок</div></div>
-  <div class="stat-card stat-profit"><div class="num">$${cargo.reduce((s,c) => s + tp(c), 0).toLocaleString()}</div><div class="lbl">Прибыль</div></div>
-`;
+function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-const lm = {};
-cargo.forEach(c => {
-  const l = c.logist || '—';
-  if (!lm[l]) lm[l] = { count: 0, turnover: 0, profit: 0 };
-  lm[l].count++; lm[l].turnover += parseFloat(c.clientPrice||0); lm[l].profit += tp(c);
-});
-document.getElementById('logistTable').innerHTML = Object.entries(lm).map(([n,d]) => `<tr><td>${n}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`).join('');
-
-const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
-document.getElementById('recentTable').innerHTML = cargo.slice(-10).reverse().map(c => `<tr><td>${c.product||'—'}</td><td>${c.clientName||'—'}</td><td>${c.carrierName||'—'}</td><td>${c.route||'—'}</td><td>${sl[c.status]||c.status}</td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${c.logist||'—'}</td></tr>`).join('');
+loadData();
 </script>
 </body>
 </html>
