@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GL Logistics | Вход</title>
+  <link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B171C; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .login-box { background: #152A30; border-radius: 28px; padding: 2.5rem; border: 1px solid #2F6C74; text-align: center; width: 380px; }
+    .login-box img { height: 50px; margin-bottom: 1rem; }
+    .login-box h2 { color: #55B7BD; margin-bottom: 1.5rem; font-size: 1.3rem; }
+    .login-box input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
+    .login-box input:focus { border-color: #55B7BD; }
+    .login-box button { width: 100%; background: #55B7BD; color: #0D1F23; border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+    .login-box button:hover { background: #3d9aa0; }
+    .hint { color: #7a9ea3; font-size: 0.75rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+<div class="login-box">
+  <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics">
+  <h2>🔐 Вход для сотрудников</h2>
+  <input type="text" id="loginUser" placeholder="Имя пользователя">
+  <input type="password" id="loginPass" placeholder="Пароль">
+  <button onclick="doLogin()">Войти</button>
+  <p class="hint">
+    👤 Админ: admin / admin123<br>
+    👤 Логист: tigran / gl2024<br>
+    👤 Логист: staff1 / logistics1
+  </p>
+</div>
+
+<script>
+const USERS = { 'admin': 'admin123', 'tigran': 'gl2024', 'staff1': 'logistics1' };
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if (USERS[u] && USERS[u] === p) {
+    localStorage.setItem('gl_staff_user', u);
+    window.location.href = 'staff-cargo.html';
+  } else {
+    alert('Неверный логин или пароль');
+  }
+}
+
+// Если уже вошёл — сразу на сделки
+if (localStorage.getItem('gl_staff_user')) {
+  window.location.href = 'staff-cargo.html';
+}
+</script>
+</body>
+</html>
