@@ -1,6 +1,9 @@
 {
   "rewrites": [
     { "source": "/contract", "destination": "/contract.html" },
-    { "source": "/rateconfirmation", "destination": "/rateconfirmation.html" }
+    { "source": "/rateconfirmation", "destination": "/rateconfirmation.html" },
+    { "source": "/staff", "destination": "/staff.html" },
+    { "source": "/staff-cargo", "destination": "/staff-cargo.html" },
+    { "source": "/staff-dashboard", "destination": "/staff-dashboard.html" }
   ]
 }
