@@ -2,290 +2,49 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>GL Logistics | Сделки</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GL Logistics | Вход</title>
   <link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #F5FAFA; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
-    .app-wrapper { max-width: 1400px; margin: 0 auto; }
-    
-    .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; border: 1px solid rgba(85,183,189,0.25); box-shadow: 0 2px 12px rgba(85,183,189,0.06); }
-    .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; color: #1a1a1a; }
-    .top-bar .brand img { height: 40px; width: auto; }
-    .btn-logout { background: #1E3B42; border: none; color: white; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-    .btn-logout:hover { background: #2a5060; }
-    .user-info { font-size: 0.85rem; color: #55B7BD; font-weight: 600; }
-    .admin-badge { background: #55B7BD; color: #0D1F23; padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
-    
-    .nav-links { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .nav-links a { background: #FFFFFF; color: #55B7BD; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(85,183,189,0.25); transition: 0.2s; }
-    .nav-links a.active, .nav-links a:hover { background: #55B7BD; color: #0D1F23; border-color: #55B7BD; }
-    
-    .filter-bar { background: #FFFFFF; border-radius: 16px; padding: 12px 16px; margin-bottom: 1rem; border: 1px solid rgba(85,183,189,0.2); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .filter-bar label { font-size: 0.7rem; color: #55B7BD; font-weight: 600; }
-    .filter-bar input, .filter-bar select { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 10px; padding: 6px 10px; font-size: 0.8rem; outline: none; color: #1a1a1a; }
-    
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1rem; }
-    .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; box-shadow: 0 1px 4px rgba(85,183,189,0.04); }
-    .stat-card .num { font-size: 1.5rem; font-weight: 800; color: #55B7BD; }
-    .stat-card .lbl { font-size: 0.6rem; color: #8fa8ab; text-transform: uppercase; }
-    .stat-profit { background: #EDF7F7; border-color: rgba(85,183,189,0.35); } .stat-profit .num { color: #3d9aa0; }
-    
-    .btn-add { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-bottom: 1rem; transition: 0.2s; }
-    .btn-add:hover { background: #3d9aa0; }
-    
-    .form-add { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; display: none; border: 1px solid rgba(85,183,189,0.25); box-shadow: 0 2px 8px rgba(85,183,189,0.06); }
-    .form-add.active { display: block; }
-    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
-    .form-row label { font-size: 0.6rem; color: #55B7BD; text-transform: uppercase; display: block; margin-bottom: 3px; font-weight: 700; }
-    .form-row input, .form-row select { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 16px; padding: 8px 12px; color: #1a1a1a; font-size: 0.85rem; outline: none; }
-    .form-row input:focus, .form-row select:focus { border-color: #55B7BD; }
-    
-    .drop-zone { border: 2px dashed rgba(85,183,189,0.35); border-radius: 16px; padding: 15px; text-align: center; color: #8fa8ab; font-size: 0.75rem; cursor: pointer; transition: 0.2s; background: #F5FAFA; min-height: 60px; display: flex; align-items: center; justify-content: center; }
-    .drop-zone:hover, .drop-zone.dragover { border-color: #55B7BD; background: #EDF7F7; color: #55B7BD; }
-    .drop-zone.has-file { border-style: solid; border-color: #55B7BD; background: #E8F5F5; color: #3d9aa0; }
-    
-    .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-right: 8px; transition: 0.2s; }
-    .btn-save:hover { background: #3d9aa0; }
-    .btn-cancel { background: #DDE8E9; color: #2d3a3d; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; }
-    
-    .table-wrap { background: #FFFFFF; border-radius: 20px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); overflow-x: auto; box-shadow: 0 2px 8px rgba(85,183,189,0.04); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    th { color: #55B7BD; text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(85,183,189,0.2); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; background: #F5FAFA; }
-    td { padding: 6px; border-bottom: 1px solid #EEF4F4; color: #2d3a3d; white-space: nowrap; }
-    .status-badge { padding: 3px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 700; display: inline-block; }
-    .status-loading { background: #FFF3E0; color: #E65100; }
-    .status-onroad { background: #E3F2FD; color: #1565C0; }
-    .status-loaded { background: #E8F5F5; color: #3d9aa0; }
-    .status-completed { background: #EDE7F6; color: #4527A0; }
-    .profit-positive { color: #3d9aa0; font-weight: 700; }
-    .profit-negative { color: #C62828; font-weight: 700; }
-    .btn-del { background: none; border: none; color: #C62828; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; }
-    .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
-    .file-link { color: #55B7BD; font-size: 0.7rem; text-decoration: underline; cursor: pointer; }
-    .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
+    body { background: #0B171C; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .login-box { background: #152A30; border-radius: 28px; padding: 2.5rem; border: 1px solid #2F6C74; text-align: center; width: 380px; }
+    .login-box h2 { color: #55B7BD; margin-bottom: 1.5rem; font-size: 1.3rem; }
+    .login-box input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
+    .login-box input:focus { border-color: #55B7BD; }
+    .login-box button { width: 100%; background: #55B7BD; color: #0D1F23; border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+    .login-box button:hover { background: #3d9aa0; }
+    .hint { color: #7a9ea3; font-size: 0.75rem; margin-top: 1rem; }
   </style>
 </head>
 <body>
-<div class="app-wrapper">
-  <div class="top-bar">
-    <a href="/" class="brand">
-      <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics">
-      <span>GL Logistics • Сделки</span>
-    </a>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span class="user-info" id="userInfo"></span>
-      <span class="admin-badge" id="adminBadge" style="display:none;">ADMIN</span>
-      <button class="btn-logout" onclick="doLogout()">Выйти</button>
-    </div>
-  </div>
-  
-  <div class="nav-links">
-    <a href="staff-dashboard.html">📊 Главная</a>
-    <a href="staff-cargo.html" class="active">📦 Сделки</a>
-  </div>
-  
-  <div class="filter-bar">
-    <label>📅 Период:</label>
-    <input type="date" id="filterStart" onchange="renderAll()">
-    <span>—</span>
-    <input type="date" id="filterEnd" onchange="renderAll()">
-    <label style="margin-left:12px;">👤 Логист:</label>
-    <select id="filterLogist" onchange="renderAll()"><option value="all">Все</option></select>
-    <button onclick="clearFilter()" style="background:#DDE8E9;border:none;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:0.75rem;">✕ Сбросить</button>
-  </div>
-  
-  <div class="stats-row" id="statsRow"></div>
-  
-  <button class="btn-add" onclick="toggleForm()">+ Новая сделка</button>
-  
-  <div class="form-add" id="addForm">
-    <h3 style="color:#55B7BD;margin-bottom:12px;" id="formTitle">Новая сделка</h3>
-    <input type="hidden" id="editId">
-    <div class="form-row">
-      <div><label>Клиент *</label><input type="text" id="fClient" list="clientList"><datalist id="clientList"></datalist></div>
-      <div><label>Перевозчик *</label><input type="text" id="fCarrier" list="carrierList"><datalist id="carrierList"></datalist></div>
-      <div><label>Товар / Груз *</label><input type="text" id="fProduct"></div>
-      <div><label>Маршрут</label><input type="text" id="fRoute"></div>
-    </div>
-    <div class="form-row">
-      <div><label>Дата загрузки</label><input type="date" id="fLoadDate"></div>
-      <div><label>Дата выгрузки</label><input type="date" id="fUnloadDate"></div>
-      <div><label>Статус</label><select id="fStatus"><option value="loading">На загрузке</option><option value="onroad">В пути</option><option value="loaded">Загружен</option><option value="completed">Завершён</option></select></div>
-    </div>
-    <div class="form-row">
-      <div><label>Цена клиента ($) *</label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
-      <div><label>Цена перевозчика ($) *</label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
-      <div><label>Комиссия ($) = Клиент − Перевозчик</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
-      <div><label>Логист</label><input type="text" id="fLogist" readonly style="background:#EDF7F7;"></div>
-    </div>
-    <div class="form-row">
-      <div><label>Инвойс клиенту</label><div class="drop-zone" id="dropClient" onclick="document.getElementById('fInvoiceClient').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceClient" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropClient')"></div>
-      <div><label>Инвойс от перевозчика</label><div class="drop-zone" id="dropCarrier" onclick="document.getElementById('fInvoiceCarrier').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceCarrier" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropCarrier')"></div>
-    </div>
-    <div style="margin-top:10px;">
-      <button class="btn-save" onclick="saveCargo()">💾 Сохранить</button>
-      <button class="btn-cancel" onclick="toggleForm(false)">Отмена</button>
-    </div>
-  </div>
-  
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Маршрут</th><th>Загрузка</th><th>Выгрузка</th><th>Статус</th><th>Клиент $</th><th>Перевоз $</th><th>Прибыль</th><th>Логист</th><th>Инвойсы</th><th></th></tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Нет сделок</p>
-  </div>
+<div class="login-box">
+  <h2>Вход для сотрудников</h2>
+  <input type="text" id="loginUser" placeholder="Имя пользователя">
+  <input type="password" id="loginPass" placeholder="Пароль">
+  <button onclick="doLogin()">Войти</button>
+  <p class="hint">Введите ваш логин и пароль</p>
 </div>
 
 <script>
-const CARGO_KEY = 'gl_cargo_v3', CLIENTS_KEY = 'gl_clients_v3', CARRIERS_KEY = 'gl_carriers_v3', ADMIN_USER = 'TigranMetspagyan';
-const user = localStorage.getItem('gl_staff_user');
-if (!user) window.location.href = 'staff.html';
-const isAdmin = user === ADMIN_USER;
-document.getElementById('userInfo').textContent = '👤 ' + user;
-if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
+const USERS = { 
+  'TigranMetspagyan': { password: 'Tigrangianti1.', role: 'admin' },
+  'VahagArshakyan': { password: 'Vahaggianti1.', role: 'logist' }
+};
 
-function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
-function getList(k) { return JSON.parse(localStorage.getItem(k) || '[]'); }
-function saveList(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-function getCargo() { const a = getList(CARGO_KEY); return isAdmin ? a : a.filter(c => c.logist === user); }
-function getClients() { return getList(CLIENTS_KEY); }
-function getCarriers() { return getList(CARRIERS_KEY); }
-
-function calcCommission() {
-  const cp = parseFloat(document.getElementById('fClientPrice').value) || 0;
-  const crp = parseFloat(document.getElementById('fCarrierPrice').value) || 0;
-  document.getElementById('fCommission').value = (cp - crp).toFixed(2);
-}
-
-function populateDatalists() {
-  document.getElementById('clientList').innerHTML = getClients().map(c => `<option value="${esc(c.name)}">`).join('');
-  document.getElementById('carrierList').innerHTML = getCarriers().map(c => `<option value="${esc(c.name)}">`).join('');
-}
-
-function addIfNew(key, name) {
-  if (!name) return;
-  const list = getList(key);
-  if (!list.find(x => x.name.toLowerCase() === name.toLowerCase())) {
-    list.push({ name, inn: '', address: '', phone: '', email: '', contact: '' });
-    saveList(key, list);
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  
+  if (USERS[u] && USERS[u].password === p) {
+    localStorage.setItem('gl_staff_user', u);
+    localStorage.setItem('gl_staff_role', USERS[u].role);
+    window.location.href = 'staff-cargo.html';
+  } else {
+    alert('Неверный логин или пароль');
   }
 }
-
-function toggleForm(show=true) {
-  document.getElementById('addForm').classList.toggle('active', show);
-  if (show) { populateDatalists(); document.getElementById('fLogist').value = user; }
-  else {
-    ['editId','fProduct','fRoute','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier'].forEach(id => document.getElementById(id).value = '');
-    ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
-    document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
-    document.getElementById('fStatus').value = 'loading';
-  }
-}
-
-['dropClient','dropCarrier'].forEach(id => {
-  const z = document.getElementById(id);
-  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragover'); });
-  z.addEventListener('dragleave', () => z.classList.remove('dragover'));
-  z.addEventListener('drop', e => {
-    e.preventDefault(); z.classList.remove('dragover');
-    const inp = document.getElementById(id === 'dropClient' ? 'fInvoiceClient' : 'fInvoiceCarrier');
-    inp.files = e.dataTransfer.files; handleFileSelect(inp, id);
-  });
-});
-
-function handleFileSelect(inp, zoneId) {
-  if (inp.files.length > 0) {
-    const z = document.getElementById(zoneId);
-    z.classList.add('has-file'); z.innerHTML = '✅ ' + inp.files[0].name;
-  }
-}
-
-async function saveCargo() {
-  const list = getList(CARGO_KEY), editId = document.getElementById('editId').value;
-  const cn = f('fClient'), crn = f('fCarrier');
-  if (!cn || !crn) return alert('Введите клиента и перевозчика');
-  addIfNew(CLIENTS_KEY, cn); addIfNew(CARRIERS_KEY, crn);
-  const cargo = {
-    product: f('fProduct'), route: f('fRoute'), loadDate: f('fLoadDate'), unloadDate: f('fUnloadDate'),
-    status: f('fStatus'), clientPrice: f('fClientPrice'), carrierPrice: f('fCarrierPrice'),
-    commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
-    logist: isAdmin ? f('fLogist') : user, clientName: cn, carrierName: crn,
-    invoiceClient: await fileToBase64('fInvoiceClient') || (editId ? list[editId]?.invoiceClient : ''),
-    invoiceCarrier: await fileToBase64('fInvoiceCarrier') || (editId ? list[editId]?.invoiceCarrier : '')
-  };
-  if (!cargo.product) return alert('Введите товар');
-  editId ? list[editId] = cargo : list.push(cargo);
-  saveList(CARGO_KEY, list); renderAll(); toggleForm(false);
-}
-
-function fileToBase64(id) {
-  const file = document.getElementById(id).files[0];
-  if (!file) return Promise.resolve('');
-  return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
-}
-
-function f(id) { return document.getElementById(id).value.trim(); }
-
-function editCargo(i) {
-  const list = getList(CARGO_KEY), c = list[i];
-  if (!c || (!isAdmin && c.logist !== user)) return;
-  populateDatalists();
-  document.getElementById('editId').value = i;
-  ['fClient','fCarrier','fProduct','fRoute','fLoadDate','fUnloadDate'].forEach(id => document.getElementById(id).value = c[id.replace('f','').toLowerCase()] || '');
-  document.getElementById('fStatus').value = c.status || 'loading';
-  document.getElementById('fClientPrice').value = c.clientPrice || '';
-  document.getElementById('fCarrierPrice').value = c.carrierPrice || '';
-  document.getElementById('fCommission').value = (parseFloat(c.clientPrice||0) - parseFloat(c.carrierPrice||0)).toFixed(2);
-  document.getElementById('fLogist').value = c.logist || user;
-  document.getElementById('formTitle').textContent = 'Редактировать сделку';
-  document.getElementById('addForm').classList.add('active');
-}
-
-function deleteCargo(i) {
-  const list = getList(CARGO_KEY);
-  if (!isAdmin && list[i]?.logist !== user) return;
-  if (confirm('Удалить?')) { list.splice(i,1); saveList(CARGO_KEY, list); renderAll(); }
-}
-
-function clearFilter() {
-  document.getElementById('filterStart').value = document.getElementById('filterEnd').value = '';
-  document.getElementById('filterLogist').value = 'all'; renderAll();
-}
-
-function renderAll() {
-  const start = document.getElementById('filterStart').value, end = document.getElementById('filterEnd').value;
-  const fl = document.getElementById('filterLogist').value;
-  let list = getCargo();
-  if (start) list = list.filter(c => c.loadDate >= start);
-  if (end) list = list.filter(c => c.loadDate <= end);
-  if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
-  
-  if (isAdmin) {
-    const all = getList(CARGO_KEY);
-    const logists = [...new Set(all.map(c => c.logist).filter(Boolean))];
-    document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
-  }
-  
-  const profit = list.reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
-  document.getElementById('statsRow').innerHTML = `<div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div><div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>`;
-  
-  const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
-  const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-  
-  document.getElementById('emptyMsg').style.display = list.length ? 'none' : 'block';
-  document.getElementById('tableBody').innerHTML = list.map((c,idx) => {
-    const p = (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0));
-    const ri = getList(CARGO_KEY).indexOf(c);
-    return `<tr><td>${idx+1}</td><td>${esc(c.clientName)}</td><td>${esc(c.carrierName)}</td><td>${esc(c.product)}</td><td>${esc(c.route)}</td><td>${c.loadDate||'-'}</td><td>${c.unloadDate||'-'}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td>$${parseFloat(c.clientPrice||0).toLocaleString()}</td><td>$${parseFloat(c.carrierPrice||0).toLocaleString()}</td><td class="${p>=0?'profit-positive':'profit-negative'}">$${p.toLocaleString()}</td><td>${esc(c.logist)}</td><td>${c.invoiceClient?`<span class="file-link" onclick="window.open('${c.invoiceClient}')">📎 Клиент</span>`:'-'} ${c.invoiceCarrier?`<span class="file-link" onclick="window.open('${c.invoiceCarrier}')">📎 Перев</span>`:''}</td><td><button class="btn-edit" onclick="editCargo(${ri})">✏️</button><button class="btn-del" onclick="deleteCargo(${ri})">🗑️</button></td></tr>`;
-  }).join('');
-}
-
-function esc(s) { return (s||'').replace(/</g,'&lt;'); }
-renderAll();
 </script>
 </body>
 </html>
