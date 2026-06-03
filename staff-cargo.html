@@ -128,17 +128,8 @@ if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 function getList(k) { return JSON.parse(localStorage.getItem(k) || '[]'); }
 function saveList(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-
-// ВСЕ сделки
 function allCargo() { return getList(CARGO_KEY); }
-
-// Сделки для ТЕКУЩЕГО пользователя
-function myCargo() {
-  const all = allCargo();
-  if (isAdmin) return all; // админ видит всё
-  return all.filter(c => c.logist === user); // логист видит только свои
-}
-
+function myCargo() { const all = allCargo(); return isAdmin ? all : all.filter(c => c.logist === user); }
 function getClients() { return getList(CLIENTS_KEY); }
 function getCarriers() { return getList(CARRIERS_KEY); }
 
@@ -200,12 +191,14 @@ async function saveCargo() {
   if (!cn || !crn) return alert('Введите клиента и перевозчика');
   addIfNew(CLIENTS_KEY, cn); addIfNew(CARRIERS_KEY, crn);
 
-  // Если админ редактирует чужую сделку — сохраняем оригинального логиста
   let logistToSave = f('fLogist') || user;
-  if (editId && isAdmin && all[editId]) {
-    // если админ не менял логиста вручную, оставляем оригинального
-    if (f('fLogist') === all[editId].logist || f('fLogist') === user) {
-      logistToSave = all[editId].logist;
+
+  // При редактировании: если админ не менял логиста вручную, оставляем оригинал
+  if (editId && all[editId]) {
+    const original = all[editId];
+    // Если поле логиста совпадает с текущим пользователем или пустое — сохраняем оригинального логиста
+    if (!f('fLogist') || f('fLogist') === user) {
+      logistToSave = original.logist;
     }
   }
 
@@ -222,11 +215,7 @@ async function saveCargo() {
   };
   if (!cargo.product) return alert('Введите товар');
 
-  if (editId) {
-    all[editId] = cargo;
-  } else {
-    all.push(cargo);
-  }
+  if (editId) { all[editId] = cargo; } else { all.push(cargo); }
   saveList(CARGO_KEY, all);
   renderAll();
   toggleForm(false);
@@ -266,31 +255,18 @@ function editCargo(i) {
 function deleteCargo(i) {
   const all = allCargo();
   if (!isAdmin && all[i]?.logist !== user) return alert('Нет доступа');
-  if (confirm('Удалить?')) {
-    all.splice(i, 1);
-    saveList(CARGO_KEY, all);
-    renderAll();
-  }
+  if (confirm('Удалить?')) { all.splice(i, 1); saveList(CARGO_KEY, all); renderAll(); }
 }
 
-function clearFilter() {
-  document.getElementById('filterStart').value = '';
-  document.getElementById('filterEnd').value = '';
-  document.getElementById('filterLogist').value = 'all';
-  renderAll();
-}
+function clearFilter() { document.getElementById('filterStart').value = document.getElementById('filterEnd').value = ''; document.getElementById('filterLogist').value = 'all'; renderAll(); }
 
 function renderAll() {
-  const start = document.getElementById('filterStart').value;
-  const end = document.getElementById('filterEnd').value;
-  const fl = document.getElementById('filterLogist').value;
-
+  const start = document.getElementById('filterStart').value, end = document.getElementById('filterEnd').value, fl = document.getElementById('filterLogist').value;
   let list = myCargo();
   if (start) list = list.filter(c => c.loadDate >= start);
   if (end) list = list.filter(c => c.loadDate <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
 
-  // Заполняем фильтр логистов
   if (isAdmin) {
     const logists = [...new Set(allCargo().map(c => c.logist).filter(Boolean))];
     const sel = document.getElementById('filterLogist');
