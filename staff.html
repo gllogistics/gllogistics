@@ -10,6 +10,9 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0B171C; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .login-box { background: #152A30; border-radius: 28px; padding: 2.5rem; border: 1px solid #2F6C74; text-align: center; width: 380px; }
+    .login-box .logo-link { display: inline-block; margin-bottom: 1rem; }
+    .login-box .logo-link img { height: 55px; width: auto; object-fit: contain; cursor: pointer; transition: opacity 0.2s; }
+    .login-box .logo-link img:hover { opacity: 0.8; }
     .login-box h2 { color: #55B7BD; margin-bottom: 1.5rem; font-size: 1.3rem; }
     .login-box input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
     .login-box input:focus { border-color: #55B7BD; }
@@ -20,6 +23,10 @@
 </head>
 <body>
 <div class="login-box">
+  <!-- ЛОГОТИП-ССЫЛКА НА ГЛАВНУЮ -->
+  <a href="/" class="logo-link">
+    <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics">
+  </a>
   <h2>Вход для сотрудников</h2>
   <input type="text" id="loginUser" placeholder="Имя пользователя">
   <input type="password" id="loginPass" placeholder="Пароль">
