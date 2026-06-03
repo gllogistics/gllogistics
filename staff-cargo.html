@@ -119,7 +119,7 @@
       <div><label>Цена клиента ($) *</label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
       <div><label>Цена перевозчика ($) *</label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
       <div><label>Комиссия ($) = Клиент − Перевозчик</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
-      <div><label>Логист</label><input type="text" id="fLogist" readonly style="background:#EDF7F7;"></div>
+      <div><label>Логист</label><input type="text" id="fLogist" style="background:#EDF7F7;"></div>
     </div>
     <div class="form-row">
       <div><label>Инвойс клиенту</label><div class="drop-zone" id="dropClient" onclick="document.getElementById('fInvoiceClient').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceClient" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropClient')"></div>
@@ -143,7 +143,7 @@
 <script>
 const CARGO_KEY = 'gl_cargo_v3', CLIENTS_KEY = 'gl_clients_v3', CARRIERS_KEY = 'gl_carriers_v3', ADMIN_USER = 'TigranMetspagyan';
 const user = localStorage.getItem('gl_staff_user');
-if (!user) { document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#55B7BD;font-size:1.2rem;">Пожалуйста, <a href="staff.html" style="color:#55B7BD;">войдите</a></div>'; throw new Error('Not logged in'); }
+if (!user) { document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#55B7BD;font-size:1.2rem;">Пожалуйста, <a href="staff.html" style="color:#55B7BD;">войдите</a></div>'; }
 const isAdmin = user === ADMIN_USER;
 document.getElementById('userInfo').textContent = '👤 ' + user;
 if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
@@ -152,15 +152,11 @@ function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.
 function getList(k) { return JSON.parse(localStorage.getItem(k) || '[]'); }
 function saveList(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 
-// ВСЕ сделки (для статистики админа)
 function getAllCargo() { return getList(CARGO_KEY); }
-
-// Сделки для отображения: админ видит всё, логист — только свои
 function getCargo() { 
   const all = getList(CARGO_KEY); 
   return isAdmin ? all : all.filter(c => c.logist === user); 
 }
-
 function getClients() { return getList(CLIENTS_KEY); }
 function getCarriers() { return getList(CARRIERS_KEY); }
 
@@ -186,12 +182,17 @@ function addIfNew(key, name) {
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
-  if (show) { populateDatalists(); document.getElementById('fLogist').value = user; }
-  else {
-    ['editId','fProduct','fRoute','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier'].forEach(id => document.getElementById(id).value = '');
+  if (show) { 
+    populateDatalists(); 
+    document.getElementById('fLogist').value = user;
+    // Админ может менять логиста — поле разблокировано
+    if (isAdmin) document.getElementById('fLogist').readOnly = false;
+  } else {
+    ['editId','fProduct','fRoute','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier','fLogist'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
     document.getElementById('fStatus').value = 'loading';
+    document.getElementById('fLogist').readOnly = !isAdmin;
   }
 }
 
@@ -218,11 +219,15 @@ async function saveCargo() {
   const cn = f('fClient'), crn = f('fCarrier');
   if (!cn || !crn) return alert('Введите клиента и перевозчика');
   addIfNew(CLIENTS_KEY, cn); addIfNew(CARRIERS_KEY, crn);
+  
+  // Сохраняем логиста из поля (админ может менять)
+  const savedLogist = f('fLogist') || user;
+  
   const cargo = {
     product: f('fProduct'), route: f('fRoute'), loadDate: f('fLoadDate'), unloadDate: f('fUnloadDate'),
     status: f('fStatus'), clientPrice: f('fClientPrice'), carrierPrice: f('fCarrierPrice'),
     commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
-    logist: f('fLogist') || user, clientName: cn, carrierName: crn,
+    logist: savedLogist, clientName: cn, carrierName: crn,
     invoiceClient: await fileToBase64('fInvoiceClient') || (editId ? list[editId]?.invoiceClient : ''),
     invoiceCarrier: await fileToBase64('fInvoiceCarrier') || (editId ? list[editId]?.invoiceCarrier : '')
   };
@@ -242,7 +247,6 @@ function f(id) { return document.getElementById(id).value.trim(); }
 function editCargo(i) {
   const list = getList(CARGO_KEY), c = list[i];
   if (!c) return alert('Сделка не найдена');
-  // Логист может редактировать только свои, админ — все
   if (!isAdmin && c.logist !== user) return alert('Нет доступа');
   
   populateDatalists();
@@ -258,6 +262,8 @@ function editCargo(i) {
   document.getElementById('fCarrierPrice').value = c.carrierPrice || '';
   document.getElementById('fCommission').value = (parseFloat(c.clientPrice||0) - parseFloat(c.carrierPrice||0)).toFixed(2);
   document.getElementById('fLogist').value = c.logist || user;
+  // Админ может менять логиста
+  document.getElementById('fLogist').readOnly = !isAdmin;
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
@@ -281,21 +287,21 @@ function renderAll() {
   if (end) list = list.filter(c => c.loadDate <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   
+  // Заполняем список логистов для админа
   if (isAdmin) {
     const all = getAllCargo();
     const logists = [...new Set(all.map(c => c.logist).filter(Boolean))];
-    document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
+    const sel = document.getElementById('filterLogist');
+    sel.innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
   }
   
-  // Прибыль: для админа — общая по всем, для логиста — своя
-  const profitSource = isAdmin ? getAllCargo() : getCargo();
-  const filteredProfit = start || end ? list : profitSource;
-  const profit = filteredProfit.reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
+  const allCargo = getAllCargo();
+  const profit = (start || end || fl !== 'all' ? list : allCargo).reduce((s,c) => s + (parseFloat(c.clientPrice||0)-parseFloat(c.carrierPrice||0)), 0);
   
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
     <div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>
-    ${isAdmin ? `<div class="stat-card"><div class="num">${getAllCargo().length}</div><div class="lbl">Всего сделок</div></div>` : ''}
+    ${isAdmin ? `<div class="stat-card"><div class="num">${allCargo.length}</div><div class="lbl">Всего в системе</div></div>` : ''}
   `;
   
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
