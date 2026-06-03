@@ -143,7 +143,7 @@
 <script>
 const CARGO_KEY = 'gl_cargo_v3', CLIENTS_KEY = 'gl_clients_v3', CARRIERS_KEY = 'gl_carriers_v3', ADMIN_USER = 'TigranMetspagyan';
 const user = localStorage.getItem('gl_staff_user');
-if (!user) window.location.href = 'staff.html';
+if (!user) { document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#55B7BD;font-size:1.2rem;">Пожалуйста, <a href="staff.html" style="color:#55B7BD;">войдите</a></div>'; throw new Error('Not logged in'); }
 const isAdmin = user === ADMIN_USER;
 document.getElementById('userInfo').textContent = '👤 ' + user;
 if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
@@ -232,10 +232,15 @@ function f(id) { return document.getElementById(id).value.trim(); }
 
 function editCargo(i) {
   const list = getList(CARGO_KEY), c = list[i];
-  if (!c || (!isAdmin && c.logist !== user)) return;
+  if (!c || (!isAdmin && c.logist !== user)) return alert('Нет доступа');
   populateDatalists();
   document.getElementById('editId').value = i;
-  ['fClient','fCarrier','fProduct','fRoute','fLoadDate','fUnloadDate'].forEach(id => document.getElementById(id).value = c[id.replace('f','').toLowerCase()] || '');
+  document.getElementById('fClient').value = c.clientName || '';
+  document.getElementById('fCarrier').value = c.carrierName || '';
+  document.getElementById('fProduct').value = c.product || '';
+  document.getElementById('fRoute').value = c.route || '';
+  document.getElementById('fLoadDate').value = c.loadDate || '';
+  document.getElementById('fUnloadDate').value = c.unloadDate || '';
   document.getElementById('fStatus').value = c.status || 'loading';
   document.getElementById('fClientPrice').value = c.clientPrice || '';
   document.getElementById('fCarrierPrice').value = c.carrierPrice || '';
