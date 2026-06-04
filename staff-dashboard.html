@@ -34,9 +34,13 @@
     .status-loaded { background: #E8F5F5; color: #3d9aa0; }
     .status-completed { background: #EDE7F6; color: #4527A0; }
     .form-add { background: #FFFFFF; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(85,183,189,0.25); display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-    .form-add input { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; outline: none; }
-    .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.8rem; }
+    .form-add input { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; outline: none; flex: 1; min-width: 150px; }
+    .pwd-wrap { position: relative; flex: 1; min-width: 150px; }
+    .pwd-wrap input { width: 100%; padding-right: 40px; }
+    .pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+    .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
     .btn-sm-del { background: #C62828; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; }
+    .show-pwd { color: #55B7BD; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
   </style>
 </head>
 <body>
@@ -56,10 +60,13 @@
   <h3 class="section-title">👥 Управление логистами</h3>
   <div class="form-add">
     <input type="text" id="newLogistName" placeholder="Имя пользователя">
-    <input type="password" id="newLogistPass" placeholder="Пароль">
+    <div class="pwd-wrap">
+      <input type="password" id="newLogistPass" placeholder="Пароль">
+      <button class="pwd-toggle" onclick="togglePwd('newLogistPass')">👁️</button>
+    </div>
     <button class="btn-sm" onclick="addLogist()">+ Добавить логиста</button>
   </div>
-  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
   
   <h3 class="section-title">💰 Заработок по логистам</h3>
   <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
@@ -78,18 +85,19 @@ if (user !== ADMIN_USER) window.location.href = 'staff-cargo.html';
 
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 
-// Загрузка пользователей из localStorage + дефолтные
+function togglePwd(id) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
 function getUsers() {
   const stored = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-  // Всегда добавляем админа
   stored['TigranMetspagyan'] = { password: 'Tigrangianti1.', role: 'admin' };
   return stored;
 }
 
 function saveUsers(users) {
-  // Не сохраняем админа в localStorage (он вшит в код)
-  const copy = { ...users };
-  localStorage.setItem(USERS_KEY, JSON.stringify(copy));
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 function addLogist() {
@@ -105,7 +113,7 @@ function addLogist() {
   document.getElementById('newLogistName').value = '';
   document.getElementById('newLogistPass').value = '';
   renderLogists();
-  alert('Логист ' + name + ' добавлен!');
+  alert('Логист ' + name + ' добавлен!\nЛогин: ' + name + '\nПароль: ' + pass);
 }
 
 function deleteLogist(name) {
@@ -120,21 +128,30 @@ function deleteLogist(name) {
 function renderLogists() {
   const users = getUsers();
   document.getElementById('logistListTable').innerHTML = Object.entries(users).map(([name, data]) => 
-    `<tr><td>${esc(name)}</td><td>${data.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td><td>${data.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${name}')">Удалить</button>` : ''}</td></tr>`
+    `<tr>
+      <td>${esc(name)}</td>
+      <td>${data.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
+      <td><span id="pwd_${name}">••••••</span> <span class="show-pwd" onclick="showPwd('${name}', '${esc(data.password)}')">Показать</span></td>
+      <td>${data.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${name}')">Удалить</button>` : ''}</td>
+    </tr>`
   ).join('');
 }
 
-// Обновляем staff.html для чтения пользователей
-function updateStaffFile() {
-  // Это информационное сообщение
-  console.log('Пользователи сохранены в localStorage. Обновите staff.html для чтения оттуда.');
+function showPwd(name, pwd) {
+  const el = document.getElementById('pwd_' + name);
+  if (el.textContent === '••••••') {
+    el.textContent = pwd;
+    event.target.textContent = 'Скрыть';
+  } else {
+    el.textContent = '••••••';
+    event.target.textContent = 'Показать';
+  }
 }
 
 async function loadData() {
   try {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
-    
     const tp = (c) => (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0));
     const totalProfit = cargo.reduce((s,c) => s + tp(c), 0);
     
@@ -144,26 +161,13 @@ async function loadData() {
     `;
     
     const lm = {};
-    cargo.forEach(c => {
-      const l = c.logist || '—';
-      if (!lm[l]) lm[l] = { count: 0, turnover: 0, profit: 0 };
-      lm[l].count++;
-      lm[l].turnover += parseFloat(c.client_price||0);
-      lm[l].profit += tp(c);
-    });
-    document.getElementById('logistTable').innerHTML = Object.entries(lm).map(([n,d]) => 
-      `<tr><td>${esc(n)}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`
-    ).join('');
+    cargo.forEach(c => { const l = c.logist || '—'; if (!lm[l]) lm[l] = { count: 0, turnover: 0, profit: 0 }; lm[l].count++; lm[l].turnover += parseFloat(c.client_price||0); lm[l].profit += tp(c); });
+    document.getElementById('logistTable').innerHTML = Object.entries(lm).map(([n,d]) => `<tr><td>${esc(n)}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`).join('');
     
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => 
-      `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${esc(c.logist||'—')}</td></tr>`
-    ).join('');
-    
-  } catch (err) {
-    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>';
-  }
+    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${esc(c.logist||'—')}</td></tr>`).join('');
+  } catch (err) { document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>'; }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
