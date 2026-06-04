@@ -11,42 +11,54 @@
     body { background: #0B171C; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .login-box { background: #152A30; border-radius: 28px; padding: 2.5rem; border: 1px solid #2F6C74; text-align: center; width: 380px; }
     .login-box .logo-link { display: inline-block; margin-bottom: 1rem; }
-    .login-box .logo-link img { height: 55px; width: auto; object-fit: contain; cursor: pointer; transition: opacity 0.2s; }
-    .login-box .logo-link img:hover { opacity: 0.8; }
+    .login-box .logo-link img { height: 55px; width: auto; object-fit: contain; cursor: pointer; }
     .login-box h2 { color: #55B7BD; margin-bottom: 1.5rem; font-size: 1.3rem; }
-    .login-box input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
+    .pwd-wrap { position: relative; margin-bottom: 0.8rem; }
+    .pwd-wrap input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 40px 12px 18px; color: white; font-size: 1rem; outline: none; }
+    .pwd-wrap .toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #8fa8ab; }
+    .login-box input[type="text"] { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
     .login-box input:focus { border-color: #55B7BD; }
-    .login-box button { width: 100%; background: #55B7BD; color: #0D1F23; border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-    .login-box button:hover { background: #3d9aa0; }
+    .login-box button { width: 100%; background: #55B7BD; color: #0D1F23; border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; }
     .hint { color: #7a9ea3; font-size: 0.75rem; margin-top: 1rem; }
   </style>
 </head>
 <body>
 <div class="login-box">
-  <!-- ЛОГОТИП-ССЫЛКА НА ГЛАВНУЮ -->
-  <a href="/" class="logo-link">
-    <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics">
-  </a>
+  <a href="/" class="logo-link"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics"></a>
   <h2>Вход для сотрудников</h2>
   <input type="text" id="loginUser" placeholder="Имя пользователя">
-  <input type="password" id="loginPass" placeholder="Пароль">
+  <div class="pwd-wrap">
+    <input type="password" id="loginPass" placeholder="Пароль">
+    <button class="toggle" onclick="togglePwd()">👁️</button>
+  </div>
   <button onclick="doLogin()">Войти</button>
   <p class="hint">Введите ваш логин и пароль</p>
 </div>
 
 <script>
-const USERS = { 
-  'TigranMetspagyan': { password: 'Tigrangianti1.', role: 'admin' },
-  'VahagArshakyan': { password: 'Vahaggianti1.', role: 'logist' }
-};
+const USERS_KEY = 'gl_staff_users';
+const ADMIN_USER = 'TigranMetspagyan';
+const ADMIN_PASS = 'Tigrangianti1.';
+
+function togglePwd() {
+  const inp = document.getElementById('loginPass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function getUsers() {
+  const stored = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+  stored[ADMIN_USER] = { password: ADMIN_PASS, role: 'admin' };
+  return stored;
+}
 
 function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value.trim();
+  const users = getUsers();
   
-  if (USERS[u] && USERS[u].password === p) {
+  if (users[u] && users[u].password === p) {
     localStorage.setItem('gl_staff_user', u);
-    localStorage.setItem('gl_staff_role', USERS[u].role);
+    localStorage.setItem('gl_staff_role', users[u].role);
     window.location.href = 'staff-cargo.html';
   } else {
     alert('Неверный логин или пароль');
