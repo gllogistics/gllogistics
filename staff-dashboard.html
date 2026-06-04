@@ -66,7 +66,7 @@
     </div>
     <button class="btn-sm" onclick="addLogist()">+ Добавить логиста</button>
   </div>
-  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
   
   <h3 class="section-title">💰 Заработок по логистам</h3>
   <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
@@ -78,74 +78,58 @@
 <script>
 const API_URL = 'https://gl-api.gltransam.workers.dev';
 const ADMIN_USER = 'TigranMetspagyan';
-const USERS_KEY = 'gl_staff_users';
 const user = localStorage.getItem('gl_staff_user');
 if (!user) window.location.href = 'staff.html';
 if (user !== ADMIN_USER) window.location.href = 'staff-cargo.html';
 
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 
-function togglePwd(id) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
+function togglePwd(id) { const inp = document.getElementById(id); inp.type = inp.type === 'password' ? 'text' : 'password'; }
 
-function getUsers() {
-  const stored = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-  stored['TigranMetspagyan'] = { password: 'Tigrangianti1.', role: 'admin' };
-  return stored;
-}
+let usersList = [];
 
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function addLogist() {
-  const name = document.getElementById('newLogistName').value.trim();
-  const pass = document.getElementById('newLogistPass').value.trim();
-  if (!name || !pass) return alert('Введите имя и пароль');
-  if (name === ADMIN_USER) return alert('Нельзя изменить админа');
-  
-  const users = getUsers();
-  users[name] = { password: pass, role: 'logist' };
-  saveUsers(users);
-  
-  document.getElementById('newLogistName').value = '';
-  document.getElementById('newLogistPass').value = '';
-  renderLogists();
-  alert('Логист ' + name + ' добавлен!\nЛогин: ' + name + '\nПароль: ' + pass);
-}
-
-function deleteLogist(name) {
-  if (name === ADMIN_USER) return alert('Нельзя удалить админа');
-  if (!confirm('Удалить логиста ' + name + '?')) return;
-  const users = getUsers();
-  delete users[name];
-  saveUsers(users);
-  renderLogists();
+async function loadUsers() {
+  try {
+    const res = await fetch(API_URL + '/api/users');
+    usersList = await res.json();
+    renderLogists();
+  } catch (err) { console.error(err); }
 }
 
 function renderLogists() {
-  const users = getUsers();
-  document.getElementById('logistListTable').innerHTML = Object.entries(users).map(([name, data]) => 
+  document.getElementById('logistListTable').innerHTML = usersList.map(u => 
     `<tr>
-      <td>${esc(name)}</td>
-      <td>${data.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
-      <td><span id="pwd_${name}">••••••</span> <span class="show-pwd" onclick="showPwd('${name}', '${esc(data.password)}')">Показать</span></td>
-      <td>${data.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${name}')">Удалить</button>` : ''}</td>
+      <td>${esc(u.username)}</td>
+      <td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
+      <td>${u.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${u.username}')">Удалить</button>` : ''}</td>
     </tr>`
   ).join('');
 }
 
-function showPwd(name, pwd) {
-  const el = document.getElementById('pwd_' + name);
-  if (el.textContent === '••••••') {
-    el.textContent = pwd;
-    event.target.textContent = 'Скрыть';
-  } else {
-    el.textContent = '••••••';
-    event.target.textContent = 'Показать';
-  }
+async function addLogist() {
+  const name = document.getElementById('newLogistName').value.trim();
+  const pass = document.getElementById('newLogistPass').value.trim();
+  if (!name || !pass) return alert('Введите имя и пароль');
+  try {
+    const res = await fetch(API_URL + '/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: name, password: pass, role: 'logist' })
+    });
+    if (res.ok) {
+      document.getElementById('newLogistName').value = '';
+      document.getElementById('newLogistPass').value = '';
+      await loadUsers();
+      alert('Логист ' + name + ' добавлен!\nЛогин: ' + name + '\nПароль: ' + pass);
+    }
+  } catch (err) { alert('Ошибка'); }
+}
+
+async function deleteLogist(name) {
+  if (name === ADMIN_USER) return alert('Нельзя удалить админа');
+  if (!confirm('Удалить ' + name + '?')) return;
+  await fetch(API_URL + '/api/users/' + name, { method: 'DELETE' });
+  await loadUsers();
 }
 
 async function loadData() {
@@ -167,12 +151,12 @@ async function loadData() {
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${esc(c.logist||'—')}</td></tr>`).join('');
-  } catch (err) { document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>'; }
+  } catch (err) { document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>'; }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-renderLogists();
+loadUsers();
 loadData();
 </script>
 </body>
