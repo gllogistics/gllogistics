@@ -44,6 +44,7 @@
   <div class="nav-links">
     <a href="staff-dashboard.html" class="active">📊 Главная</a>
     <a href="staff-cargo.html">📦 Сделки</a>
+    <a href="/rateconfirmation">📋 Заявки</a>
   </div>
   
   <div class="stats-row" id="statsRow"></div>
@@ -78,7 +79,6 @@ async function loadData() {
       <div class="stat-card stat-profit"><div class="num">$${totalProfit.toLocaleString()}</div><div class="lbl">Общая прибыль</div></div>
     `;
     
-    // По логистам
     const lm = {};
     cargo.forEach(c => {
       const l = c.logist || '—';
@@ -91,7 +91,6 @@ async function loadData() {
       `<tr><td>${esc(n)}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`
     ).join('');
     
-    // Последние 10
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => 
@@ -100,12 +99,10 @@ async function loadData() {
     
   } catch (err) {
     document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>';
-    console.error(err);
   }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
-
 loadData();
 </script>
 </body>
