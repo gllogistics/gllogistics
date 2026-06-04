@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0B171C; font-family: 'Inter', sans-serif; padding: 2rem 1.5rem; color: #EDF4F6; min-height: 100vh; }
@@ -30,7 +31,10 @@
     .contract-preview { font-family: 'Times New Roman', 'Georgia', serif; font-size: 12px; line-height: 1.5; color: #1E2F33; position: relative; min-height: 600px; }
     .contract-preview h2 { font-size: 15px; font-weight: 800; text-align: center; margin-bottom: 0.4rem; color: #005f67; }
     .contract-preview .center { text-align: center; }
-    .doc-footer { position: absolute; bottom: 2px; right: 10px; font-size: 8px; color: #4a7a80; text-align: right; opacity: 0.8; pointer-events: none; z-index: 2; white-space: nowrap; }
+    .contract-preview .parties-row { display: flex; justify-content: space-between; gap: 1rem; margin: 0.8rem 0; }
+    .contract-preview .party-col { width: 48%; }
+    .contract-preview .party-col p { margin-bottom: 0.15rem; }
+    .party-col .line { border-bottom: 1px solid #2A5E66; margin-top: 1.8rem; margin-bottom: 0.2rem; }
     .hayt-tbl { width: 100%; border-collapse: collapse; margin: 0.6rem 0 0.8rem; }
     .hayt-tbl td { border: 1px solid #4a9aa0; padding: 4px 7px; vertical-align: top; font-size: 11px; }
     .hayt-tbl td.num { width: 24px; text-align: center; font-weight: 700; color: #005f67; background: #f0fafa; }
@@ -46,17 +50,30 @@
     .input-group textarea { border-radius: 14px; resize: vertical; min-height: 60px; padding: 8px 14px; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
     .sec-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: #55B7BD; font-weight: 700; border-left: 3px solid #55B7BD; padding-left: 8px; margin: 0.9rem 0 0.5rem; }
-    .stamp-upload { background: #0A1F25; border-radius: 18px; padding: 0.8rem; text-align: center; border: 1px dashed #55B7BD; cursor: pointer; font-size: 0.7rem; }
+    .upload-row { display: flex; gap: 0.8rem; margin: 0.6rem 0; }
+    .stamp-upload, .signature-area { flex: 1; background: #0A1F25; border-radius: 18px; padding: 0.8rem; text-align: center; border: 1px dashed #55B7BD; cursor: pointer; font-size: 0.7rem; }
+    .signature-canvas-box { background: white; border-radius: 12px; overflow: hidden; margin: 0.4rem 0; }
+    #signatureCanvas { width: 100%; height: 80px; background: #fff; display: block; touch-action: none; cursor: crosshair; }
+    .sig-preview-img { max-width: 100px; max-height: 40px; object-fit: contain; display: none; margin-top: 5px; }
     .stamp-preview-img { max-width: 60px; max-height: 60px; object-fit: contain; display: none; margin-top: 5px; }
-    .btn-dl { width: 100%; background: #1E3B42; border: 1px solid #55B7BD; padding: 13px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; color: #55B7BD; cursor: pointer; transition: 0.2s; margin-top: 0.8rem; }
+    .checkbox-group { display: flex; gap: 10px; margin: 0.8rem 0; align-items: flex-start; }
+    .checkbox-group input { margin-top: 3px; accent-color: #55B7BD; transform: scale(1.2); }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.8rem; }
+    .btn-submit { background: linear-gradient(100deg, #55B7BD, #31838A); border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.07em; font-family: 'Plus Jakarta Sans', sans-serif; color: #0D1F23; cursor: pointer; transition: 0.2s; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(85,183,189,0.6); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-dl { background: #1E3B42; border: 1px solid #55B7BD; padding: 13px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; color: #55B7BD; cursor: pointer; transition: 0.2s; }
     .btn-dl:hover { background: #2a5060; }
+    .success-msg { background: #1A423F; border-radius: 24px; padding: 1.5rem; text-align: center; margin-top: 1rem; display: none; }
+    .success-msg h3 { color: #55B7BD; margin-bottom: 0.5rem; }
     .legal-note { font-size: 0.65rem; text-align: center; margin-top: 0.8rem; color: #9FCBD0; }
+    .doc-footer { position: absolute; bottom: 2px; right: 10px; font-size: 7px; color: #4a7a80; text-align: right; opacity: 0.8; pointer-events: none; z-index: 2; white-space: nowrap; }
   </style>
 </head>
 <body>
 <div class="app-wrapper">
   <div class="top-bar">
-    <a href="/" class="brand">
+    <a href="#" id="logoLink" class="brand">
       <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics" class="brand-logo">
       <span data-i18n="brand_title">Ջի Էլ Լոգիստիկս • ՀԱՅՏ</span>
     </a>
@@ -134,9 +151,41 @@
 </div>
 
 <script>
+// Логотип: если залогинен — на сделки, иначе на главную
+const staffUser = localStorage.getItem('gl_staff_user');
+document.getElementById('logoLink').href = staffUser ? 'staff-cargo.html' : '/';
+
+const CLOUDINARY_URL='https://api.cloudinary.com/v1_1/drp98zkka/upload';
+const CLOUDINARY_UPLOAD_PRESET='gl_contracts';
+const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
+const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
+
+// ── sigStamp helper ───────────────────────────────────────────────────────────
+function sigStamp(sig, st) {
+  var row = 'display:table;width:100%;border-collapse:separate;border-spacing:10px 0;margin-top:8px;';
+  var html = '<div style="' + row + '">';
+  html += '<div style="display:table-cell;vertical-align:bottom;width:60%;">';
+  if (sig) {
+    html += '<img src="' + sig + '" alt="signature" '
+          + 'style="display:block;width:auto;height:70px;max-width:220px;'
+          + 'object-fit:contain;background:transparent;margin-bottom:4px;">';
+  }
+  html += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
+  html += '</div>';
+  if (st) {
+    html += '<div style="display:table-cell;vertical-align:middle;width:40%;text-align:center;">';
+    html += '<img src="' + st + '" alt="stamp" '
+          + 'style="width:140px;height:140px;object-fit:contain;'
+          + 'opacity:0.82;transform:rotate(-12deg);display:inline-block;">';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
 // Водяной знак
 function watermark() {
-  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.18; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
+  return '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.12; pointer-events:none; z-index:0;"><img src="images/GL_LOGISTICs_line_-09.jpg.png" style="width:450px;"></div>';
 }
 
 // Футер — одна строка в самом низу справа
@@ -144,35 +193,7 @@ function docFooter() {
   return '<div class="doc-footer">GL Logistics LLC &nbsp;|&nbsp; VAT: 00521217 &nbsp;|&nbsp; www.gllogistics.org &nbsp;|&nbsp; +374 93 66 14 54</div>';
 }
 
-// Форматирование даты
-function formatDate(dateStr, lang) {
-  if (!dateStr) return '________';
-  var parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  var y = parts[0], m = parts[1], d = parts[2];
-  if (lang === 'am') {
-    var months = ['հունվարի','փետրվարի','մարտի','ապրիլի','մայիսի','հունիսի','հուլիսի','օգոստոսի','սեպտեմբերի','հոկտեմբերի','նոյեմբերի','դեկտեմբերի'];
-    return d + ' ' + months[parseInt(m)-1] + ' ' + y;
-  } else if (lang === 'ru') {
-    var months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-    return d + ' ' + months[parseInt(m)-1] + ' ' + y;
-  } else {
-    return d + '.' + m + '.' + y;
-  }
-}
-
-// Печать
-function sigStamp(st) {
-  var h = '<div style="position:relative;min-height:'+(st?'120px':'60px')+';margin-top:6px;">';
-  if (st) {
-    h += '<img src="'+st+'" alt="stamp" style="position:absolute;top:-10px;right:0;width:150px;height:150px;object-fit:contain;opacity:0.82;transform:rotate(-12deg);">';
-  }
-  h += '<div style="padding-right:'+(st?'160px':'0px')+';padding-bottom:4px;"></div>';
-  h += '<div style="height:1px;background:#2A5E66;width:'+(st?'calc(100% - 160px)':'100%')+';"></div>';
-  h += '</div>';
-  return h;
-}
-
+// ── haytTable: builds the 13-row application table ───────────────────────────
 function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
   var rows = [
     ['1',{am:'Բեռի ընդունման վայրը և ամսաթիվը',ru:'Место и дата приёма груза',en:'Pickup location and date'},f1||'___________________________________  __.__.202_'],
@@ -196,81 +217,82 @@ function haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13, lang) {
   return html;
 }
 
+// ── Full templates ────────────────────────────────────────────────────────────
 var templates = {
   customer: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'am');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>ՊԱՏՎԻՐԱՏՈՒ</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">' +
         '<span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'ru');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>ЗАЯВКА</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Заказчик</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Экспедитор</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Заказчик</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Экспедитор</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'en');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>APPLICATION FORM</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Customer</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Freight Forwarder</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Customer</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Freight Forwarder</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     }
   },
   carrier: {
     am: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'am');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>ՓՈԽԱԴՐՈՂ</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Ք. Երևան</span><span>Հայտ /Nօ.'+haytN+'&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
-        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
+        '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Հավելված Nօ. 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+fDate+'&nbsp;&nbsp;թվականին կնքված № '+contrN+' պայմանագրի</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'am') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Տրանսպորտային առաքող</strong><br>Շահառուի Բանկ՝ «'+(bk||'_________________')+'» ՓԲԸ<br>Շահառու՝ «'+(c||'___________________')+'»<br>Շահառուի հաշվեհամար՝ '+(ba||'_________________')+'<br>Տնօրեն` '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Պատվիրատու</strong><br>Շահառուի Բանկ՝ «Էվոկաբանկ» ՓԲԸ<br>Շահառու՝ «ՋԻ ԷԼ ԼՈԳԻՍՏԻԿՍ» ՍՊԸ<br>Շահառուի հաշվեհամար՝ 1660030207153200<br>Տնօրեն` Տիգրան Մեծպագյան<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     },
     ru: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'ru');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>ЗАЯВКА</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>г. Ереван</span><span>Заявка № '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Приложение №1 к Договору '+contrN+' от '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'ru') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Экспедитор</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Заказчик</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Экспедитор</strong><br>Банк: «'+(bk||'_________________')+'» ЗАО<br>Получатель: «'+(c||'___________________')+'»<br>Р/С: '+(ba||'_________________')+'<br>Директор: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Заказчик</strong><br>Банк: ЗАО «Эвокабанк»<br>Получатель: ООО «Джи Эл Логистикс»<br>Р/С: 1660030207153200<br>Директор: Тигран Мецпагян<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     },
     en: function(c,t,a,s,p,d,n,st,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN) {
-      var fDate = formatDate(d, 'en');
+      var fDate = d || '________';
       return watermark() + docFooter() +
         '<h2>APPLICATION FORM</h2>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span>Yerevan</span><span>Application No. '+haytN+'&nbsp;&nbsp;&nbsp;'+fDate+'</span></div>' +
         '<div style="font-size:10px;text-align:center;color:#3a7a80;margin-bottom:8px;">Annex No.1 to Agreement '+contrN+' dated '+fDate+'</div>' +
         haytTable(f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,'en') +
         '<table class="party-tbl"><tr>' +
-        '<td><strong>Freight Forwarder</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
-        '<td><strong>Customer</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Freight Forwarder</strong><br>Bank: «'+(bk||'_________________')+'» OJSC<br>Beneficiary: «'+(c||'___________________')+'»<br>Acc.: '+(ba||'_________________')+'<br>Director: '+(p?p+' ':'')+''+(s||'__________________')+'<br>'+sigStamp(st)+'</td>' +
+        '<td><strong>Customer</strong><br>Bank: "Evocabank" OJSC<br>Beneficiary: "GL Logistics" LLC<br>Acc.: 1660030207153200<br>Director: Tigran Metspaghyan<br><div style="border-bottom:1px solid #2A5E66;margin-top:50px;"></div></td>' +
         '</tr></table>';
     }
   }
@@ -311,9 +333,7 @@ function renderContract() {
   previewDiv.innerHTML = fn(c,t,a,s,p,d,contractNumber,stampDataUrl,bk,ba,f1,f2,f3,f4,f5,f6,f7,f9,f10,f11,f12,f13,haytN,contrN);
 }
 
-['haytNum','contractNum','company','taxId','address','signatory','position','signDate','bankName','bankAcc',
- 'phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'
-].forEach(function(id){
+['haytNum','contractNum','company','taxId','address','signatory','position','signDate','bankName','bankAcc','phone','f1','f2','f3','f4','f5','f6','f7','f9','f10','f11','f12','f13'].forEach(function(id){
   var el=document.getElementById(id);
   if(el) el.addEventListener('input', renderContract);
   if(el && el.type==='date') el.addEventListener('change', renderContract);
