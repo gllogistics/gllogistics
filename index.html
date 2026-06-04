@@ -310,9 +310,9 @@
     </div>
   </div>
   <div class="lang-buttons">
-    <button class="lang-btn active" onclick="setLang('am')">HAY</button>
-    <button class="lang-btn" onclick="setLang('ru')">RU</button>
-    <button class="lang-btn" onclick="setLang('en')">EN</button>
+<button class="lang-btn active" onclick="setLang('en')">EN</button>
+<button class="lang-btn" onclick="setLang('ru')">RU</button>
+<button class="lang-btn" onclick="setLang('am')">HAY</button>
   </div>
 </nav>
 
@@ -488,7 +488,7 @@
     if (lang === 'en') document.querySelector('.lang-btn[onclick="setLang(\'en\')"]').classList.add('active');
     document.documentElement.lang = lang;
   }
-  setLang('am');
+  setLang('en');
   
   const obs = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')), { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
