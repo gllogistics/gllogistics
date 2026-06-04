@@ -66,7 +66,7 @@
     </div>
     <button class="btn-sm" onclick="addLogist()">+ Добавить логиста</button>
   </div>
-  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
   
   <h3 class="section-title">💰 Заработок по логистам</h3>
   <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
@@ -97,13 +97,39 @@ async function loadUsers() {
 }
 
 function renderLogists() {
-  document.getElementById('logistListTable').innerHTML = usersList.map(u => 
+  document.getElementById('logistListTable').innerHTML = usersList.map((u, i) => 
     `<tr>
       <td>${esc(u.username)}</td>
       <td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
+      <td>
+        <span id="pwd_${i}">••••••</span>
+        <span class="show-pwd" onclick="toggleShowPwd(${i})">Показать</span>
+      </td>
       <td>${u.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${u.username}')">Удалить</button>` : ''}</td>
     </tr>`
   ).join('');
+}
+
+// Временное хранилище паролей (загружается при добавлении)
+let pwdCache = {};
+
+async function toggleShowPwd(i) {
+  const el = document.getElementById('pwd_' + i);
+  const btn = event.target;
+  
+  if (el.textContent === '••••••') {
+    // Загружаем пароль с сервера
+    if (!pwdCache[usersList[i].username]) {
+      const res = await fetch(API_URL + '/api/user-pwd/' + usersList[i].username);
+      const data = await res.json();
+      pwdCache[usersList[i].username] = data.password;
+    }
+    el.textContent = pwdCache[usersList[i].username];
+    btn.textContent = 'Скрыть';
+  } else {
+    el.textContent = '••••••';
+    btn.textContent = 'Показать';
+  }
 }
 
 async function addLogist() {
@@ -117,6 +143,7 @@ async function addLogist() {
       body: JSON.stringify({ username: name, password: pass, role: 'logist' })
     });
     if (res.ok) {
+      pwdCache[name] = pass; // кешируем пароль
       document.getElementById('newLogistName').value = '';
       document.getElementById('newLogistPass').value = '';
       await loadUsers();
@@ -129,6 +156,7 @@ async function deleteLogist(name) {
   if (name === ADMIN_USER) return alert('Нельзя удалить админа');
   if (!confirm('Удалить ' + name + '?')) return;
   await fetch(API_URL + '/api/users/' + name, { method: 'DELETE' });
+  delete pwdCache[name];
   await loadUsers();
 }
 
