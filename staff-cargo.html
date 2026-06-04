@@ -63,9 +63,7 @@
       <button class="btn-logout" onclick="doLogout()">Выйти</button>
     </div>
   </div>
-  <div class="nav-links" id="navLinks">
-    <!-- Заполняется динамически -->
-  </div>
+  <div class="nav-links" id="navLinks"></div>
   <div class="filter-bar">
     <label>📅 Период:</label>
     <input type="date" id="filterStart" onchange="renderAll()">
@@ -129,10 +127,9 @@ const isAdmin = user === ADMIN_USER;
 document.getElementById('userInfo').textContent = '👤 ' + user;
 if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
 
-// Навигация: админ видит Главную, логист — нет
 document.getElementById('navLinks').innerHTML = isAdmin 
-  ? '<a href="staff-dashboard.html">📊 Главная</a><a href="staff-cargo.html" class="active">📦 Сделки</a>'
-  : '<a href="staff-cargo.html" class="active">📦 Сделки</a>';
+  ? '<a href="staff-dashboard.html">📊 Главная</a><a href="staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a>'
+  : '<a href="staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a>';
 
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
 
@@ -170,9 +167,8 @@ function populateDatalists() {
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
-  if (show) {
-    document.getElementById('fLogist').value = user;
-  } else {
+  if (show) { document.getElementById('fLogist').value = user; }
+  else {
     ['editId','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier','fLogist'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
@@ -184,18 +180,11 @@ function toggleForm(show=true) {
   const z = document.getElementById(id);
   z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragover'); });
   z.addEventListener('dragleave', () => z.classList.remove('dragover'));
-  z.addEventListener('drop', e => {
-    e.preventDefault(); z.classList.remove('dragover');
-    const inp = document.getElementById(id === 'dropClient' ? 'fInvoiceClient' : 'fInvoiceCarrier');
-    inp.files = e.dataTransfer.files; handleFileSelect(inp, id);
-  });
+  z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('dragover'); document.getElementById(id==='dropClient'?'fInvoiceClient':'fInvoiceCarrier').files = e.dataTransfer.files; handleFileSelect(document.getElementById(id==='dropClient'?'fInvoiceClient':'fInvoiceCarrier'), id); });
 });
 
 function handleFileSelect(inp, zoneId) {
-  if (inp.files.length > 0) {
-    const z = document.getElementById(zoneId);
-    z.classList.add('has-file'); z.innerHTML = '✅ ' + inp.files[0].name;
-  }
+  if (inp.files.length > 0) { const z = document.getElementById(zoneId); z.classList.add('has-file'); z.innerHTML = '✅ ' + inp.files[0].name; }
 }
 
 async function saveCargo() {
@@ -206,10 +195,7 @@ async function saveCargo() {
     if (!clientsData.find(c => c.name === cn)) { await addClient(cn); clientsData = await loadClients(); }
     if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
     let logistToSave = f('fLogist') || user;
-    if (editId && !isAdmin) {
-      const orig = allCargoData.find(c => c.id == editId);
-      if (orig) logistToSave = orig.logist;
-    }
+    if (editId && !isAdmin) { const orig = allCargoData.find(c => c.id == editId); if (orig) logistToSave = orig.logist; }
     const cargo = {
       product: f('fProduct'), city_load: f('fCityLoad'), country_load: f('fCountryLoad'),
       city_unload: f('fCityUnload'), country_unload: f('fCountryUnload'),
@@ -227,12 +213,7 @@ async function saveCargo() {
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
 
-function fileToBase64(id) {
-  const file = document.getElementById(id).files[0];
-  if (!file) return Promise.resolve('');
-  return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
-}
-
+function fileToBase64(id) { const file = document.getElementById(id).files[0]; if (!file) return Promise.resolve(''); return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); }); }
 function f(id) { return document.getElementById(id).value.trim(); }
 
 async function editCargo(id) {
@@ -241,7 +222,13 @@ async function editCargo(id) {
   if (!isAdmin && c.logist !== user) return alert('Нет доступа');
   populateDatalists();
   document.getElementById('editId').value = c.id;
-  ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload'].forEach(fid => document.getElementById(fid).value = c[fid.replace('f','').replace(/([A-Z])/g,'_$1').toLowerCase()] || '');
+  document.getElementById('fClient').value = c.client_name || '';
+  document.getElementById('fCarrier').value = c.carrier_name || '';
+  document.getElementById('fProduct').value = c.product || '';
+  document.getElementById('fCityLoad').value = c.city_load || '';
+  document.getElementById('fCountryLoad').value = c.country_load || '';
+  document.getElementById('fCityUnload').value = c.city_unload || '';
+  document.getElementById('fCountryUnload').value = c.country_unload || '';
   document.getElementById('fLoadDate').value = c.load_date || '';
   document.getElementById('fUnloadDate').value = c.unload_date || '';
   document.getElementById('fStatus').value = c.status || 'loading';
