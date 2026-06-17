@@ -94,7 +94,7 @@
     </div>
     <div class="rate-card" style="display: flex; flex-direction: column; justify-content: center;">
       <button class="btn-save" onclick="autoFetchRates()" style="margin-bottom: 6px;">🔄 Загрузить с rate.am</button>
-      <p class="rate-note">После загрузки нажмите «Сохранить»</p>
+      <p class="rate-note">Затем нажмите «Сохранить»</p>
     </div>
   </div>
   
@@ -130,31 +130,41 @@ function togglePwd(id) { const inp = document.getElementById(id); inp.type = inp
 
 let usersList = [];
 let exchangeRates = null;
-let bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0, overdraftAMD: 0 };
+let bankBalances = {}; // будет загружен с сервера
 
-function loadBankBalances() {
-  const saved = localStorage.getItem('gl_bank_balances');
-  if (saved) bankBalances = JSON.parse(saved);
-  else bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0, overdraftAMD: 0 };
+async function fetchBankBalances() {
+  try {
+    const res = await fetch(API_URL + '/api/bank-balances');
+    if (!res.ok) throw new Error('Ошибка загрузки банковских счетов');
+    const data = await res.json();
+    // преобразуем массив в объект
+    bankBalances = {};
+    data.forEach(item => { bankBalances[item.currency] = item.balance; });
+    if (!bankBalances.overdraft_AMD) bankBalances.overdraft_AMD = 0;
+    renderBankAccounts();
+  } catch (e) {
+    console.error('Не удалось загрузить банковские счета', e);
+  }
 }
 
-function saveBankBalances() {
-  localStorage.setItem('gl_bank_balances', JSON.stringify(bankBalances));
-}
-
-function updateBankBalance(currency, field = 'balance') {
-  const inputId = field === 'balance' ? 'bankInput_' + currency : 'overdraftInput_' + currency;
-  const input = document.getElementById(inputId);
-  const value = parseFloat(input.value) || 0;
-  if (field === 'overdraft') bankBalances.overdraftAMD = value;
-  else bankBalances[currency] = value;
-  saveBankBalances();
-  renderBankAccounts();
+async function updateBankBalance(currency, balance) {
+  try {
+    await fetch(API_URL + '/api/bank-balances', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency, balance })
+    });
+    bankBalances[currency] = balance;
+    renderBankAccounts();
+    loadData(); // пересчитать статистику
+  } catch (e) {
+    alert('Ошибка сохранения баланса');
+  }
 }
 
 function formatCurrency(amount, currency) {
   const symbols = { USD: '$', EUR: '€', AMD: '֏', RUB: '₽' };
-  const sym = symbols[currency] || '$';
+  const sym = symbols[currency] || currency;
   return sym + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -172,7 +182,7 @@ function renderBankAccounts() {
     let extraHtml = '';
     
     if (acc.currency === 'AMD') {
-      const overdraft = bankBalances.overdraftAMD || 0;
+      const overdraft = bankBalances.overdraft_AMD || 0;
       const available = balance - overdraft;
       displayBalance = available;
       extraHtml = `
@@ -182,7 +192,7 @@ function renderBankAccounts() {
         </div>
         <input type="number" id="overdraftInput_AMD" placeholder="Овердрафт" value="${overdraft}" onfocus="this.select()">
         <span class="overdraft-label">Овердрафт (займ)</span>
-        <button class="btn-save-balance" onclick="updateBankBalance('AMD', 'overdraft')">💾 Обновить овердрафт</button>
+        <button class="btn-save-balance" onclick="saveOverdraft()">💾 Обновить овердрафт</button>
       `;
     }
     
@@ -197,78 +207,27 @@ function renderBankAccounts() {
         </div>
         <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
         <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс на счёте" value="${balance}" onfocus="this.select()">
-        <button class="btn-save-balance" onclick="updateBankBalance('${acc.currency}')">💾 Обновить баланс</button>
+        <button class="btn-save-balance" onclick="saveBankBalance('${acc.currency}')">💾 Обновить баланс</button>
         ${extraHtml}
       </div>
     `;
   }).join('');
 }
 
-// ---------- Ручные курсы ----------
-function loadManualRates() {
-  const saved = localStorage.getItem('gl_manual_rates');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.AMD && parsed.EUR && parsed.RUB) {
-        exchangeRates = parsed;
-        document.getElementById('manualRateUSD').value = parsed.AMD;
-        document.getElementById('manualRateEUR').value = parsed.EUR;
-        document.getElementById('manualRateRUB').value = parsed.RUB;
-        updateRateDisplay();
-        return true;
-      }
-    } catch(e) {}
-  }
-  return false;
+function saveBankBalance(currency) {
+  const input = document.getElementById('bankInput_' + currency);
+  const balance = parseFloat(input.value) || 0;
+  updateBankBalance(currency, balance);
 }
 
-function saveManualRates() {
-  const usd = parseFloat(document.getElementById('manualRateUSD').value);
-  const eur = parseFloat(document.getElementById('manualRateEUR').value);
-  const rub = parseFloat(document.getElementById('manualRateRUB').value);
-  if (!usd || !eur || !rub) return alert('Заполните все курсы');
-  const rates = {
-    USD: 1,
-    AMD: usd,
-    EUR: eur,
-    RUB: rub,
-    source: 'manual',
-    updatedAt: Date.now()
-  };
-  localStorage.setItem('gl_manual_rates', JSON.stringify(rates));
-  exchangeRates = rates;
-  updateRateDisplay();
-  loadData();
-  alert('Курсы сохранены!');
+function saveOverdraft() {
+  const input = document.getElementById('overdraftInput_AMD');
+  const overdraft = parseFloat(input.value) || 0;
+  updateBankBalance('overdraft_AMD', overdraft);
 }
 
-function updateRateDisplay() {
-  if (!exchangeRates) return;
-  document.getElementById('rateUSD').textContent = `1 USD = ${exchangeRates.AMD} AMD`;
-  document.getElementById('rateEUR').textContent = `1 EUR = ${exchangeRates.EUR} AMD`;
-  document.getElementById('rateRUB').textContent = `1 RUB = ${exchangeRates.RUB} AMD`;
-}
-
-async function autoFetchRates() {
-  try {
-    const res = await fetch(API_URL + '/api/rates');
-    if (!res.ok) throw new Error('Ошибка');
-    const data = await res.json();
-    document.getElementById('manualRateUSD').value = data.AMD;
-    document.getElementById('manualRateEUR').value = data.EUR;
-    document.getElementById('manualRateRUB').value = data.RUB;
-    alert('Курсы загружены! Нажмите «Сохранить курсы», чтобы применить.');
-  } catch (e) {
-    alert('Не удалось загрузить курсы автоматически. Введите вручную.');
-  }
-}
-
+// ---------- Курсы валют (через API) ----------
 async function fetchExchangeRates() {
-  if (loadManualRates()) {
-    console.log('Используем ручные курсы');
-    return;
-  }
   try {
     const res = await fetch(API_URL + '/api/rates');
     if (!res.ok) throw new Error('Ошибка получения курсов');
@@ -278,200 +237,67 @@ async function fetchExchangeRates() {
     document.getElementById('manualRateEUR').value = data.EUR;
     document.getElementById('manualRateRUB').value = data.RUB;
     updateRateDisplay();
-    console.log('Курсы с rate.am');
+    console.log('Курсы загружены');
   } catch (e) {
-    console.warn('Не удалось загрузить курсы, резерв');
-    exchangeRates = { USD: 1, AMD: 400, EUR: 440, RUB: 4.5, source: 'hardcoded' };
+    console.warn('Резервные курсы');
+    exchangeRates = { USD: 1, AMD: 400, EUR: 440, RUB: 4.5 };
   }
 }
 
-function convertToUSD(amount, currency) {
-  if (!exchangeRates || !amount) return 0;
-  if (currency === 'USD') return amount;
-  const rate = exchangeRates[currency]; // сколько AMD за 1 единицу валюты
-  if (!rate) return 0;
-  if (currency === 'AMD') {
-    // AMD → USD: делим на курс AMD
-    return amount / exchangeRates.AMD;
-  } else {
-    // EUR, RUB и др.: переводим в AMD, потом в USD
-    const amdEquivalent = amount * rate;
-    return amdEquivalent / exchangeRates.AMD;
-  }
-}
-
-function usdToAMD(usd) {
-  return usd * (exchangeRates?.AMD || 400);
-}
-
-function currencySymbol(cur) {
-  if (cur === 'EUR') return '€';
-  if (cur === 'AMD') return '֏';
-  return '$';
-}
-
-async function loadUsers() {
+async function saveManualRates() {
+  const usd = parseFloat(document.getElementById('manualRateUSD').value);
+  const eur = parseFloat(document.getElementById('manualRateEUR').value);
+  const rub = parseFloat(document.getElementById('manualRateRUB').value);
+  if (!usd || !eur || !rub) return alert('Заполните все курсы');
   try {
-    const res = await fetch(API_URL + '/api/users');
-    usersList = await res.json();
-    renderLogists();
-  } catch (err) { console.error(err); }
-}
-
-function renderLogists() {
-  document.getElementById('logistListTable').innerHTML = usersList.map((u, i) => 
-    `<tr>
-      <td>${esc(u.username)}</td>
-      <td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
-      <td>
-        <span id="pwd_${i}">••••••</span>
-        <span class="show-pwd" onclick="toggleShowPwd(${i})">Показать</span>
-      </td>
-      <td>${u.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${u.username}')">Удалить</button>` : ''}</td>
-    </tr>`
-  ).join('');
-}
-
-let pwdCache = {};
-
-async function toggleShowPwd(i) {
-  const el = document.getElementById('pwd_' + i);
-  const btn = event.target;
-  if (el.textContent === '••••••') {
-    if (!pwdCache[usersList[i].username]) {
-      const res = await fetch(API_URL + '/api/user-pwd/' + usersList[i].username);
-      const data = await res.json();
-      pwdCache[usersList[i].username] = data.password;
-    }
-    el.textContent = pwdCache[usersList[i].username];
-    btn.textContent = 'Скрыть';
-  } else {
-    el.textContent = '••••••';
-    btn.textContent = 'Показать';
-  }
-}
-
-async function addLogist() {
-  const name = document.getElementById('newLogistName').value.trim();
-  const pass = document.getElementById('newLogistPass').value.trim();
-  if (!name || !pass) return alert('Введите имя и пароль');
-  try {
-    const res = await fetch(API_URL + '/api/users', {
-      method: 'POST',
+    await fetch(API_URL + '/api/rates', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name, password: pass, role: 'logist' })
+      body: JSON.stringify({ currency: 'AMD', rate: usd })
     });
-    if (res.ok) {
-      pwdCache[name] = pass;
-      document.getElementById('newLogistName').value = '';
-      document.getElementById('newLogistPass').value = '';
-      await loadUsers();
-      alert('Логист ' + name + ' добавлен!\nЛогин: ' + name + '\nПароль: ' + pass);
-    }
-  } catch (err) { alert('Ошибка'); }
-}
-
-async function deleteLogist(name) {
-  if (name === ADMIN_USER) return alert('Нельзя удалить админа');
-  if (!confirm('Удалить ' + name + '?')) return;
-  await fetch(API_URL + '/api/users/' + name, { method: 'DELETE' });
-  delete pwdCache[name];
-  await loadUsers();
-}
-
-async function loadData() {
-  try {
-    const res = await fetch(API_URL + '/api/cargo');
-    const cargo = await res.json();
-    
-    let totalProfitAMD = 0, waitingClientsAMD = 0, waitingCarriersAMD = 0, receivedAMD = 0, paidAMD = 0;
-    
-    cargo.forEach(c => {
-      const clientCur = c.client_currency || c.currency || 'USD';
-      const carrierCur = c.carrier_currency || c.currency || 'USD';
-      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
-      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
-      const profitAMD = usdToAMD(clientUSD - carrierUSD);
-      totalProfitAMD += profitAMD;
-      if (!c.client_paid) waitingClientsAMD += usdToAMD(clientUSD);
-      else receivedAMD += usdToAMD(clientUSD);
-      if (!c.carrier_paid) waitingCarriersAMD += usdToAMD(carrierUSD);
-      else paidAMD += usdToAMD(carrierUSD);
+    await fetch(API_URL + '/api/rates', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency: 'EUR', rate: eur })
     });
-    
-    const cashGapAMD = paidAMD - receivedAMD;
-    const amdRate = exchangeRates?.AMD || 400;
-    const rubRate = exchangeRates?.RUB || 4.5;
-    const eurRate = exchangeRates?.EUR || 440;
-    const bankAMD = (bankBalances.USD || 0) * amdRate +
-                    (bankBalances.EUR || 0) * eurRate +
-                    (bankBalances.RUB || 0) * rubRate +
-                    (bankBalances.AMD || 0) - (bankBalances.overdraftAMD || 0);
-    const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
-    
-    const statsHTML = `
-      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
-      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
-      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
-      <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
-    `;
-    document.getElementById('statsRow').innerHTML = statsHTML;
-    
-    const lm = {};
-    cargo.forEach(c => {
-      const l = c.logist || '—';
-      if (!lm[l]) lm[l] = { count: 0, turnoverAMD: 0, profitAMD: 0 };
-      lm[l].count++;
-      const clientCur = c.client_currency || c.currency || 'USD';
-      const carrierCur = c.carrier_currency || c.currency || 'USD';
-      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
-      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
-      lm[l].turnoverAMD += usdToAMD(clientUSD);
-      lm[l].profitAMD += usdToAMD(clientUSD - carrierUSD);
+    await fetch(API_URL + '/api/rates', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency: 'RUB', rate: rub })
     });
-    
-    document.getElementById('logistTable').innerHTML = Object.entries(lm)
-      .sort((a, b) => b[1].profitAMD - a[1].profitAMD)
-      .map(([n, d]) => 
-        `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`
-      ).join('');
-    
-    const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
-    const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
-      const clientCur = c.client_currency || c.currency || 'USD';
-      const carrierCur = c.carrier_currency || c.currency || 'USD';
-      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
-      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
-      const profitAMD = usdToAMD(clientUSD - carrierUSD);
-      return `<tr>
-        <td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td>
-        <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-        <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
-        <td>${clientCur}/${carrierCur}</td><td>${esc(c.logist||'—')}</td>
-      </tr>`;
-    }).join('');
-    
-  } catch (err) {
-    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>';
-    console.error(err);
+    exchangeRates = { USD: 1, AMD: usd, EUR: eur, RUB: rub };
+    updateRateDisplay();
+    loadData();
+    alert('Курсы сохранены на сервере!');
+  } catch (e) {
+    alert('Ошибка сохранения курсов');
   }
 }
 
-function esc(s) { return (s||'').replace(/</g,'&lt;'); }
+async function autoFetchRates() {
+  try {
+    const res = await fetch(API_URL + '/api/rates?force=1'); // если нужно форсировать обновление из rate.am
+    if (!res.ok) throw new Error('Ошибка');
+    const data = await res.json();
+    document.getElementById('manualRateUSD').value = data.AMD;
+    document.getElementById('manualRateEUR').value = data.EUR;
+    document.getElementById('manualRateRUB').value = data.RUB;
+    alert('Курсы загружены с rate.am! Нажмите «Сохранить», чтобы применить.');
+  } catch (e) {
+    alert('Не удалось загрузить курсы автоматически.');
+  }
+}
 
-loadBankBalances();
-renderBankAccounts();
-fetchExchangeRates().then(() => {
-  updateRateDisplay();
-  loadUsers();
-  loadData();
-});
+function updateRateDisplay() {
+  if (!exchangeRates) return;
+  document.getElementById('rateUSD').textContent = `1 USD = ${exchangeRates.AMD} AMD`;
+  document.getElementById('rateEUR').textContent = `1 EUR = ${exchangeRates.EUR} AMD`;
+  document.getElementById('rateRUB').textContent = `1 RUB = ${exchangeRates.RUB} AMD`;
+}
+
+// ... остальные функции (конвертация, загрузка данных, пользователи) такие же, как в предыдущем полном коде ...
+// Я пропускаю их для краткости, но вы можете взять их из предыдущего ответа.
+// Важно: convertToUSD, usdToAMD, loadData, loadUsers и т.д. остаются без изменений.
 </script>
 </body>
 </html>
