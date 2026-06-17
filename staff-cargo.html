@@ -71,6 +71,8 @@
     <input type="date" id="filterEnd" onchange="renderAll()">
     <label style="margin-left:12px;">👤 Логист:</label>
     <select id="filterLogist" onchange="renderAll()"><option value="all">Все</option></select>
+    <label style="margin-left:12px;">💰 Валюта:</label>
+    <select id="filterCurrency" onchange="renderAll()"><option value="all">Все</option></select>
     <button onclick="clearFilter()" style="background:#DDE8E9;border:none;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:0.75rem;">✕ Сбросить</button>
   </div>
   <div class="stats-row" id="statsRow"></div>
@@ -95,9 +97,14 @@
       <div><label>Статус</label><select id="fStatus"><option value="loading">На загрузке</option><option value="onroad">В пути</option><option value="loaded">Загружен</option><option value="completed">Завершён</option></select></div>
     </div>
     <div class="form-row">
-      <div><label>Цена клиента ($) *</label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
-      <div><label>Цена перевозчика ($) *</label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
-      <div><label>Прибыль ($)</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
+      <div><label>Цена клиента</label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
+      <div><label>Цена перевозчика</label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
+      <div><label>Прибыль</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
+      <div><label>Валюта</label><select id="fCurrency" onchange="updateCurrencySymbols()">
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+        <option value="AMD">AMD (֏)</option>
+      </select></div>
       <div><label>Логист</label><input type="text" id="fLogist"></div>
     </div>
     <div class="form-row">
@@ -111,7 +118,7 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Дата выгрузки</th><th>Статус</th><th>Клиент $</th><th>Перевоз $</th><th>Прибыль</th><th>Логист</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Дата выгрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль</th><th>Валюта</th><th>Логист</th><th></th></tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
     <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Загрузка...</p>
@@ -154,10 +161,20 @@ let allCargoData = [];
 let clientsData = [];
 let carriersData = [];
 
+function currencySymbol(cur) {
+  if (cur === 'EUR') return '€';
+  if (cur === 'AMD') return '֏';
+  return '$';
+}
+
 function calcCommission() {
   const cp = parseFloat(document.getElementById('fClientPrice').value) || 0;
   const crp = parseFloat(document.getElementById('fCarrierPrice').value) || 0;
   document.getElementById('fCommission').value = (cp - crp).toFixed(2);
+}
+
+function updateCurrencySymbols() {
+  // optionally change placeholders or labels – kept simple
 }
 
 function populateDatalists() {
@@ -167,12 +184,15 @@ function populateDatalists() {
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
-  if (show) { document.getElementById('fLogist').value = user; }
-  else {
+  if (show) {
+    document.getElementById('fLogist').value = user;
+    document.getElementById('fCurrency').value = 'USD';
+  } else {
     ['editId','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier','fLogist'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
     document.getElementById('fStatus').value = 'loading';
+    document.getElementById('fCurrency').value = 'USD';
   }
 }
 
@@ -196,6 +216,7 @@ async function saveCargo() {
     if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
     let logistToSave = f('fLogist') || user;
     if (editId && !isAdmin) { const orig = allCargoData.find(c => c.id == editId); if (orig) logistToSave = orig.logist; }
+    const currency = f('fCurrency') || 'USD';
     const cargo = {
       product: f('fProduct'), city_load: f('fCityLoad'), country_load: f('fCountryLoad'),
       city_unload: f('fCityUnload'), country_unload: f('fCountryUnload'),
@@ -205,7 +226,8 @@ async function saveCargo() {
       commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
       logist: logistToSave, client_name: cn, carrier_name: crn,
       invoice_client: await fileToBase64('fInvoiceClient') || '',
-      invoice_carrier: await fileToBase64('fInvoiceCarrier') || ''
+      invoice_carrier: await fileToBase64('fInvoiceCarrier') || '',
+      currency: currency
     };
     if (!cargo.product) return alert('Введите товар');
     if (editId) { await updateCargo(editId, cargo); } else { await addCargo(cargo); }
@@ -236,6 +258,7 @@ async function editCargo(id) {
   document.getElementById('fCarrierPrice').value = c.carrier_price || '';
   document.getElementById('fCommission').value = (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0)).toFixed(2);
   document.getElementById('fLogist').value = c.logist || user;
+  document.getElementById('fCurrency').value = c.currency || 'USD';
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
@@ -245,7 +268,12 @@ async function deleteCargo(id) {
   if (confirm('Удалить?')) { await removeCargo(id); await refreshData(); }
 }
 
-function clearFilter() { document.getElementById('filterStart').value = document.getElementById('filterEnd').value = ''; document.getElementById('filterLogist').value = 'all'; renderAll(); }
+function clearFilter() {
+  document.getElementById('filterStart').value = document.getElementById('filterEnd').value = '';
+  document.getElementById('filterLogist').value = 'all';
+  document.getElementById('filterCurrency').value = 'all';
+  renderAll();
+}
 
 async function refreshData() {
   try { allCargoData = await loadCargo(); clientsData = await loadClients(); carriersData = await loadCarriers(); populateDatalists(); renderAll(); }
@@ -253,29 +281,74 @@ async function refreshData() {
 }
 
 function renderAll() {
-  const start = document.getElementById('filterStart').value, end = document.getElementById('filterEnd').value, fl = document.getElementById('filterLogist').value;
-  let list = isAdmin ? allCargoData : allCargoData.filter(c => c.logist === user);
+  const start = document.getElementById('filterStart').value,
+        end = document.getElementById('filterEnd').value,
+        fl = document.getElementById('filterLogist').value,
+        fc = document.getElementById('filterCurrency').value;
+
+  let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
   if (start) list = list.filter(c => c.load_date >= start);
   if (end) list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
+  if (fc !== 'all') list = list.filter(c => (c.currency || 'USD') === fc);
+
+  // update filter options
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
     document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
   }
-  const profit = list.reduce((s,c) => s + (parseFloat(c.client_price||0)-parseFloat(c.carrier_price||0)), 0);
-  document.getElementById('statsRow').innerHTML = `<div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div><div class="stat-card stat-profit"><div class="num">$${profit.toLocaleString()}</div><div class="lbl">Прибыль</div></div>${isAdmin ? `<div class="stat-card"><div class="num">${allCargoData.length}</div><div class="lbl">Всего</div></div>` : ''}`;
+  const currencies = [...new Set(allCargoData.map(c => c.currency || 'USD'))];
+  const fcSelect = document.getElementById('filterCurrency');
+  const prevFc = fcSelect.value;
+  fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
+
+  // stats
+  const currencyProfits = {};
+  list.forEach(c => {
+    const curr = c.currency || 'USD';
+    const p = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
+    currencyProfits[curr] = (currencyProfits[curr] || 0) + p;
+  });
+  const totalCount = list.length;
+  const totalAll = isAdmin ? allCargoData.length : totalCount;
+  let statsHTML = `<div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>`;
+  for (const [cur, amt] of Object.entries(currencyProfits)) {
+    statsHTML += `<div class="stat-card stat-profit"><div class="num">${currencySymbol(cur)}${Math.round(amt).toLocaleString()}</div><div class="lbl">Прибыль ${cur}</div></div>`;
+  }
+  if (isAdmin) statsHTML += `<div class="stat-card"><div class="num">${totalAll}</div><div class="lbl">Всего</div></div>`;
+  document.getElementById('statsRow').innerHTML = statsHTML;
+
+  // table
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
   document.getElementById('emptyMsg').style.display = list.length ? 'none' : 'block';
   document.getElementById('tableBody').innerHTML = list.map((c, idx) => {
-    const p = (parseFloat(c.client_price||0)-parseFloat(c.carrier_price||0));
+    const p = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
-    return `<tr><td>${idx+1}</td><td>${esc(c.client_name)}</td><td>${esc(c.carrier_name)}</td><td>${esc(c.product)}</td><td>${load}</td><td>${unload}</td><td>${c.load_date||'-'}</td><td>${c.unload_date||'-'}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td>$${parseFloat(c.client_price||0).toLocaleString()}</td><td>$${parseFloat(c.carrier_price||0).toLocaleString()}</td><td class="${p>=0?'profit-positive':''}">$${p.toLocaleString()}</td><td>${esc(c.logist)}</td><td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button><button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button></td></tr>`;
+    const csym = currencySymbol(c.currency || 'USD');
+    return `<tr>
+      <td>${idx+1}</td>
+      <td>${esc(c.client_name)}</td>
+      <td>${esc(c.carrier_name)}</td>
+      <td>${esc(c.product)}</td>
+      <td>${load}</td>
+      <td>${unload}</td>
+      <td>${c.load_date||'-'}</td>
+      <td>${c.unload_date||'-'}</td>
+      <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
+      <td>${csym}${parseFloat(c.client_price||0).toLocaleString()}</td>
+      <td>${csym}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
+      <td class="${p>=0?'profit-positive':''}">${csym}${p.toLocaleString()}</td>
+      <td>${c.currency||'USD'}</td>
+      <td>${esc(c.logist)}</td>
+      <td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button><button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button></td>
+    </tr>`;
   }).join('');
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
+
 refreshData();
 </script>
 </body>
