@@ -10,7 +10,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F5FAFA; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
-    .app-wrapper { max-width: 1400px; margin: 0 auto; }
+    .app-wrapper { max-width: 1600px; margin: 0 auto; }
     .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; border: 1px solid rgba(85,183,189,0.25); }
     .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; color: #1a1a1a; }
     .top-bar .brand img { height: 40px; width: auto; }
@@ -28,12 +28,17 @@
     .stat-card .num { font-size: 1.5rem; font-weight: 800; color: #55B7BD; }
     .stat-card .lbl { font-size: 0.6rem; color: #8fa8ab; text-transform: uppercase; }
     .stat-profit { background: #EDF7F7; } .stat-profit .num { color: #3d9aa0; }
+    .stat-warning { background: #FFF3E0; } .stat-warning .num { color: #E65100; }
+    .stat-danger { background: #FFEBEE; } .stat-danger .num { color: #C62828; }
     .btn-add { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-bottom: 1rem; }
     .form-add { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; display: none; border: 1px solid rgba(85,183,189,0.25); }
     .form-add.active { display: block; }
     .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
     .form-row label { font-size: 0.6rem; color: #55B7BD; text-transform: uppercase; display: block; margin-bottom: 3px; font-weight: 700; }
     .form-row input, .form-row select { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 16px; padding: 8px 12px; color: #1a1a1a; font-size: 0.85rem; outline: none; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .checkbox-row input[type="checkbox"] { width: auto; cursor: pointer; }
+    .checkbox-row label { font-size: 0.75rem; color: #2d3a3d; cursor: pointer; }
     .drop-zone { border: 2px dashed rgba(85,183,189,0.35); border-radius: 16px; padding: 15px; text-align: center; color: #8fa8ab; font-size: 0.75rem; cursor: pointer; background: #F5FAFA; min-height: 60px; display: flex; align-items: center; justify-content: center; }
     .drop-zone.has-file { border-style: solid; border-color: #55B7BD; background: #E8F5F5; color: #3d9aa0; }
     .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-right: 8px; }
@@ -48,8 +53,12 @@
     .status-loaded { background: #E8F5F5; color: #3d9aa0; }
     .status-completed { background: #EDE7F6; color: #4527A0; }
     .profit-positive { color: #3d9aa0; font-weight: 700; }
+    .paid-yes { color: #2E7D32; font-weight: 700; }
+    .paid-no { color: #C62828; font-weight: 700; }
     .btn-del { background: none; border: none; color: #C62828; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; }
     .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
+    .btn-toggle-paid { background: none; border: 1px solid #55B7BD; color: #55B7BD; cursor: pointer; font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; margin: 0 2px; }
+    .btn-toggle-paid.active { background: #55B7BD; color: white; }
     .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
     .rate-note { font-size: 0.65rem; color: #8fa8ab; }
     .currency-symbol { font-size: 0.85rem; color: #55B7BD; margin-left: 4px; }
@@ -75,6 +84,15 @@
     <select id="filterLogist" onchange="renderAll()"><option value="all">Все</option></select>
     <label style="margin-left:12px;">💰 Валюта:</label>
     <select id="filterCurrency" onchange="renderAll()"><option value="all">Все</option></select>
+    <label style="margin-left:12px;">💳 Оплата:</label>
+    <select id="filterPayment" onchange="renderAll()">
+      <option value="all">Все</option>
+      <option value="client_pending">Ждём от клиента</option>
+      <option value="client_paid">Клиент оплатил</option>
+      <option value="carrier_pending">Ждём перевозчику</option>
+      <option value="carrier_paid">Перевозчику оплачено</option>
+      <option value="gap">Кассовый разрыв</option>
+    </select>
     <button onclick="clearFilter()" style="background:#DDE8E9;border:none;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:0.75rem;">✕ Сбросить</button>
   </div>
   <div class="stats-row" id="statsRow"></div>
@@ -109,6 +127,20 @@
       </select></div>
       <div><label>Логист</label><input type="text" id="fLogist"></div>
     </div>
+    <div class="form-row" id="paymentCheckboxes" style="display:none;">
+      <div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="fClientPaid" onchange="updatePaidStatus()">
+          <label>✅ Клиент оплатил</label>
+        </div>
+      </div>
+      <div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="fCarrierPaid" onchange="updatePaidStatus()">
+          <label>✅ Перевозчику оплачено</label>
+        </div>
+      </div>
+    </div>
     <div class="form-row">
       <div><label>Инвойс клиенту</label><div class="drop-zone" id="dropClient" onclick="document.getElementById('fInvoiceClient').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceClient" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropClient')"></div>
       <div><label>Инвойс от перевозчика</label><div class="drop-zone" id="dropCarrier" onclick="document.getElementById('fInvoiceCarrier').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceCarrier" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropCarrier')"></div>
@@ -120,7 +152,7 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Дата выгрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль</th><th>Валюта</th><th>Логист</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль</th><th>Вал.</th><th>Оплата</th><th>Логист</th><th></th></tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
     <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Загрузка...</p>
@@ -162,9 +194,8 @@ async function addCarrier(name) { return api('/api/carriers', 'POST', { name });
 let allCargoData = [];
 let clientsData = [];
 let carriersData = [];
-let exchangeRates = null; // { USD: 1, EUR: 0.92, AMD: 400 }
+let exchangeRates = null;
 
-// Fetch live exchange rates
 async function fetchExchangeRates() {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -172,7 +203,7 @@ async function fetchExchangeRates() {
     const data = await res.json();
     exchangeRates = data.rates;
   } catch (e) {
-    console.warn('Не удалось загрузить курсы валют, используется резервный курс', e);
+    console.warn('Не удалось загрузить курсы валют', e);
     exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
   }
 }
@@ -206,6 +237,10 @@ function onCurrencyChange() {
   document.getElementById('commissionSymbol').textContent = sym;
 }
 
+function updatePaidStatus() {
+  // Visual feedback for admin
+}
+
 function populateDatalists() {
   document.getElementById('clientList').innerHTML = clientsData.map(c => `<option value="${esc(c.name)}">`).join('');
   document.getElementById('carrierList').innerHTML = carriersData.map(c => `<option value="${esc(c.name)}">`).join('');
@@ -213,16 +248,21 @@ function populateDatalists() {
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
+  const paymentDiv = document.getElementById('paymentCheckboxes');
+  
   if (show) {
     document.getElementById('fLogist').value = user;
     document.getElementById('fCurrency').value = 'USD';
-    onCurrencyChange(); // update symbols
+    onCurrencyChange();
     document.getElementById('formTitle').textContent = 'Новая сделка';
     document.getElementById('editId').value = '';
+    paymentDiv.style.display = isAdmin ? 'block' : 'none';
     ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
     document.getElementById('fStatus').value = 'loading';
+    document.getElementById('fClientPaid').checked = false;
+    document.getElementById('fCarrierPaid').checked = false;
   } else {
     document.getElementById('addForm').classList.remove('active');
   }
@@ -237,6 +277,20 @@ function toggleForm(show=true) {
 
 function handleFileSelect(inp, zoneId) {
   if (inp.files.length > 0) { const z = document.getElementById(zoneId); z.classList.add('has-file'); z.innerHTML = '✅ ' + inp.files[0].name; }
+}
+
+async function togglePaid(cargoId, field) {
+  if (!isAdmin) return;
+  const cargo = allCargoData.find(c => c.id == cargoId);
+  if (!cargo) return;
+  
+  const currentValue = cargo[field] || false;
+  const updateData = { [field]: !currentValue };
+  
+  try {
+    await updateCargo(cargoId, updateData);
+    await refreshData();
+  } catch (err) { alert('Ошибка: ' + err.message); }
 }
 
 async function saveCargo() {
@@ -259,11 +313,12 @@ async function saveCargo() {
       logist: logistToSave, client_name: cn, carrier_name: crn,
       invoice_client: await fileToBase64('fInvoiceClient') || '',
       invoice_carrier: await fileToBase64('fInvoiceCarrier') || '',
-      currency: currency
+      currency: currency,
+      client_paid: isAdmin ? document.getElementById('fClientPaid').checked : false,
+      carrier_paid: isAdmin ? document.getElementById('fCarrierPaid').checked : false
     };
     if (!cargo.product) return alert('Введите товар');
-
-    // Показываем предупреждение, если API может не поддерживать валюту
+    
     if (editId) {
       await updateCargo(editId, cargo);
     } else {
@@ -299,7 +354,14 @@ async function editCargo(id) {
   document.getElementById('fLogist').value = c.logist || user;
   const cur = c.currency || 'USD';
   document.getElementById('fCurrency').value = cur;
-  onCurrencyChange(); // обновить символы в форме
+  onCurrencyChange();
+  
+  if (isAdmin) {
+    document.getElementById('paymentCheckboxes').style.display = 'block';
+    document.getElementById('fClientPaid').checked = c.client_paid || false;
+    document.getElementById('fCarrierPaid').checked = c.carrier_paid || false;
+  }
+  
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
@@ -313,6 +375,7 @@ function clearFilter() {
   document.getElementById('filterStart').value = document.getElementById('filterEnd').value = '';
   document.getElementById('filterLogist').value = 'all';
   document.getElementById('filterCurrency').value = 'all';
+  document.getElementById('filterPayment').value = 'all';
   renderAll();
 }
 
@@ -331,13 +394,21 @@ function renderAll() {
   const start = document.getElementById('filterStart').value,
         end = document.getElementById('filterEnd').value,
         fl = document.getElementById('filterLogist').value,
-        fc = document.getElementById('filterCurrency').value;
+        fc = document.getElementById('filterCurrency').value,
+        fp = document.getElementById('filterPayment').value;
 
   let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
   if (start) list = list.filter(c => c.load_date >= start);
   if (end) list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   if (fc !== 'all') list = list.filter(c => (c.currency || 'USD') === fc);
+  
+  // Фильтр по оплатам
+  if (fp === 'client_pending') list = list.filter(c => !c.client_paid);
+  if (fp === 'client_paid') list = list.filter(c => c.client_paid);
+  if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
+  if (fp === 'carrier_paid') list = list.filter(c => c.carrier_paid);
+  if (fp === 'gap') list = list.filter(c => !c.client_paid && !c.carrier_paid); // кассовый разрыв
 
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
@@ -348,19 +419,41 @@ function renderAll() {
   const prevFc = fcSelect.value;
   fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
 
-  // Суммарная прибыль в USD с конвертацией
+  // Статистика по деньгам
   let totalProfitUSD = 0;
+  let waitingFromClientsUSD = 0;
+  let waitingToCarriersUSD = 0;
+  let totalReceivedUSD = 0;
+  let totalPaidUSD = 0;
+  
   list.forEach(c => {
-    const profit = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
-    totalProfitUSD += convertToUSD(profit, c.currency || 'USD');
+    const clientPriceUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
+    const carrierPriceUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
+    const profitUSD = clientPriceUSD - carrierPriceUSD;
+    
+    totalProfitUSD += profitUSD;
+    
+    if (!c.client_paid) waitingFromClientsUSD += clientPriceUSD;
+    else totalReceivedUSD += clientPriceUSD;
+    
+    if (!c.carrier_paid) waitingToCarriersUSD += carrierPriceUSD;
+    else totalPaidUSD += carrierPriceUSD;
   });
+  
+  const cashGap = waitingFromClientsUSD - waitingToCarriersUSD;
 
   const totalCount = list.length;
-  const totalAll = isAdmin ? allCargoData.length : totalCount;
-  let statsHTML = `<div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>`;
-  statsHTML += `<div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Прибыль USD</div><div class="rate-note">конвертация по курсу</div></div>`;
-  if (isAdmin) statsHTML += `<div class="stat-card"><div class="num">${totalAll}</div><div class="lbl">Всего</div></div>`;
-  document.getElementById('statsRow').innerHTML = statsHTML;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>
+    <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Прибыль USD</div></div>
+    ${isAdmin ? `
+    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">Ждём от клиентов</div></div>
+    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">Должны перевозчикам</div></div>
+    <div class="stat-card ${cashGap >= 0 ? 'stat-profit' : 'stat-danger'}"><div class="num">$${Math.round(cashGap).toLocaleString()}</div><div class="lbl">Кассовый разрыв</div></div>
+    <div class="stat-card"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">Получено от клиентов</div></div>
+    <div class="stat-card"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">Оплачено перевозчикам</div></div>
+    ` : ''}
+  `;
 
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
@@ -370,6 +463,19 @@ function renderAll() {
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
     const csym = currencySymbol(c.currency || 'USD');
+    
+    let paymentStatus = '';
+    if (isAdmin) {
+      paymentStatus = `
+        <button class="btn-toggle-paid ${c.client_paid ? 'active' : ''}" onclick="togglePaid(${c.id}, 'client_paid')" title="Клиент оплатил">
+          📥 ${c.client_paid ? '✓' : '✗'}
+        </button>
+        <button class="btn-toggle-paid ${c.carrier_paid ? 'active' : ''}" onclick="togglePaid(${c.id}, 'carrier_paid')" title="Перевозчику оплачено">
+          📤 ${c.carrier_paid ? '✓' : '✗'}
+        </button>
+      `;
+    }
+    
     return `<tr>
       <td>${idx+1}</td>
       <td>${esc(c.client_name)}</td>
@@ -378,21 +484,23 @@ function renderAll() {
       <td>${load}</td>
       <td>${unload}</td>
       <td>${c.load_date||'-'}</td>
-      <td>${c.unload_date||'-'}</td>
       <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
       <td>${csym}${parseFloat(c.client_price||0).toLocaleString()}</td>
       <td>${csym}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
       <td class="${p>=0?'profit-positive':''}">${csym}${p.toLocaleString()}</td>
       <td>${c.currency||'USD'}</td>
+      <td>${paymentStatus}</td>
       <td>${esc(c.logist)}</td>
-      <td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button><button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button></td>
+      <td>
+        <button class="btn-edit" onclick="editCargo(${c.id})">✏️</button>
+        ${isAdmin ? `<button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button>` : ''}
+      </td>
     </tr>`;
   }).join('');
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Инициализация с загрузкой курсов
 fetchExchangeRates().then(() => refreshData());
 </script>
 </body>
