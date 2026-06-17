@@ -9,7 +9,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F5FAFA; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
-    .app-wrapper { max-width: 1200px; margin: 0 auto; }
+    .app-wrapper { max-width: 1300px; margin: 0 auto; }
     .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(85,183,189,0.25); }
     .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; color: #1a1a1a; }
     .top-bar .brand img { height: 40px; }
@@ -17,23 +17,20 @@
     .nav-links { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .nav-links a { background: #FFFFFF; color: #55B7BD; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(85,183,189,0.25); }
     .nav-links a.active, .nav-links a:hover { background: #55B7BD; color: #0D1F23; }
-    
-    /* Банковские счета */
-    .bank-accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+    .bank-accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
     .bank-card { background: #FFFFFF; border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); }
     .bank-card .bank-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .bank-card .bank-currency { font-size: 1.2rem; font-weight: 800; color: #55B7BD; }
     .bank-card .bank-flag { font-size: 1.5rem; }
-    .bank-card .bank-balance { font-size: 1.6rem; font-weight: 800; color: #1E3B42; margin-bottom: 8px; }
-    .bank-card .bank-label { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
-    .bank-card input { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px 12px; font-size: 1.1rem; font-weight: 600; color: #1a1a1a; outline: none; }
+    .bank-card .bank-balance { font-size: 1.6rem; font-weight: 800; color: #1E3B42; margin-bottom: 4px; }
+    .bank-card .bank-sub { font-size: 0.8rem; color: #8fa8ab; margin-bottom: 8px; }
+    .bank-card input { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px; font-size: 0.9rem; font-weight: 600; color: #1a1a1a; outline: none; margin-bottom: 6px; }
     .bank-card input:focus { border-color: #55B7BD; }
-    .bank-card .btn-save-balance { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; margin-top: 8px; width: 100%; }
-    .bank-card .btn-save-balance:hover { opacity: 0.9; }
-    
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+    .bank-card .btn-save-balance { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; width: 100%; }
+    .bank-card .overdraft-label { font-size: 0.65rem; color: #E65100; font-weight: 600; margin-top: 8px; display: block; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
     .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; }
-    .stat-card .num { font-size: 2rem; font-weight: 800; color: #55B7BD; }
+    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: #55B7BD; }
     .stat-card .lbl { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
     .stat-profit { background: #EDF7F7; } .stat-profit .num { color: #3d9aa0; }
     .stat-warning { background: #FFF3E0; } .stat-warning .num { color: #E65100; }
@@ -58,7 +55,7 @@
     .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
     .btn-sm-del { background: #C62828; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; }
     .show-pwd { color: #55B7BD; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
-    .rate-note { font-size: 0.65rem; color: #8fa8ab; margin-top: 4px; }
+    .rate-note { font-size: 0.6rem; color: #8fa8ab; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -73,7 +70,6 @@
     <a href="/rateconfirmation">📋 Заявки</a>
   </div>
   
-  <!-- БАНКОВСКИЕ СЧЕТА -->
   <h3 class="section-title">🏦 Банковские счета</h3>
   <div class="bank-accounts" id="bankAccounts"></div>
   
@@ -90,8 +86,8 @@
   </div>
   <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
   
-  <h3 class="section-title">💰 Заработок по логистам</h3>
-  <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот (USD)</th><th>Прибыль (USD)</th></tr></thead><tbody id="logistTable"></tbody></table></div>
+  <h3 class="section-title">💰 Заработок по логистам (AMD)</h3>
+  <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
   
   <h3 class="section-title">📦 Последние сделки</h3>
   <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль</th><th>Валюта</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
@@ -105,48 +101,38 @@ if (!user) window.location.href = 'staff.html';
 if (user !== ADMIN_USER) window.location.href = 'staff-cargo.html';
 
 function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
-
 function togglePwd(id) { const inp = document.getElementById(id); inp.type = inp.type === 'password' ? 'text' : 'password'; }
 
 let usersList = [];
 let exchangeRates = null;
-let bankBalances = {}; // { USD: 0, EUR: 0, AMD: 0, RUB: 0 }
+let bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0, overdraftAMD: 0 };
 
-// Загружаем сохранённые балансы из localStorage
 function loadBankBalances() {
   const saved = localStorage.getItem('gl_bank_balances');
-  if (saved) {
-    bankBalances = JSON.parse(saved);
-  } else {
-    bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0 };
-  }
+  if (saved) bankBalances = JSON.parse(saved);
+  else bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0, overdraftAMD: 0 };
 }
 
-// Сохраняем балансы в localStorage
 function saveBankBalances() {
   localStorage.setItem('gl_bank_balances', JSON.stringify(bankBalances));
 }
 
-// Обновляем баланс конкретного счёта
-function updateBankBalance(currency) {
-  const input = document.getElementById('bankInput_' + currency);
+function updateBankBalance(currency, field = 'balance') {
+  const inputId = field === 'balance' ? 'bankInput_' + currency : 'overdraftInput_' + currency;
+  const input = document.getElementById(inputId);
   const value = parseFloat(input.value) || 0;
-  bankBalances[currency] = value;
+  if (field === 'overdraft') bankBalances.overdraftAMD = value;
+  else bankBalances[currency] = value;
   saveBankBalances();
-  
-  // Обновляем отображение
-  document.getElementById('bankBalance_' + currency).textContent = 
-    formatCurrency(value, currency);
+  renderBankAccounts(); // обновить все карточки
 }
 
-// Форматирование валюты
 function formatCurrency(amount, currency) {
   const symbols = { USD: '$', EUR: '€', AMD: '֏', RUB: '₽' };
   const sym = symbols[currency] || '$';
-  return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return sym + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Отрисовка карточек банковских счетов
 function renderBankAccounts() {
   const accounts = [
     { currency: 'USD', flag: '🇺🇸', label: 'Доллар США' },
@@ -157,6 +143,17 @@ function renderBankAccounts() {
   
   document.getElementById('bankAccounts').innerHTML = accounts.map(acc => {
     const balance = bankBalances[acc.currency] || 0;
+    let extraHtml = '';
+    if (acc.currency === 'AMD') {
+      const overdraft = bankBalances.overdraftAMD || 0;
+      const available = balance - overdraft;
+      extraHtml = `
+        <div class="bank-sub">Доступно: ${formatCurrency(available, 'AMD')}</div>
+        <input type="number" id="overdraftInput_AMD" placeholder="Овердрафт" value="${overdraft}" onfocus="this.select()">
+        <span class="overdraft-label">Овердрафт (займ)</span>
+        <button class="btn-save-balance" onclick="updateBankBalance('AMD', 'overdraft')">💾 Обновить овердрафт</button>
+      `;
+    }
     return `
       <div class="bank-card">
         <div class="bank-header">
@@ -165,16 +162,9 @@ function renderBankAccounts() {
         </div>
         <div class="bank-balance" id="bankBalance_${acc.currency}">${formatCurrency(balance, acc.currency)}</div>
         <div class="bank-label">${acc.label}</div>
-        <input 
-          type="number" 
-          id="bankInput_${acc.currency}" 
-          placeholder="Новый баланс" 
-          value="${balance}"
-          onfocus="this.select()"
-        >
-        <button class="btn-save-balance" onclick="updateBankBalance('${acc.currency}')">
-          💾 Обновить баланс
-        </button>
+        <input type="number" id="bankInput_${acc.currency}" placeholder="Новый баланс" value="${balance}" onfocus="this.select()">
+        <button class="btn-save-balance" onclick="updateBankBalance('${acc.currency}')">💾 Обновить баланс</button>
+        ${extraHtml}
       </div>
     `;
   }).join('');
@@ -187,7 +177,7 @@ async function fetchExchangeRates() {
     const data = await res.json();
     exchangeRates = data.rates;
   } catch (e) {
-    console.warn('Не удалось загрузить курсы, используется резервный', e);
+    console.warn('Резервные курсы');
     exchangeRates = { USD: 1, EUR: 0.92, AMD: 400, RUB: 90 };
   }
 }
@@ -199,6 +189,10 @@ function convertToUSD(amount, fromCurrency) {
   const rate = exchangeRates[cur];
   if (!rate || rate === 0) return 0;
   return amount / rate;
+}
+
+function usdToAMD(usd) {
+  return usd * (exchangeRates?.AMD || 400);
 }
 
 function currencySymbol(cur) {
@@ -234,7 +228,6 @@ let pwdCache = {};
 async function toggleShowPwd(i) {
   const el = document.getElementById('pwd_' + i);
   const btn = event.target;
-  
   if (el.textContent === '••••••') {
     if (!pwdCache[usersList[i].username]) {
       const res = await fetch(API_URL + '/api/user-pwd/' + usersList[i].username);
@@ -282,113 +275,86 @@ async function loadData() {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
     
-    // Общая статистика
     let totalProfitUSD = 0;
     let waitingFromClientsUSD = 0;
     let waitingToCarriersUSD = 0;
     let totalReceivedUSD = 0;
     let totalPaidUSD = 0;
-    const currencyBreakdown = {};
     
     cargo.forEach(c => {
-      const clientPriceUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
-      const carrierPriceUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
-      const profitUSD = clientPriceUSD - carrierPriceUSD;
-      
+      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
+      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
+      const profitUSD = clientUSD - carrierUSD;
       totalProfitUSD += profitUSD;
-      
-      if (!c.client_paid) waitingFromClientsUSD += clientPriceUSD;
-      if (c.client_paid) totalReceivedUSD += clientPriceUSD;
-      if (!c.carrier_paid) waitingToCarriersUSD += carrierPriceUSD;
-      if (c.carrier_paid) totalPaidUSD += carrierPriceUSD;
-      
-      const curr = c.currency || 'USD';
-      if (!currencyBreakdown[curr]) currencyBreakdown[curr] = { count: 0, profit: 0 };
-      currencyBreakdown[curr].count++;
-      currencyBreakdown[curr].profit += (parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0));
+      if (!c.client_paid) waitingFromClientsUSD += clientUSD;
+      else totalReceivedUSD += clientUSD;
+      if (!c.carrier_paid) waitingToCarriersUSD += carrierUSD;
+      else totalPaidUSD += carrierUSD;
     });
     
-    const cashGap = totalPaidUSD - totalReceivedUSD;
+    const cashGapUSD = totalPaidUSD - totalReceivedUSD;
     
-    // Общий баланс с учётом банковских счетов
-    const bankTotalUSD = 
-      convertToUSD(bankBalances.USD || 0, 'USD') +
-      convertToUSD(bankBalances.EUR || 0, 'EUR') +
-      convertToUSD(bankBalances.AMD || 0, 'AMD') +
-      convertToUSD(bankBalances.RUB || 0, 'RUB');
+    // Банковский баланс в AMD
+    const amdRate = exchangeRates?.AMD || 400;
+    const rubRate = exchangeRates?.RUB || 90;
+    const eurRate = exchangeRates?.EUR || 0.92;
+    const bankAMD = (bankBalances.USD || 0) * amdRate +
+                    (bankBalances.EUR || 0) / eurRate * amdRate +
+                    (bankBalances.RUB || 0) / rubRate * amdRate +
+                    (bankBalances.AMD || 0) - (bankBalances.overdraftAMD || 0);
     
-    const netBalance = bankTotalUSD + totalReceivedUSD - totalPaidUSD;
+    const netBalanceAMD = bankAMD + usdToAMD(totalReceivedUSD - totalPaidUSD);
     
-    let statsHTML = `
-      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Всего сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Общая прибыль (USD)</div><div class="rate-note">конвертация по курсу</div></div>
-      <div class="stat-card stat-success"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">✅ Получено от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">📤 Оплачено перевозчикам</div></div>
-      <div class="stat-card ${cashGap > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">$${Math.round(Math.abs(cashGap)).toLocaleString()}</div><div class="lbl">${cashGap > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-      <div class="stat-card stat-profit"><div class="num">$${Math.round(bankTotalUSD).toLocaleString()}</div><div class="lbl">🏦 Банковские счета (USD)</div></div>
-      <div class="stat-card ${netBalance >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">$${Math.round(netBalance).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div><div class="rate-note">Банки + получено - оплачено</div></div>
-      <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+    const statsHTML = `
+      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(usdToAMD(totalProfitUSD)).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
+      <div class="stat-card stat-success"><div class="num">֏${Math.round(usdToAMD(totalReceivedUSD)).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(totalPaidUSD)).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
+      <div class="stat-card ${cashGapUSD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(usdToAMD(Math.abs(cashGapUSD))).toLocaleString()}</div><div class="lbl">${cashGapUSD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (AMD)</div></div>
+      <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingFromClientsUSD)).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingToCarriersUSD)).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     `;
-    
-    // Добавляем разбивку по валютам
-    for (const [cur, data] of Object.entries(currencyBreakdown)) {
-      const sym = currencySymbol(cur);
-      statsHTML += `<div class="stat-card"><div class="num">${sym}${Math.round(data.profit).toLocaleString()}</div><div class="lbl">Прибыль в ${cur}</div></div>`;
-    }
-    
     document.getElementById('statsRow').innerHTML = statsHTML;
     
-    // Заработок по логистам (в USD)
+    // Логисты в AMD
     const lm = {};
     cargo.forEach(c => {
       const l = c.logist || '—';
-      if (!lm[l]) lm[l] = { count: 0, turnoverUSD: 0, profitUSD: 0 };
+      if (!lm[l]) lm[l] = { count: 0, turnoverAMD: 0, profitAMD: 0 };
       lm[l].count++;
-      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
-      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
-      lm[l].turnoverUSD += clientUSD;
-      lm[l].profitUSD += (clientUSD - carrierUSD);
+      const clientAMD = usdToAMD(convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD'));
+      const carrierAMD = usdToAMD(convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD'));
+      lm[l].turnoverAMD += clientAMD;
+      lm[l].profitAMD += (clientAMD - carrierAMD);
     });
     
     document.getElementById('logistTable').innerHTML = Object.entries(lm)
-      .sort((a, b) => b[1].profitUSD - a[1].profitUSD)
+      .sort((a, b) => b[1].profitAMD - a[1].profitAMD)
       .map(([n, d]) => 
-        `<tr>
-          <td>${esc(n)}</td>
-          <td>${d.count}</td>
-          <td>$${Math.round(d.turnoverUSD).toLocaleString()}</td>
-          <td class="profit-positive">$${Math.round(d.profitUSD).toLocaleString()}</td>
-        </tr>`
+        `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`
       ).join('');
     
-    // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
       const p = parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0);
       const csym = currencySymbol(c.currency || 'USD');
       return `<tr>
-        <td>${i+1}</td>
-        <td>${esc(c.client_name || '—')}</td>
-        <td>${esc(c.carrier_name || '—')}</td>
-        <td>${esc(c.product || '—')}</td>
+        <td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td>
         <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-        <td class="profit-positive">${csym}${p.toLocaleString()}</td>
-        <td>${c.currency || 'USD'}</td>
-        <td>${esc(c.logist || '—')}</td>
+        <td class="profit-positive">${csym}${p.toLocaleString()}</td><td>${c.currency||'USD'}</td><td>${esc(c.logist||'—')}</td>
       </tr>`;
     }).join('');
     
-  } catch (err) { 
-    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>'; 
-    console.error(err);
+  } catch (err) {
+    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>';
   }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Инициализация
 loadBankBalances();
 renderBankAccounts();
 fetchExchangeRates().then(() => {
