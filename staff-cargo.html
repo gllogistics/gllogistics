@@ -196,23 +196,28 @@ async function addCarrier(name) { return api('/api/carriers', 'POST', { name });
 let allCargoData = [], clientsData = [], carriersData = [], exchangeRates = null;
 
 async function fetchExchangeRates() {
+  // Сначала проверяем ручные курсы
+  const saved = localStorage.getItem('gl_manual_rates');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.AMD && parsed.EUR && parsed.RUB) {
+        exchangeRates = parsed;
+        console.log('Используем ручные курсы');
+        return;
+      }
+    } catch(e) {}
+  }
+  // Иначе пробуем API
   try {
     const res = await fetch(API_URL + '/api/rates');
     if (!res.ok) throw new Error('Ошибка получения курсов');
     const data = await res.json();
     exchangeRates = data;
-    console.log('Курсы (rate.am):', exchangeRates);
+    console.log('Курсы с rate.am');
   } catch (e) {
-    console.warn('Не удалось загрузить курсы rate.am, пробуем резервный', e);
-    try {
-      const res = await fetch('https://open.er-api.com/v6/latest/USD');
-      if (res.ok) {
-        const data = await res.json();
-        exchangeRates = data.rates;
-      }
-    } catch (e2) {
-      exchangeRates = { USD: 1, EUR: 0.92, AMD: 400, RUB: 90 };
-    }
+    console.warn('Не удалось загрузить курсы, резерв');
+    exchangeRates = { USD: 1, AMD: 400, EUR: 440, RUB: 4.5, source: 'hardcoded' };
   }
 }
 
@@ -221,9 +226,6 @@ function convertToUSD(amount, currency) {
   if (currency === 'USD') return amount;
   const rate = exchangeRates[currency];
   if (!rate) return 0;
-  // Для EUR и RUB курс приходит как количество AMD за 1 единицу валюты,
-  // а convertToUSD должно возвращать USD, поэтому конвертируем через AMD:
-  // amount * (rate / exchangeRates.AMD)  — получаем USD
   return amount * (rate / exchangeRates.AMD);
 }
 
