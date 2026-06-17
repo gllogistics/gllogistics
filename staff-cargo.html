@@ -30,6 +30,7 @@
     .stat-profit { background: #EDF7F7; } .stat-profit .num { color: #3d9aa0; }
     .stat-warning { background: #FFF3E0; } .stat-warning .num { color: #E65100; }
     .stat-danger { background: #FFEBEE; } .stat-danger .num { color: #C62828; }
+    .stat-success { background: #E8F5E9; } .stat-success .num { color: #2E7D32; }
     .btn-add { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-bottom: 1rem; }
     .form-add { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; display: none; border: 1px solid rgba(85,183,189,0.25); }
     .form-add.active { display: block; }
@@ -408,7 +409,7 @@ function renderAll() {
   if (fp === 'client_paid') list = list.filter(c => c.client_paid);
   if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
   if (fp === 'carrier_paid') list = list.filter(c => c.carrier_paid);
-  if (fp === 'gap') list = list.filter(c => !c.client_paid && !c.carrier_paid); // кассовый разрыв
+  if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid); // заплатили перевозчику, но не получили от клиента
 
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
@@ -433,25 +434,32 @@ function renderAll() {
     
     totalProfitUSD += profitUSD;
     
+    // Ждём оплаты от клиентов (клиент ещё не оплатил)
     if (!c.client_paid) waitingFromClientsUSD += clientPriceUSD;
-    else totalReceivedUSD += clientPriceUSD;
+    // Уже получили от клиентов
+    if (c.client_paid) totalReceivedUSD += clientPriceUSD;
     
+    // Должны заплатить перевозчикам (ещё не оплатили)
     if (!c.carrier_paid) waitingToCarriersUSD += carrierPriceUSD;
-    else totalPaidUSD += carrierPriceUSD;
+    // Уже заплатили перевозчикам
+    if (c.carrier_paid) totalPaidUSD += carrierPriceUSD;
   });
   
-  const cashGap = waitingFromClientsUSD - waitingToCarriersUSD;
+  // Кассовый разрыв = заплатили перевозчикам - получили от клиентов
+  // Положительный = заплатили больше чем получили (кассовый разрыв)
+  // Отрицательный = получили больше чем заплатили (свободные средства)
+  const cashGap = totalPaidUSD - totalReceivedUSD;
 
   const totalCount = list.length;
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>
     <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Прибыль USD</div></div>
     ${isAdmin ? `
-    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">Ждём от клиентов</div></div>
-    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">Должны перевозчикам</div></div>
-    <div class="stat-card ${cashGap >= 0 ? 'stat-profit' : 'stat-danger'}"><div class="num">$${Math.round(cashGap).toLocaleString()}</div><div class="lbl">Кассовый разрыв</div></div>
-    <div class="stat-card"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">Получено от клиентов</div></div>
-    <div class="stat-card"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">Оплачено перевозчикам</div></div>
+    <div class="stat-card stat-success"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">✅ Получено от клиентов</div></div>
+    <div class="stat-card stat-warning"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">📤 Оплачено перевозчикам</div></div>
+    <div class="stat-card ${cashGap > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">$${Math.round(Math.abs(cashGap)).toLocaleString()}</div><div class="lbl">${cashGap > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     ` : ''}
   `;
 
