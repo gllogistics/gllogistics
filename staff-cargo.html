@@ -310,7 +310,7 @@ async function saveCargo() {
       logist: logistToSave, client_name: cn, carrier_name: crn,
       invoice_client: await fileToBase64('fInvoiceClient') || '',
       invoice_carrier: await fileToBase64('fInvoiceCarrier') || '',
-      currency: 'MIX', // для совместимости
+      currency: 'MIX',
       client_currency: clientCur,
       carrier_currency: carrierCur,
       client_paid: isAdmin ? document.getElementById('fClientPaid').checked : false,
