@@ -57,8 +57,6 @@
     .btn-sm-del { background: #C62828; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; }
     .show-pwd { color: #55B7BD; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
     .rate-note { font-size: 0.6rem; color: #8fa8ab; margin-top: 2px; }
-    .rate-actions { display: flex; gap: 8px; margin-top: 8px; }
-    .rate-actions button { flex: 1; }
   </style>
 </head>
 <body>
@@ -76,7 +74,6 @@
   <h3 class="section-title">🏦 Банковские счета</h3>
   <div class="bank-accounts" id="bankAccounts"></div>
 
-  <!-- НОВЫЙ БЛОК: РУЧНОЙ ВВОД КУРСОВ -->
   <h3 class="section-title">💱 Курсы валют (AMD)</h3>
   <div class="rates-block" id="ratesBlock">
     <div class="rate-card">
@@ -135,7 +132,6 @@ let usersList = [];
 let exchangeRates = null;
 let bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0, overdraftAMD: 0 };
 
-// ---------- Банковские счета ----------
 function loadBankBalances() {
   const saved = localStorage.getItem('gl_bank_balances');
   if (saved) bankBalances = JSON.parse(saved);
@@ -208,7 +204,7 @@ function renderBankAccounts() {
   }).join('');
 }
 
-// ---------- Ручные курсы валют ----------
+// ---------- Ручные курсы ----------
 function loadManualRates() {
   const saved = localStorage.getItem('gl_manual_rates');
   if (saved) {
@@ -216,7 +212,6 @@ function loadManualRates() {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.AMD && parsed.EUR && parsed.RUB) {
         exchangeRates = parsed;
-        // Заполняем поля ввода
         document.getElementById('manualRateUSD').value = parsed.AMD;
         document.getElementById('manualRateEUR').value = parsed.EUR;
         document.getElementById('manualRateRUB').value = parsed.RUB;
@@ -244,7 +239,7 @@ function saveManualRates() {
   localStorage.setItem('gl_manual_rates', JSON.stringify(rates));
   exchangeRates = rates;
   updateRateDisplay();
-  loadData(); // пересчитать статистику
+  loadData();
   alert('Курсы сохранены!');
 }
 
@@ -263,25 +258,22 @@ async function autoFetchRates() {
     document.getElementById('manualRateUSD').value = data.AMD;
     document.getElementById('manualRateEUR').value = data.EUR;
     document.getElementById('manualRateRUB').value = data.RUB;
-    alert('Курсы загружены с rate.am! Нажмите «Сохранить курсы», чтобы применить.');
+    alert('Курсы загружены! Нажмите «Сохранить курсы», чтобы применить.');
   } catch (e) {
     alert('Не удалось загрузить курсы автоматически. Введите вручную.');
   }
 }
 
 async function fetchExchangeRates() {
-  // Сначала пробуем загрузить ручные курсы
   if (loadManualRates()) {
     console.log('Используем ручные курсы');
     return;
   }
-  // Иначе пытаемся API
   try {
     const res = await fetch(API_URL + '/api/rates');
     if (!res.ok) throw new Error('Ошибка получения курсов');
     const data = await res.json();
     exchangeRates = data;
-    // Обновляем поля ввода для ручного режима
     document.getElementById('manualRateUSD').value = data.AMD;
     document.getElementById('manualRateEUR').value = data.EUR;
     document.getElementById('manualRateRUB').value = data.RUB;
@@ -296,9 +288,16 @@ async function fetchExchangeRates() {
 function convertToUSD(amount, currency) {
   if (!exchangeRates || !amount) return 0;
   if (currency === 'USD') return amount;
-  const rate = exchangeRates[currency];
+  const rate = exchangeRates[currency]; // сколько AMD за 1 единицу валюты
   if (!rate) return 0;
-  return amount * (rate / exchangeRates.AMD);
+  if (currency === 'AMD') {
+    // AMD → USD: делим на курс AMD
+    return amount / exchangeRates.AMD;
+  } else {
+    // EUR, RUB и др.: переводим в AMD, потом в USD
+    const amdEquivalent = amount * rate;
+    return amdEquivalent / exchangeRates.AMD;
+  }
 }
 
 function usdToAMD(usd) {
@@ -311,7 +310,6 @@ function currencySymbol(cur) {
   return '$';
 }
 
-// ---------- Пользователи ----------
 async function loadUsers() {
   try {
     const res = await fetch(API_URL + '/api/users');
@@ -381,7 +379,6 @@ async function deleteLogist(name) {
   await loadUsers();
 }
 
-// ---------- Загрузка данных ----------
 async function loadData() {
   try {
     const res = await fetch(API_URL + '/api/cargo');
@@ -468,11 +465,10 @@ async function loadData() {
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Инициализация
 loadBankBalances();
 renderBankAccounts();
 fetchExchangeRates().then(() => {
-  updateRateDisplay(); // обновить отображение курсов
+  updateRateDisplay();
   loadUsers();
   loadData();
 });
