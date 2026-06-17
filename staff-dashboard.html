@@ -17,11 +17,28 @@
     .nav-links { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .nav-links a { background: #FFFFFF; color: #55B7BD; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(85,183,189,0.25); }
     .nav-links a.active, .nav-links a:hover { background: #55B7BD; color: #0D1F23; }
+    
+    /* Банковские счета */
+    .bank-accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+    .bank-card { background: #FFFFFF; border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); }
+    .bank-card .bank-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .bank-card .bank-currency { font-size: 1.2rem; font-weight: 800; color: #55B7BD; }
+    .bank-card .bank-flag { font-size: 1.5rem; }
+    .bank-card .bank-balance { font-size: 1.6rem; font-weight: 800; color: #1E3B42; margin-bottom: 8px; }
+    .bank-card .bank-label { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
+    .bank-card input { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px 12px; font-size: 1.1rem; font-weight: 600; color: #1a1a1a; outline: none; }
+    .bank-card input:focus { border-color: #55B7BD; }
+    .bank-card .btn-save-balance { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; margin-top: 8px; width: 100%; }
+    .bank-card .btn-save-balance:hover { opacity: 0.9; }
+    
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
     .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; }
     .stat-card .num { font-size: 2rem; font-weight: 800; color: #55B7BD; }
     .stat-card .lbl { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
     .stat-profit { background: #EDF7F7; } .stat-profit .num { color: #3d9aa0; }
+    .stat-warning { background: #FFF3E0; } .stat-warning .num { color: #E65100; }
+    .stat-danger { background: #FFEBEE; } .stat-danger .num { color: #C62828; }
+    .stat-success { background: #E8F5E9; } .stat-success .num { color: #2E7D32; }
     .section-title { color: #55B7BD; font-size: 1rem; margin: 1.5rem 0 0.8rem; text-transform: uppercase; }
     .table-wrap { background: #FFFFFF; border-radius: 20px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); overflow-x: auto; margin-bottom: 1.5rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -56,6 +73,10 @@
     <a href="/rateconfirmation">📋 Заявки</a>
   </div>
   
+  <!-- БАНКОВСКИЕ СЧЕТА -->
+  <h3 class="section-title">🏦 Банковские счета</h3>
+  <div class="bank-accounts" id="bankAccounts"></div>
+  
   <div class="stats-row" id="statsRow"></div>
   
   <h3 class="section-title">👥 Управление логистами</h3>
@@ -89,8 +110,76 @@ function togglePwd(id) { const inp = document.getElementById(id); inp.type = inp
 
 let usersList = [];
 let exchangeRates = null;
+let bankBalances = {}; // { USD: 0, EUR: 0, AMD: 0, RUB: 0 }
 
-// Получаем актуальные курсы валют
+// Загружаем сохранённые балансы из localStorage
+function loadBankBalances() {
+  const saved = localStorage.getItem('gl_bank_balances');
+  if (saved) {
+    bankBalances = JSON.parse(saved);
+  } else {
+    bankBalances = { USD: 0, EUR: 0, AMD: 0, RUB: 0 };
+  }
+}
+
+// Сохраняем балансы в localStorage
+function saveBankBalances() {
+  localStorage.setItem('gl_bank_balances', JSON.stringify(bankBalances));
+}
+
+// Обновляем баланс конкретного счёта
+function updateBankBalance(currency) {
+  const input = document.getElementById('bankInput_' + currency);
+  const value = parseFloat(input.value) || 0;
+  bankBalances[currency] = value;
+  saveBankBalances();
+  
+  // Обновляем отображение
+  document.getElementById('bankBalance_' + currency).textContent = 
+    formatCurrency(value, currency);
+}
+
+// Форматирование валюты
+function formatCurrency(amount, currency) {
+  const symbols = { USD: '$', EUR: '€', AMD: '֏', RUB: '₽' };
+  const sym = symbols[currency] || '$';
+  return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Отрисовка карточек банковских счетов
+function renderBankAccounts() {
+  const accounts = [
+    { currency: 'USD', flag: '🇺🇸', label: 'Доллар США' },
+    { currency: 'EUR', flag: '🇪🇺', label: 'Евро' },
+    { currency: 'AMD', flag: '🇦🇲', label: 'Армянский драм' },
+    { currency: 'RUB', flag: '🇷🇺', label: 'Российский рубль' }
+  ];
+  
+  document.getElementById('bankAccounts').innerHTML = accounts.map(acc => {
+    const balance = bankBalances[acc.currency] || 0;
+    return `
+      <div class="bank-card">
+        <div class="bank-header">
+          <span class="bank-currency">${acc.currency}</span>
+          <span class="bank-flag">${acc.flag}</span>
+        </div>
+        <div class="bank-balance" id="bankBalance_${acc.currency}">${formatCurrency(balance, acc.currency)}</div>
+        <div class="bank-label">${acc.label}</div>
+        <input 
+          type="number" 
+          id="bankInput_${acc.currency}" 
+          placeholder="Новый баланс" 
+          value="${balance}"
+          onfocus="this.select()"
+        >
+        <button class="btn-save-balance" onclick="updateBankBalance('${acc.currency}')">
+          💾 Обновить баланс
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
 async function fetchExchangeRates() {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -99,11 +188,10 @@ async function fetchExchangeRates() {
     exchangeRates = data.rates;
   } catch (e) {
     console.warn('Не удалось загрузить курсы, используется резервный', e);
-    exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
+    exchangeRates = { USD: 1, EUR: 0.92, AMD: 400, RUB: 90 };
   }
 }
 
-// Конвертация в USD
 function convertToUSD(amount, fromCurrency) {
   if (!exchangeRates || !amount) return 0;
   const cur = fromCurrency || 'USD';
@@ -113,7 +201,6 @@ function convertToUSD(amount, fromCurrency) {
   return amount / rate;
 }
 
-// Символ валюты
 function currencySymbol(cur) {
   if (cur === 'EUR') return '€';
   if (cur === 'AMD') return '֏';
@@ -195,25 +282,53 @@ async function loadData() {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
     
-    // Считаем прибыль в USD с учётом валют
+    // Общая статистика
     let totalProfitUSD = 0;
-    const currencyBreakdown = {}; // прибыль по валютам
+    let waitingFromClientsUSD = 0;
+    let waitingToCarriersUSD = 0;
+    let totalReceivedUSD = 0;
+    let totalPaidUSD = 0;
+    const currencyBreakdown = {};
     
     cargo.forEach(c => {
-      const profit = parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0);
-      const curr = c.currency || 'USD';
-      const profitUSD = convertToUSD(profit, curr);
+      const clientPriceUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
+      const carrierPriceUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
+      const profitUSD = clientPriceUSD - carrierPriceUSD;
+      
       totalProfitUSD += profitUSD;
       
+      if (!c.client_paid) waitingFromClientsUSD += clientPriceUSD;
+      if (c.client_paid) totalReceivedUSD += clientPriceUSD;
+      if (!c.carrier_paid) waitingToCarriersUSD += carrierPriceUSD;
+      if (c.carrier_paid) totalPaidUSD += carrierPriceUSD;
+      
+      const curr = c.currency || 'USD';
       if (!currencyBreakdown[curr]) currencyBreakdown[curr] = { count: 0, profit: 0 };
       currencyBreakdown[curr].count++;
-      currencyBreakdown[curr].profit += profit;
+      currencyBreakdown[curr].profit += (parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0));
     });
     
-    // Статистика
+    const cashGap = totalPaidUSD - totalReceivedUSD;
+    
+    // Общий баланс с учётом банковских счетов
+    const bankTotalUSD = 
+      convertToUSD(bankBalances.USD || 0, 'USD') +
+      convertToUSD(bankBalances.EUR || 0, 'EUR') +
+      convertToUSD(bankBalances.AMD || 0, 'AMD') +
+      convertToUSD(bankBalances.RUB || 0, 'RUB');
+    
+    const netBalance = bankTotalUSD + totalReceivedUSD - totalPaidUSD;
+    
     let statsHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Всего сделок</div></div>
       <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Общая прибыль (USD)</div><div class="rate-note">конвертация по курсу</div></div>
+      <div class="stat-card stat-success"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">✅ Получено от клиентов</div></div>
+      <div class="stat-card stat-warning"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">📤 Оплачено перевозчикам</div></div>
+      <div class="stat-card ${cashGap > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">$${Math.round(Math.abs(cashGap)).toLocaleString()}</div><div class="lbl">${cashGap > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+      <div class="stat-card stat-profit"><div class="num">$${Math.round(bankTotalUSD).toLocaleString()}</div><div class="lbl">🏦 Банковские счета (USD)</div></div>
+      <div class="stat-card ${netBalance >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">$${Math.round(netBalance).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div><div class="rate-note">Банки + получено - оплачено</div></div>
+      <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+      <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     `;
     
     // Добавляем разбивку по валютам
@@ -247,7 +362,7 @@ async function loadData() {
         </tr>`
       ).join('');
     
-    // Последние сделки (10 штук)
+    // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
@@ -274,6 +389,8 @@ async function loadData() {
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
 // Инициализация
+loadBankBalances();
+renderBankAccounts();
 fetchExchangeRates().then(() => {
   loadUsers();
   loadData();
