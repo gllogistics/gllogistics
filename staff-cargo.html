@@ -196,25 +196,12 @@ async function addCarrier(name) { return api('/api/carriers', 'POST', { name });
 let allCargoData = [], clientsData = [], carriersData = [], exchangeRates = null;
 
 async function fetchExchangeRates() {
-  // Сначала проверяем ручные курсы
-  const saved = localStorage.getItem('gl_manual_rates');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.AMD && parsed.EUR && parsed.RUB) {
-        exchangeRates = parsed;
-        console.log('Используем ручные курсы');
-        return;
-      }
-    } catch(e) {}
-  }
-  // Иначе пробуем API
   try {
     const res = await fetch(API_URL + '/api/rates');
     if (!res.ok) throw new Error('Ошибка получения курсов');
     const data = await res.json();
-    exchangeRates = data;
-    console.log('Курсы с rate.am');
+    exchangeRates = data; // формат: { USD:1, AMD:..., EUR:..., RUB:... }
+    console.log('Курсы загружены с сервера:', exchangeRates);
   } catch (e) {
     console.warn('Не удалось загрузить курсы, резерв');
     exchangeRates = { USD: 1, AMD: 400, EUR: 440, RUB: 4.5, source: 'hardcoded' };
@@ -227,10 +214,10 @@ function convertToUSD(amount, currency) {
   const rate = exchangeRates[currency]; // сколько AMD за 1 единицу валюты
   if (!rate) return 0;
   if (currency === 'AMD') {
-    // AMD → USD: делим на курс AMD
+    // AMD → USD
     return amount / exchangeRates.AMD;
   } else {
-    // EUR, RUB и др.: переводим в AMD, потом в USD
+    // EUR, RUB и др.: сначала в AMD, потом в USD
     const amdEquivalent = amount * rate;
     return amdEquivalent / exchangeRates.AMD;
   }
