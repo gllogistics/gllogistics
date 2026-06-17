@@ -37,6 +37,9 @@
     .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
     .form-row label { font-size: 0.6rem; color: #55B7BD; text-transform: uppercase; display: block; margin-bottom: 3px; font-weight: 700; }
     .form-row input, .form-row select { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 16px; padding: 8px 12px; color: #1a1a1a; font-size: 0.85rem; outline: none; }
+    .price-group { display: flex; gap: 6px; align-items: center; }
+    .price-group input { flex: 1; }
+    .price-group select { width: 80px; }
     .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
     .checkbox-row input[type="checkbox"] { width: auto; cursor: pointer; }
     .checkbox-row label { font-size: 0.75rem; color: #2d3a3d; cursor: pointer; }
@@ -59,8 +62,6 @@
     .btn-toggle-paid { background: none; border: 1px solid #55B7BD; color: #55B7BD; cursor: pointer; font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; margin: 0 2px; }
     .btn-toggle-paid.active { background: #55B7BD; color: white; }
     .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
-    .rate-note { font-size: 0.65rem; color: #8fa8ab; }
-    .currency-symbol { font-size: 0.85rem; color: #55B7BD; margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -81,8 +82,6 @@
     <input type="date" id="filterEnd" onchange="renderAll()">
     <label style="margin-left:12px;">👤 Логист:</label>
     <select id="filterLogist" onchange="renderAll()"><option value="all">Все</option></select>
-    <label style="margin-left:12px;">💰 Валюта:</label>
-    <select id="filterCurrency" onchange="renderAll()"><option value="all">Все</option></select>
     <label style="margin-left:12px;">💳 Оплата:</label>
     <select id="filterPayment" onchange="renderAll()">
       <option value="all">Все</option>
@@ -116,14 +115,29 @@
       <div><label>Статус</label><select id="fStatus"><option value="loading">На загрузке</option><option value="onroad">В пути</option><option value="loaded">Загружен</option><option value="completed">Завершён</option></select></div>
     </div>
     <div class="form-row">
-      <div><label>Цена клиента <span class="currency-symbol" id="clientPriceSymbol">$</span></label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
-      <div><label>Цена перевозчика <span class="currency-symbol" id="carrierPriceSymbol">$</span></label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
-      <div><label>Прибыль <span class="currency-symbol" id="commissionSymbol">$</span></label><input type="text" id="fCommission" readonly class="commission-auto"></div>
-      <div><label>Валюта</label><select id="fCurrency" onchange="onCurrencyChange()">
-        <option value="USD">USD ($)</option>
-        <option value="EUR">EUR (€)</option>
-        <option value="AMD">AMD (֏)</option>
-      </select></div>
+      <div>
+        <label>Цена клиента</label>
+        <div class="price-group">
+          <input type="number" id="fClientPrice" oninput="calcCommission()">
+          <select id="fClientCurrency" onchange="calcCommission()">
+            <option value="USD">$</option>
+            <option value="EUR">€</option>
+            <option value="AMD">֏</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label>Цена перевозчика</label>
+        <div class="price-group">
+          <input type="number" id="fCarrierPrice" oninput="calcCommission()">
+          <select id="fCarrierCurrency" onchange="calcCommission()">
+            <option value="USD">$</option>
+            <option value="EUR">€</option>
+            <option value="AMD">֏</option>
+          </select>
+        </div>
+      </div>
+      <div><label>Прибыль (AMD)</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
       <div><label>Логист</label><input type="text" id="fLogist"></div>
     </div>
     <div class="form-row" id="paymentCheckboxes" style="display:none;">
@@ -141,7 +155,7 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль</th><th>Вал.</th><th>Оплата</th><th>Логист</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль (AMD)</th><th>Оплата</th><th>Логист</th><th></th></tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
     <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Загрузка...</p>
@@ -192,15 +206,10 @@ async function fetchExchangeRates() {
   }
 }
 
-function currencySymbol(cur) {
-  if (cur === 'EUR') return '€'; if (cur === 'AMD') return '֏'; return '$';
-}
-
-function convertToUSD(amount, fromCurrency) {
+function convertToUSD(amount, currency) {
   if (!exchangeRates || !amount) return 0;
-  const cur = fromCurrency || 'USD';
-  if (cur === 'USD') return amount;
-  const rate = exchangeRates[cur];
+  if (currency === 'USD') return amount;
+  const rate = exchangeRates[currency];
   if (!rate) return 0;
   return amount / rate;
 }
@@ -209,18 +218,20 @@ function usdToAMD(usd) {
   return usd * (exchangeRates?.AMD || 400);
 }
 
+function currencySymbol(cur) {
+  if (cur === 'EUR') return '€'; if (cur === 'AMD') return '֏'; return '$';
+}
+
 function calcCommission() {
   const cp = parseFloat(document.getElementById('fClientPrice').value) || 0;
   const crp = parseFloat(document.getElementById('fCarrierPrice').value) || 0;
-  document.getElementById('fCommission').value = (cp - crp).toFixed(2);
-}
-
-function onCurrencyChange() {
-  const cur = document.getElementById('fCurrency').value;
-  const sym = currencySymbol(cur);
-  document.getElementById('clientPriceSymbol').textContent = sym;
-  document.getElementById('carrierPriceSymbol').textContent = sym;
-  document.getElementById('commissionSymbol').textContent = sym;
+  const ccur = document.getElementById('fClientCurrency').value;
+  const rcur = document.getElementById('fCarrierCurrency').value;
+  if (!exchangeRates) return;
+  const clientUSD = convertToUSD(cp, ccur);
+  const carrierUSD = convertToUSD(crp, rcur);
+  const profitAMD = usdToAMD(clientUSD - carrierUSD);
+  document.getElementById('fCommission').value = '֏ ' + Math.round(profitAMD).toLocaleString();
 }
 
 function populateDatalists() {
@@ -232,8 +243,8 @@ function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
   if (show) {
     document.getElementById('fLogist').value = user;
-    document.getElementById('fCurrency').value = 'USD';
-    onCurrencyChange();
+    document.getElementById('fClientCurrency').value = 'USD';
+    document.getElementById('fCarrierCurrency').value = 'USD';
     document.getElementById('formTitle').textContent = 'Новая сделка';
     document.getElementById('editId').value = '';
     document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'block' : 'none';
@@ -282,16 +293,26 @@ async function saveCargo() {
     if (!carriersData.find(c => c.name === crn)) { await addCarrier(crn); carriersData = await loadCarriers(); }
     let logistToSave = f('fLogist') || user;
     if (editId && !isAdmin) { const orig = allCargoData.find(c => c.id == editId); if (orig) logistToSave = orig.logist; }
-    const currency = f('fCurrency') || 'USD';
+    const clientCur = document.getElementById('fClientCurrency').value;
+    const carrierCur = document.getElementById('fCarrierCurrency').value;
+    const clientPrice = parseFloat(f('fClientPrice')) || 0;
+    const carrierPrice = parseFloat(f('fCarrierPrice')) || 0;
+    const clientUSD = convertToUSD(clientPrice, clientCur);
+    const carrierUSD = convertToUSD(carrierPrice, carrierCur);
+    const commissionUSD = clientUSD - carrierUSD;
     const cargo = {
       product: f('fProduct'), city_load: f('fCityLoad'), country_load: f('fCountryLoad'),
       city_unload: f('fCityUnload'), country_unload: f('fCountryUnload'),
       load_date: f('fLoadDate'), unload_date: f('fUnloadDate'), status: f('fStatus'),
-      client_price: parseFloat(f('fClientPrice')) || 0,
-      carrier_price: parseFloat(f('fCarrierPrice')) || 0,
-      commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
+      client_price: clientPrice,
+      carrier_price: carrierPrice,
+      commission: commissionUSD.toFixed(2),
       logist: logistToSave, client_name: cn, carrier_name: crn,
-      currency: currency,
+      invoice_client: await fileToBase64('fInvoiceClient') || '',
+      invoice_carrier: await fileToBase64('fInvoiceCarrier') || '',
+      currency: 'MIX', // для совместимости
+      client_currency: clientCur,
+      carrier_currency: carrierCur,
       client_paid: isAdmin ? document.getElementById('fClientPaid').checked : false,
       carrier_paid: isAdmin ? document.getElementById('fCarrierPaid').checked : false
     };
@@ -327,10 +348,10 @@ async function editCargo(id) {
   document.getElementById('fStatus').value = c.status || 'loading';
   document.getElementById('fClientPrice').value = c.client_price || '';
   document.getElementById('fCarrierPrice').value = c.carrier_price || '';
-  document.getElementById('fCommission').value = (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0)).toFixed(2);
+  document.getElementById('fClientCurrency').value = c.client_currency || c.currency || 'USD';
+  document.getElementById('fCarrierCurrency').value = c.carrier_currency || c.currency || 'USD';
+  calcCommission();
   document.getElementById('fLogist').value = c.logist || user;
-  document.getElementById('fCurrency').value = c.currency || 'USD';
-  onCurrencyChange();
   if (isAdmin) {
     document.getElementById('paymentCheckboxes').style.display = 'block';
     document.getElementById('fClientPaid').checked = c.client_paid || false;
@@ -348,7 +369,6 @@ async function deleteCargo(id) {
 function clearFilter() {
   document.getElementById('filterStart').value = document.getElementById('filterEnd').value = '';
   document.getElementById('filterLogist').value = 'all';
-  document.getElementById('filterCurrency').value = 'all';
   document.getElementById('filterPayment').value = 'all';
   renderAll();
 }
@@ -368,14 +388,12 @@ function renderAll() {
   const start = document.getElementById('filterStart').value,
         end = document.getElementById('filterEnd').value,
         fl = document.getElementById('filterLogist').value,
-        fc = document.getElementById('filterCurrency').value,
         fp = document.getElementById('filterPayment').value;
 
   let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
   if (start) list = list.filter(c => c.load_date >= start);
   if (end) list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
-  if (fc !== 'all') list = list.filter(c => (c.currency || 'USD') === fc);
   if (fp === 'client_pending') list = list.filter(c => !c.client_paid);
   if (fp === 'client_paid') list = list.filter(c => c.client_paid);
   if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
@@ -386,30 +404,31 @@ function renderAll() {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
     document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
   }
-  const currencies = [...new Set(allCargoData.map(c => c.currency || 'USD'))];
-  const fcSelect = document.getElementById('filterCurrency');
-  const prevFc = fcSelect.value;
-  fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
 
-  let totalProfitUSD = 0, waitingFromClientsUSD = 0, waitingToCarriersUSD = 0, totalReceivedUSD = 0, totalPaidUSD = 0;
+  let totalProfitAMD = 0, waitingClientsAMD = 0, waitingCarriersAMD = 0, receivedAMD = 0, paidAMD = 0;
   list.forEach(c => {
-    const clientUSD = convertToUSD(parseFloat(c.client_price||0), c.currency||'USD');
-    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), c.currency||'USD');
-    totalProfitUSD += clientUSD - carrierUSD;
-    if (!c.client_paid) waitingFromClientsUSD += clientUSD; else totalReceivedUSD += clientUSD;
-    if (!c.carrier_paid) waitingToCarriersUSD += carrierUSD; else totalPaidUSD += carrierUSD;
+    const clientCur = c.client_currency || c.currency || 'USD';
+    const carrierCur = c.carrier_currency || c.currency || 'USD';
+    const clientUSD = convertToUSD(parseFloat(c.client_price||0), clientCur);
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur);
+    const profitAMD = usdToAMD(clientUSD - carrierUSD);
+    totalProfitAMD += profitAMD;
+    if (!c.client_paid) waitingClientsAMD += usdToAMD(clientUSD);
+    else receivedAMD += usdToAMD(clientUSD);
+    if (!c.carrier_paid) waitingCarriersAMD += usdToAMD(carrierUSD);
+    else paidAMD += usdToAMD(carrierUSD);
   });
-  const cashGapUSD = totalPaidUSD - totalReceivedUSD;
-  
+  const cashGapAMD = paidAMD - receivedAMD;
+
   const statsHTML = `
     <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
-    <div class="stat-card stat-profit"><div class="num">֏${Math.round(usdToAMD(totalProfitUSD)).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
+    <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
     ${isAdmin ? `
-    <div class="stat-card stat-success"><div class="num">֏${Math.round(usdToAMD(totalReceivedUSD)).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(totalPaidUSD)).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
-    <div class="stat-card ${cashGapUSD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(usdToAMD(Math.abs(cashGapUSD))).toLocaleString()}</div><div class="lbl">${cashGapUSD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingFromClientsUSD)).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingToCarriersUSD)).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+    <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
+    <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     ` : ''}
   `;
   document.getElementById('statsRow').innerHTML = statsHTML;
@@ -418,10 +437,13 @@ function renderAll() {
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
   document.getElementById('emptyMsg').style.display = list.length ? 'none' : 'block';
   document.getElementById('tableBody').innerHTML = list.map((c, idx) => {
-    const p = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
+    const clientCur = c.client_currency || c.currency || 'USD';
+    const carrierCur = c.carrier_currency || c.currency || 'USD';
+    const clientUSD = convertToUSD(parseFloat(c.client_price||0), clientCur);
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur);
+    const profitAMD = usdToAMD(clientUSD - carrierUSD);
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
-    const csym = currencySymbol(c.currency||'USD');
     let paymentHTML = '';
     if (isAdmin) {
       paymentHTML = `<button class="btn-toggle-paid ${c.client_paid?'active':''}" onclick="togglePaid(${c.id},'client_paid')">📥 ${c.client_paid?'✓':'✗'}</button>
@@ -431,10 +453,9 @@ function renderAll() {
       <td>${idx+1}</td><td>${esc(c.client_name)}</td><td>${esc(c.carrier_name)}</td><td>${esc(c.product)}</td>
       <td>${load}</td><td>${unload}</td><td>${c.load_date||'-'}</td>
       <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-      <td>${csym}${parseFloat(c.client_price||0).toLocaleString()}</td>
-      <td>${csym}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
-      <td class="${p>=0?'profit-positive':''}">${csym}${p.toLocaleString()}</td>
-      <td>${c.currency||'USD'}</td>
+      <td>${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
+      <td>${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
+      <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
       <td>${paymentHTML}</td>
       <td>${esc(c.logist)}</td>
       <td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button> ${isAdmin?`<button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button>`:''}</td>
