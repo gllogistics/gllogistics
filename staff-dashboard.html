@@ -29,7 +29,17 @@
     .bank-card input:focus, .rate-card input:focus { border-color: #55B7BD; }
     .bank-card .btn-save-balance, .rate-card .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 4px; }
     .bank-card .overdraft-label { font-size: 0.65rem; color: #E65100; font-weight: 600; margin-top: 8px; display: block; }
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+
+    /* Статистика – две строки с фиксированным числом колонок */
+    .stats-row { display: grid; gap: 12px; margin-bottom: 1.2rem; }
+    .stats-row-top { grid-template-columns: repeat(5, 1fr); }
+    .stats-row-bottom { grid-template-columns: repeat(4, 1fr); }
+    /* Адаптив: если экран узкий, уменьшаем колонки */
+    @media (max-width: 900px) {
+      .stats-row-top { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+      .stats-row-bottom { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+
     .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; }
     .stat-card .num { font-size: 1.8rem; font-weight: 800; color: #55B7BD; }
     .stat-card .lbl { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
@@ -98,7 +108,9 @@
     </div>
   </div>
   
-  <div class="stats-row" id="statsRow"></div>
+  <!-- Статистика: два ряда -->
+  <div class="stats-row stats-row-top" id="statsRowTop"></div>
+  <div class="stats-row stats-row-bottom" id="statsRowBottom"></div>
   
   <h3 class="section-title">👥 Управление логистами</h3>
   <div class="form-add">
@@ -407,19 +419,24 @@ async function loadData() {
                     (bankBalances.AMD || 0) - (bankBalances.overdraft_AMD || 0);
     const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
     
-    // Изменён порядок: счета и чистый баланс идут после ожиданий
-    const statsHTML = `
+    // Верхняя строка (5 элементов)
+    const topHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
       <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
       <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
       <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
       <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+    `;
+    // Нижняя строка (4 элемента)
+    const bottomHTML = `
       <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
       <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
       <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
     `;
-    document.getElementById('statsRow').innerHTML = statsHTML;
+    
+    document.getElementById('statsRowTop').innerHTML = topHTML;
+    document.getElementById('statsRowBottom').innerHTML = bottomHTML;
     
     // Заработок по логистам
     const lm = {};
@@ -459,8 +476,7 @@ async function loadData() {
     }).join('');
     
   } catch (err) {
-    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки данных</p>';
-    console.error(err);
+    document.getElementById('statsRowTop').innerHTML = '<p>Ошибка загрузки данных</p>';
   }
 }
 
