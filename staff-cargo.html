@@ -52,6 +52,7 @@
     .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
     .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
     .rate-note { font-size: 0.65rem; color: #8fa8ab; }
+    .currency-symbol { font-size: 0.85rem; color: #55B7BD; margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -98,10 +99,10 @@
       <div><label>Статус</label><select id="fStatus"><option value="loading">На загрузке</option><option value="onroad">В пути</option><option value="loaded">Загружен</option><option value="completed">Завершён</option></select></div>
     </div>
     <div class="form-row">
-      <div><label>Цена клиента</label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
-      <div><label>Цена перевозчика</label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
-      <div><label>Прибыль</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
-      <div><label>Валюта</label><select id="fCurrency" onchange="updateCurrencySymbols()">
+      <div><label>Цена клиента <span class="currency-symbol" id="clientPriceSymbol">$</span></label><input type="number" id="fClientPrice" oninput="calcCommission()"></div>
+      <div><label>Цена перевозчика <span class="currency-symbol" id="carrierPriceSymbol">$</span></label><input type="number" id="fCarrierPrice" oninput="calcCommission()"></div>
+      <div><label>Прибыль <span class="currency-symbol" id="commissionSymbol">$</span></label><input type="text" id="fCommission" readonly class="commission-auto"></div>
+      <div><label>Валюта</label><select id="fCurrency" onchange="onCurrencyChange()">
         <option value="USD">USD ($)</option>
         <option value="EUR">EUR (€)</option>
         <option value="AMD">AMD (֏)</option>
@@ -161,18 +162,17 @@ async function addCarrier(name) { return api('/api/carriers', 'POST', { name });
 let allCargoData = [];
 let clientsData = [];
 let carriersData = [];
-let exchangeRates = null; // { USD: 1, EUR: 0.85, AMD: 485.12 }
+let exchangeRates = null; // { USD: 1, EUR: 0.92, AMD: 400 }
 
-// Fetch live exchange rates from free API
+// Fetch live exchange rates
 async function fetchExchangeRates() {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
     if (!res.ok) throw new Error('Rate fetch failed');
     const data = await res.json();
-    exchangeRates = data.rates; // e.g., { EUR: 0.92, AMD: 402.15 }
+    exchangeRates = data.rates;
   } catch (e) {
     console.warn('Не удалось загрузить курсы валют, используется резервный курс', e);
-    // fallback approximate rates
     exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
   }
 }
@@ -183,14 +183,12 @@ function currencySymbol(cur) {
   return '$';
 }
 
-// Convert amount from given currency to USD
 function convertToUSD(amount, fromCurrency) {
   if (!exchangeRates || !amount) return 0;
   const cur = fromCurrency || 'USD';
   if (cur === 'USD') return amount;
   const rate = exchangeRates[cur];
   if (!rate || rate === 0) return 0;
-  // rates are 1 USD = rate units of cur, so 1 cur = 1/rate USD
   return amount / rate;
 }
 
@@ -200,7 +198,13 @@ function calcCommission() {
   document.getElementById('fCommission').value = (cp - crp).toFixed(2);
 }
 
-function updateCurrencySymbols() { /* placeholder */ }
+function onCurrencyChange() {
+  const cur = document.getElementById('fCurrency').value;
+  const sym = currencySymbol(cur);
+  document.getElementById('clientPriceSymbol').textContent = sym;
+  document.getElementById('carrierPriceSymbol').textContent = sym;
+  document.getElementById('commissionSymbol').textContent = sym;
+}
 
 function populateDatalists() {
   document.getElementById('clientList').innerHTML = clientsData.map(c => `<option value="${esc(c.name)}">`).join('');
@@ -212,12 +216,15 @@ function toggleForm(show=true) {
   if (show) {
     document.getElementById('fLogist').value = user;
     document.getElementById('fCurrency').value = 'USD';
-  } else {
-    ['editId','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission','fClient','fCarrier','fLogist'].forEach(id => document.getElementById(id).value = '');
+    onCurrencyChange(); // update symbols
+    document.getElementById('formTitle').textContent = 'Новая сделка';
+    document.getElementById('editId').value = '';
+    ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
     document.getElementById('fStatus').value = 'loading';
-    document.getElementById('fCurrency').value = 'USD';
+  } else {
+    document.getElementById('addForm').classList.remove('active');
   }
 }
 
@@ -255,8 +262,15 @@ async function saveCargo() {
       currency: currency
     };
     if (!cargo.product) return alert('Введите товар');
-    if (editId) { await updateCargo(editId, cargo); } else { await addCargo(cargo); }
-    await refreshData(); toggleForm(false);
+
+    // Показываем предупреждение, если API может не поддерживать валюту
+    if (editId) {
+      await updateCargo(editId, cargo);
+    } else {
+      await addCargo(cargo);
+    }
+    await refreshData();
+    toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
 
@@ -283,7 +297,9 @@ async function editCargo(id) {
   document.getElementById('fCarrierPrice').value = c.carrier_price || '';
   document.getElementById('fCommission').value = (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0)).toFixed(2);
   document.getElementById('fLogist').value = c.logist || user;
-  document.getElementById('fCurrency').value = c.currency || 'USD';
+  const cur = c.currency || 'USD';
+  document.getElementById('fCurrency').value = cur;
+  onCurrencyChange(); // обновить символы в форме
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
@@ -332,7 +348,7 @@ function renderAll() {
   const prevFc = fcSelect.value;
   fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
 
-  // Calculate total profit in USD
+  // Суммарная прибыль в USD с конвертацией
   let totalProfitUSD = 0;
   list.forEach(c => {
     const profit = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
@@ -376,7 +392,7 @@ function renderAll() {
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Initial load with exchange rates
+// Инициализация с загрузкой курсов
 fetchExchangeRates().then(() => refreshData());
 </script>
 </body>
