@@ -54,8 +54,6 @@
     .status-loaded { background: #E8F5F5; color: #3d9aa0; }
     .status-completed { background: #EDE7F6; color: #4527A0; }
     .profit-positive { color: #3d9aa0; font-weight: 700; }
-    .paid-yes { color: #2E7D32; font-weight: 700; }
-    .paid-no { color: #C62828; font-weight: 700; }
     .btn-del { background: none; border: none; color: #C62828; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; }
     .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
     .btn-toggle-paid { background: none; border: 1px solid #55B7BD; color: #55B7BD; cursor: pointer; font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; margin: 0 2px; }
@@ -129,18 +127,8 @@
       <div><label>Логист</label><input type="text" id="fLogist"></div>
     </div>
     <div class="form-row" id="paymentCheckboxes" style="display:none;">
-      <div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="fClientPaid" onchange="updatePaidStatus()">
-          <label>✅ Клиент оплатил</label>
-        </div>
-      </div>
-      <div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="fCarrierPaid" onchange="updatePaidStatus()">
-          <label>✅ Перевозчику оплачено</label>
-        </div>
-      </div>
+      <div><div class="checkbox-row"><input type="checkbox" id="fClientPaid"> <label>✅ Клиент оплатил</label></div></div>
+      <div><div class="checkbox-row"><input type="checkbox" id="fCarrierPaid"> <label>✅ Перевозчику оплачено</label></div></div>
     </div>
     <div class="form-row">
       <div><label>Инвойс клиенту</label><div class="drop-zone" id="dropClient" onclick="document.getElementById('fInvoiceClient').click()">📁 Перетащите файл</div><input type="file" id="fInvoiceClient" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleFileSelect(this, 'dropClient')"></div>
@@ -168,7 +156,6 @@ if (!user) { document.body.innerHTML = '<div style="text-align:center;padding:10
 const isAdmin = user === ADMIN_USER;
 document.getElementById('userInfo').textContent = '👤 ' + user;
 if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
-
 document.getElementById('navLinks').innerHTML = isAdmin 
   ? '<a href="staff-dashboard.html">📊 Главная</a><a href="staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a>'
   : '<a href="staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a>';
@@ -179,7 +166,7 @@ async function api(path, method='GET', body=null) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API_URL + path, opts);
-  if (!res.ok) { const err = await res.text(); throw new Error(err); }
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
@@ -192,10 +179,7 @@ async function addClient(name) { return api('/api/clients', 'POST', { name }); }
 async function loadCarriers() { return api('/api/carriers'); }
 async function addCarrier(name) { return api('/api/carriers', 'POST', { name }); }
 
-let allCargoData = [];
-let clientsData = [];
-let carriersData = [];
-let exchangeRates = null;
+let allCargoData = [], clientsData = [], carriersData = [], exchangeRates = null;
 
 async function fetchExchangeRates() {
   try {
@@ -204,15 +188,12 @@ async function fetchExchangeRates() {
     const data = await res.json();
     exchangeRates = data.rates;
   } catch (e) {
-    console.warn('Не удалось загрузить курсы валют', e);
     exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
   }
 }
 
 function currencySymbol(cur) {
-  if (cur === 'EUR') return '€';
-  if (cur === 'AMD') return '֏';
-  return '$';
+  if (cur === 'EUR') return '€'; if (cur === 'AMD') return '֏'; return '$';
 }
 
 function convertToUSD(amount, fromCurrency) {
@@ -220,8 +201,12 @@ function convertToUSD(amount, fromCurrency) {
   const cur = fromCurrency || 'USD';
   if (cur === 'USD') return amount;
   const rate = exchangeRates[cur];
-  if (!rate || rate === 0) return 0;
+  if (!rate) return 0;
   return amount / rate;
+}
+
+function usdToAMD(usd) {
+  return usd * (exchangeRates?.AMD || 400);
 }
 
 function calcCommission() {
@@ -238,10 +223,6 @@ function onCurrencyChange() {
   document.getElementById('commissionSymbol').textContent = sym;
 }
 
-function updatePaidStatus() {
-  // Visual feedback for admin
-}
-
 function populateDatalists() {
   document.getElementById('clientList').innerHTML = clientsData.map(c => `<option value="${esc(c.name)}">`).join('');
   document.getElementById('carrierList').innerHTML = carriersData.map(c => `<option value="${esc(c.name)}">`).join('');
@@ -249,49 +230,47 @@ function populateDatalists() {
 
 function toggleForm(show=true) {
   document.getElementById('addForm').classList.toggle('active', show);
-  const paymentDiv = document.getElementById('paymentCheckboxes');
-  
   if (show) {
     document.getElementById('fLogist').value = user;
     document.getElementById('fCurrency').value = 'USD';
     onCurrencyChange();
     document.getElementById('formTitle').textContent = 'Новая сделка';
     document.getElementById('editId').value = '';
-    paymentDiv.style.display = isAdmin ? 'block' : 'none';
+    document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'block' : 'none';
     ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
     ['dropClient','dropCarrier'].forEach(id => { const z = document.getElementById(id); z.classList.remove('has-file'); z.innerHTML = '📁 Перетащите файл'; });
     document.getElementById('fInvoiceClient').value = document.getElementById('fInvoiceCarrier').value = '';
     document.getElementById('fStatus').value = 'loading';
     document.getElementById('fClientPaid').checked = false;
     document.getElementById('fCarrierPaid').checked = false;
-  } else {
-    document.getElementById('addForm').classList.remove('active');
-  }
+  } else document.getElementById('addForm').classList.remove('active');
 }
 
 ['dropClient','dropCarrier'].forEach(id => {
   const z = document.getElementById(id);
-  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragover'); });
-  z.addEventListener('dragleave', () => z.classList.remove('dragover'));
-  z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('dragover'); document.getElementById(id==='dropClient'?'fInvoiceClient':'fInvoiceCarrier').files = e.dataTransfer.files; handleFileSelect(document.getElementById(id==='dropClient'?'fInvoiceClient':'fInvoiceCarrier'), id); });
+  z.addEventListener('dragover', e => { e.preventDefault(); });
+  z.addEventListener('drop', e => {
+    e.preventDefault();
+    const inp = document.getElementById(id==='dropClient'?'fInvoiceClient':'fInvoiceCarrier');
+    inp.files = e.dataTransfer.files;
+    handleFileSelect(inp, id);
+  });
 });
 
 function handleFileSelect(inp, zoneId) {
-  if (inp.files.length > 0) { const z = document.getElementById(zoneId); z.classList.add('has-file'); z.innerHTML = '✅ ' + inp.files[0].name; }
+  if (inp.files.length > 0) {
+    document.getElementById(zoneId).classList.add('has-file');
+    document.getElementById(zoneId).innerHTML = '✅ ' + inp.files[0].name;
+  }
 }
 
 async function togglePaid(cargoId, field) {
   if (!isAdmin) return;
   const cargo = allCargoData.find(c => c.id == cargoId);
   if (!cargo) return;
-  
-  const currentValue = cargo[field] || false;
-  const updateData = { [field]: !currentValue };
-  
-  try {
-    await updateCargo(cargoId, updateData);
-    await refreshData();
-  } catch (err) { alert('Ошибка: ' + err.message); }
+  const current = cargo[field] || false;
+  await updateCargo(cargoId, { [field]: !current });
+  await refreshData();
 }
 
 async function saveCargo() {
@@ -312,25 +291,22 @@ async function saveCargo() {
       carrier_price: parseFloat(f('fCarrierPrice')) || 0,
       commission: (parseFloat(f('fClientPrice')) - parseFloat(f('fCarrierPrice'))).toFixed(2),
       logist: logistToSave, client_name: cn, carrier_name: crn,
-      invoice_client: await fileToBase64('fInvoiceClient') || '',
-      invoice_carrier: await fileToBase64('fInvoiceCarrier') || '',
       currency: currency,
       client_paid: isAdmin ? document.getElementById('fClientPaid').checked : false,
       carrier_paid: isAdmin ? document.getElementById('fCarrierPaid').checked : false
     };
     if (!cargo.product) return alert('Введите товар');
-    
-    if (editId) {
-      await updateCargo(editId, cargo);
-    } else {
-      await addCargo(cargo);
-    }
-    await refreshData();
-    toggleForm(false);
+    if (editId) await updateCargo(editId, cargo);
+    else await addCargo(cargo);
+    await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
 
-function fileToBase64(id) { const file = document.getElementById(id).files[0]; if (!file) return Promise.resolve(''); return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); }); }
+function fileToBase64(id) {
+  const file = document.getElementById(id).files[0];
+  if (!file) return Promise.resolve('');
+  return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
+}
 function f(id) { return document.getElementById(id).value.trim(); }
 
 async function editCargo(id) {
@@ -353,16 +329,13 @@ async function editCargo(id) {
   document.getElementById('fCarrierPrice').value = c.carrier_price || '';
   document.getElementById('fCommission').value = (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0)).toFixed(2);
   document.getElementById('fLogist').value = c.logist || user;
-  const cur = c.currency || 'USD';
-  document.getElementById('fCurrency').value = cur;
+  document.getElementById('fCurrency').value = c.currency || 'USD';
   onCurrencyChange();
-  
   if (isAdmin) {
     document.getElementById('paymentCheckboxes').style.display = 'block';
     document.getElementById('fClientPaid').checked = c.client_paid || false;
     document.getElementById('fCarrierPaid').checked = c.carrier_paid || false;
   }
-  
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   document.getElementById('addForm').classList.add('active');
 }
@@ -403,13 +376,11 @@ function renderAll() {
   if (end) list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   if (fc !== 'all') list = list.filter(c => (c.currency || 'USD') === fc);
-  
-  // Фильтр по оплатам
   if (fp === 'client_pending') list = list.filter(c => !c.client_paid);
   if (fp === 'client_paid') list = list.filter(c => c.client_paid);
   if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
   if (fp === 'carrier_paid') list = list.filter(c => c.carrier_paid);
-  if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid); // заплатили перевозчику, но не получили от клиента
+  if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid);
 
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
@@ -420,48 +391,28 @@ function renderAll() {
   const prevFc = fcSelect.value;
   fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
 
-  // Статистика по деньгам
-  let totalProfitUSD = 0;
-  let waitingFromClientsUSD = 0;
-  let waitingToCarriersUSD = 0;
-  let totalReceivedUSD = 0;
-  let totalPaidUSD = 0;
-  
+  let totalProfitUSD = 0, waitingFromClientsUSD = 0, waitingToCarriersUSD = 0, totalReceivedUSD = 0, totalPaidUSD = 0;
   list.forEach(c => {
-    const clientPriceUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
-    const carrierPriceUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
-    const profitUSD = clientPriceUSD - carrierPriceUSD;
-    
-    totalProfitUSD += profitUSD;
-    
-    // Ждём оплаты от клиентов (клиент ещё не оплатил)
-    if (!c.client_paid) waitingFromClientsUSD += clientPriceUSD;
-    // Уже получили от клиентов
-    if (c.client_paid) totalReceivedUSD += clientPriceUSD;
-    
-    // Должны заплатить перевозчикам (ещё не оплатили)
-    if (!c.carrier_paid) waitingToCarriersUSD += carrierPriceUSD;
-    // Уже заплатили перевозчикам
-    if (c.carrier_paid) totalPaidUSD += carrierPriceUSD;
+    const clientUSD = convertToUSD(parseFloat(c.client_price||0), c.currency||'USD');
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), c.currency||'USD');
+    totalProfitUSD += clientUSD - carrierUSD;
+    if (!c.client_paid) waitingFromClientsUSD += clientUSD; else totalReceivedUSD += clientUSD;
+    if (!c.carrier_paid) waitingToCarriersUSD += carrierUSD; else totalPaidUSD += carrierUSD;
   });
+  const cashGapUSD = totalPaidUSD - totalReceivedUSD;
   
-  // Кассовый разрыв = заплатили перевозчикам - получили от клиентов
-  // Положительный = заплатили больше чем получили (кассовый разрыв)
-  // Отрицательный = получили больше чем заплатили (свободные средства)
-  const cashGap = totalPaidUSD - totalReceivedUSD;
-
-  const totalCount = list.length;
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>
-    <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Прибыль USD</div></div>
+  const statsHTML = `
+    <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
+    <div class="stat-card stat-profit"><div class="num">֏${Math.round(usdToAMD(totalProfitUSD)).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
     ${isAdmin ? `
-    <div class="stat-card stat-success"><div class="num">$${Math.round(totalReceivedUSD).toLocaleString()}</div><div class="lbl">✅ Получено от клиентов</div></div>
-    <div class="stat-card stat-warning"><div class="num">$${Math.round(totalPaidUSD).toLocaleString()}</div><div class="lbl">📤 Оплачено перевозчикам</div></div>
-    <div class="stat-card ${cashGap > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">$${Math.round(Math.abs(cashGap)).toLocaleString()}</div><div class="lbl">${cashGap > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingFromClientsUSD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-    <div class="stat-card stat-warning"><div class="num">$${Math.round(waitingToCarriersUSD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+    <div class="stat-card stat-success"><div class="num">֏${Math.round(usdToAMD(totalReceivedUSD)).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(totalPaidUSD)).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
+    <div class="stat-card ${cashGapUSD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(usdToAMD(Math.abs(cashGapUSD))).toLocaleString()}</div><div class="lbl">${cashGapUSD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingFromClientsUSD)).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+    <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingToCarriersUSD)).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     ` : ''}
   `;
+  document.getElementById('statsRow').innerHTML = statsHTML;
 
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
@@ -470,46 +421,30 @@ function renderAll() {
     const p = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
-    const csym = currencySymbol(c.currency || 'USD');
-    
-    let paymentStatus = '';
+    const csym = currencySymbol(c.currency||'USD');
+    let paymentHTML = '';
     if (isAdmin) {
-      paymentStatus = `
-        <button class="btn-toggle-paid ${c.client_paid ? 'active' : ''}" onclick="togglePaid(${c.id}, 'client_paid')" title="Клиент оплатил">
-          📥 ${c.client_paid ? '✓' : '✗'}
-        </button>
-        <button class="btn-toggle-paid ${c.carrier_paid ? 'active' : ''}" onclick="togglePaid(${c.id}, 'carrier_paid')" title="Перевозчику оплачено">
-          📤 ${c.carrier_paid ? '✓' : '✗'}
-        </button>
-      `;
+      paymentHTML = `<button class="btn-toggle-paid ${c.client_paid?'active':''}" onclick="togglePaid(${c.id},'client_paid')">📥 ${c.client_paid?'✓':'✗'}</button>
+                     <button class="btn-toggle-paid ${c.carrier_paid?'active':''}" onclick="togglePaid(${c.id},'carrier_paid')">📤 ${c.carrier_paid?'✓':'✗'}</button>`;
     }
-    
     return `<tr>
-      <td>${idx+1}</td>
-      <td>${esc(c.client_name)}</td>
-      <td>${esc(c.carrier_name)}</td>
-      <td>${esc(c.product)}</td>
-      <td>${load}</td>
-      <td>${unload}</td>
-      <td>${c.load_date||'-'}</td>
+      <td>${idx+1}</td><td>${esc(c.client_name)}</td><td>${esc(c.carrier_name)}</td><td>${esc(c.product)}</td>
+      <td>${load}</td><td>${unload}</td><td>${c.load_date||'-'}</td>
       <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
       <td>${csym}${parseFloat(c.client_price||0).toLocaleString()}</td>
       <td>${csym}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
       <td class="${p>=0?'profit-positive':''}">${csym}${p.toLocaleString()}</td>
       <td>${c.currency||'USD'}</td>
-      <td>${paymentStatus}</td>
+      <td>${paymentHTML}</td>
       <td>${esc(c.logist)}</td>
-      <td>
-        <button class="btn-edit" onclick="editCargo(${c.id})">✏️</button>
-        ${isAdmin ? `<button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button>` : ''}
-      </td>
+      <td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button> ${isAdmin?`<button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button>`:''}</td>
     </tr>`;
   }).join('');
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-fetchExchangeRates().then(() => refreshData());
+fetchExchangeRates().then(refreshData);
 </script>
 </body>
 </html>
