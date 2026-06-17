@@ -90,7 +90,7 @@
   <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
   
   <h3 class="section-title">📦 Последние сделки</h3>
-  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль</th><th>Валюта</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль (AMD)</th><th>Валюты</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
 </div>
 
 <script>
@@ -149,7 +149,7 @@ function renderBankAccounts() {
     if (acc.currency === 'AMD') {
       const overdraft = bankBalances.overdraftAMD || 0;
       const available = balance - overdraft;
-      displayBalance = available;
+      displayBalance = available; // показываем доступный баланс
       extraHtml = `
         <div class="bank-sub">
           Баланс: ${formatCurrency(balance, 'AMD')}<br>
@@ -181,23 +181,31 @@ function renderBankAccounts() {
 
 async function fetchExchangeRates() {
   try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    if (!res.ok) throw new Error('Rate fetch failed');
+    const res = await fetch(API_URL + '/api/rates');
+    if (!res.ok) throw new Error('Ошибка получения курсов');
     const data = await res.json();
-    exchangeRates = data.rates;
+    exchangeRates = data;
+    console.log('Курсы (rate.am):', exchangeRates);
   } catch (e) {
-    console.warn('Резервные курсы');
-    exchangeRates = { USD: 1, EUR: 0.92, AMD: 400, RUB: 90 };
+    console.warn('Резервные курсы', e);
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (res.ok) {
+        const data = await res.json();
+        exchangeRates = data.rates;
+      }
+    } catch (e2) {
+      exchangeRates = { USD: 1, EUR: 0.92, AMD: 400, RUB: 90 };
+    }
   }
 }
 
-function convertToUSD(amount, fromCurrency) {
+function convertToUSD(amount, currency) {
   if (!exchangeRates || !amount) return 0;
-  const cur = fromCurrency || 'USD';
-  if (cur === 'USD') return amount;
-  const rate = exchangeRates[cur];
-  if (!rate || rate === 0) return 0;
-  return amount / rate;
+  if (currency === 'USD') return amount;
+  const rate = exchangeRates[currency];
+  if (!rate) return 0;
+  return amount * (rate / exchangeRates.AMD);
 }
 
 function usdToAMD(usd) {
@@ -284,11 +292,7 @@ async function loadData() {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
     
-    let totalProfitAMD = 0;
-    let waitingClientsAMD = 0;
-    let waitingCarriersAMD = 0;
-    let receivedAMD = 0;
-    let paidAMD = 0;
+    let totalProfitAMD = 0, waitingClientsAMD = 0, waitingCarriersAMD = 0, receivedAMD = 0, paidAMD = 0;
     
     cargo.forEach(c => {
       const clientCur = c.client_currency || c.currency || 'USD';
@@ -305,16 +309,15 @@ async function loadData() {
     
     const cashGapAMD = paidAMD - receivedAMD;
     
-    // Банковский баланс в AMD
     const amdRate = exchangeRates?.AMD || 400;
-    const rubRate = exchangeRates?.RUB || 90;
-    const eurRate = exchangeRates?.EUR || 0.92;
+    const rubRate = exchangeRates?.RUB || 4.5;  // курс AMD за RUB
+    const eurRate = exchangeRates?.EUR || 430;
     const bankAMD = (bankBalances.USD || 0) * amdRate +
-                    (bankBalances.EUR || 0) / eurRate * amdRate +
-                    (bankBalances.RUB || 0) / rubRate * amdRate +
+                    (bankBalances.EUR || 0) * eurRate +
+                    (bankBalances.RUB || 0) * rubRate +
                     (bankBalances.AMD || 0) - (bankBalances.overdraftAMD || 0);
     
-    const netBalanceAMD = bankAMD + usdToAMD(receivedAMD - paidAMD);
+    const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
     
     const statsHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
@@ -329,7 +332,6 @@ async function loadData() {
     `;
     document.getElementById('statsRow').innerHTML = statsHTML;
     
-    // Заработок по логистам
     const lm = {};
     cargo.forEach(c => {
       const l = c.logist || '—';
@@ -349,7 +351,6 @@ async function loadData() {
         `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`
       ).join('');
     
-    // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
@@ -374,7 +375,6 @@ async function loadData() {
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Инициализация
 loadBankBalances();
 renderBankAccounts();
 fetchExchangeRates().then(() => {
