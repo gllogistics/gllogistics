@@ -224,9 +224,16 @@ async function fetchExchangeRates() {
 function convertToUSD(amount, currency) {
   if (!exchangeRates || !amount) return 0;
   if (currency === 'USD') return amount;
-  const rate = exchangeRates[currency];
+  const rate = exchangeRates[currency]; // сколько AMD за 1 единицу валюты
   if (!rate) return 0;
-  return amount * (rate / exchangeRates.AMD);
+  if (currency === 'AMD') {
+    // AMD → USD: делим на курс AMD
+    return amount / exchangeRates.AMD;
+  } else {
+    // EUR, RUB и др.: переводим в AMD, потом в USD
+    const amdEquivalent = amount * rate;
+    return amdEquivalent / exchangeRates.AMD;
+  }
 }
 
 function usdToAMD(usd) {
