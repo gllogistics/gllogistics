@@ -4,56 +4,54 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GL Logistics | Вход</title>
-  <link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0B171C; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .login-box { background: #152A30; border-radius: 28px; padding: 2.5rem; border: 1px solid #2F6C74; text-align: center; width: 380px; }
-    .login-box .logo-link { display: inline-block; margin-bottom: 1rem; }
-    .login-box .logo-link img { height: 55px; width: auto; cursor: pointer; }
-    .login-box h2 { color: #55B7BD; margin-bottom: 1.5rem; font-size: 1.3rem; }
-    .login-box input { width: 100%; background: #0C2228; border: 1px solid #336D76; border-radius: 22px; padding: 12px 18px; color: white; font-size: 1rem; margin-bottom: 0.8rem; outline: none; }
-    .login-box input:focus { border-color: #55B7BD; }
-    .login-box button { width: 100%; background: #55B7BD; color: #0D1F23; border: none; padding: 13px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; }
-    .hint { color: #7a9ea3; font-size: 0.75rem; margin-top: 1rem; }
+    body { background: #F5FAFA; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-card { background: white; border-radius: 24px; padding: 2rem; width: 90%; max-width: 400px; border: 1px solid rgba(85,183,189,0.25); text-align: center; }
+    .login-card img { height: 60px; margin-bottom: 1rem; }
+    .login-card h2 { color: #1E3B42; margin-bottom: 1.5rem; }
+    .login-card input { width: 100%; padding: 12px; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; margin-bottom: 1rem; font-size: 0.9rem; background: #F5FAFA; }
+    .login-card button { width: 100%; padding: 12px; background: #55B7BD; color: #0D1F23; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+    .error { color: #C62828; font-size: 0.8rem; margin-bottom: 1rem; display: none; }
   </style>
 </head>
 <body>
-<div class="login-box">
-  <a href="/" class="logo-link"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics"></a>
-  <h2>Вход для сотрудников</h2>
-  <input type="text" id="loginUser" placeholder="Имя пользователя">
-  <input type="password" id="loginPass" placeholder="Пароль">
+<div class="login-card">
+  <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">
+  <h2>Вход для персонала</h2>
+  <p class="error" id="errorMsg">Неверный логин или пароль</p>
+  <input type="text" id="username" placeholder="Логин" autocomplete="username">
+  <input type="password" id="password" placeholder="Пароль" autocomplete="current-password">
   <button onclick="doLogin()">Войти</button>
-  <p class="hint">Введите ваш логин и пароль</p>
 </div>
 
 <script>
 const API_URL = 'https://gl-api.gltransam.workers.dev';
 
 async function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value.trim();
-  if (!u || !p) return alert('Введите логин и пароль');
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if (!username || !password) return;
   
   try {
     const res = await fetch(API_URL + '/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u, password: p })
+      body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
-    
-    if (data.success) {
-      localStorage.setItem('gl_staff_user', data.user.username);
-      localStorage.setItem('gl_staff_role', data.user.role);
-      window.location.href = 'staff-cargo.html';
+    if (res.ok) {
+      localStorage.setItem('gl_staff_user', username);
+      if (username === 'TigranMetspagyan') {
+        window.location.href = 'staff-dashboard.html';
+      } else {
+        window.location.href = 'staff-cargo.html';
+      }
     } else {
-      alert('Неверный логин или пароль');
+      document.getElementById('errorMsg').style.display = 'block';
     }
   } catch (err) {
-    alert('Ошибка соединения. Попробуйте позже.');
+    document.getElementById('errorMsg').textContent = 'Ошибка соединения';
+    document.getElementById('errorMsg').style.display = 'block';
   }
 }
 </script>
