@@ -41,6 +41,7 @@
     .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
     .btn-sm-del { background: #C62828; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; }
     .show-pwd { color: #55B7BD; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
+    .rate-note { font-size: 0.65rem; color: #8fa8ab; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -69,10 +70,10 @@
   <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th></th></tr></thead><tbody id="logistListTable"></tbody></table></div>
   
   <h3 class="section-title">💰 Заработок по логистам</h3>
-  <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead><tbody id="logistTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот (USD)</th><th>Прибыль (USD)</th></tr></thead><tbody id="logistTable"></tbody></table></div>
   
   <h3 class="section-title">📦 Последние сделки</h3>
-  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль</th><th>Валюта</th><th>Логист</th></tr></thead><tbody id="recentTable"></tbody></table></div>
 </div>
 
 <script>
@@ -87,6 +88,37 @@ function doLogout() { localStorage.removeItem('gl_staff_user'); window.location.
 function togglePwd(id) { const inp = document.getElementById(id); inp.type = inp.type === 'password' ? 'text' : 'password'; }
 
 let usersList = [];
+let exchangeRates = null;
+
+// Получаем актуальные курсы валют
+async function fetchExchangeRates() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!res.ok) throw new Error('Rate fetch failed');
+    const data = await res.json();
+    exchangeRates = data.rates;
+  } catch (e) {
+    console.warn('Не удалось загрузить курсы, используется резервный', e);
+    exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
+  }
+}
+
+// Конвертация в USD
+function convertToUSD(amount, fromCurrency) {
+  if (!exchangeRates || !amount) return 0;
+  const cur = fromCurrency || 'USD';
+  if (cur === 'USD') return amount;
+  const rate = exchangeRates[cur];
+  if (!rate || rate === 0) return 0;
+  return amount / rate;
+}
+
+// Символ валюты
+function currencySymbol(cur) {
+  if (cur === 'EUR') return '€';
+  if (cur === 'AMD') return '֏';
+  return '$';
+}
 
 async function loadUsers() {
   try {
@@ -110,7 +142,6 @@ function renderLogists() {
   ).join('');
 }
 
-// Временное хранилище паролей (загружается при добавлении)
 let pwdCache = {};
 
 async function toggleShowPwd(i) {
@@ -118,7 +149,6 @@ async function toggleShowPwd(i) {
   const btn = event.target;
   
   if (el.textContent === '••••••') {
-    // Загружаем пароль с сервера
     if (!pwdCache[usersList[i].username]) {
       const res = await fetch(API_URL + '/api/user-pwd/' + usersList[i].username);
       const data = await res.json();
@@ -143,7 +173,7 @@ async function addLogist() {
       body: JSON.stringify({ username: name, password: pass, role: 'logist' })
     });
     if (res.ok) {
-      pwdCache[name] = pass; // кешируем пароль
+      pwdCache[name] = pass;
       document.getElementById('newLogistName').value = '';
       document.getElementById('newLogistPass').value = '';
       await loadUsers();
@@ -164,28 +194,90 @@ async function loadData() {
   try {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
-    const tp = (c) => (parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0));
-    const totalProfit = cargo.reduce((s,c) => s + tp(c), 0);
     
-    document.getElementById('statsRow').innerHTML = `
+    // Считаем прибыль в USD с учётом валют
+    let totalProfitUSD = 0;
+    const currencyBreakdown = {}; // прибыль по валютам
+    
+    cargo.forEach(c => {
+      const profit = parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0);
+      const curr = c.currency || 'USD';
+      const profitUSD = convertToUSD(profit, curr);
+      totalProfitUSD += profitUSD;
+      
+      if (!currencyBreakdown[curr]) currencyBreakdown[curr] = { count: 0, profit: 0 };
+      currencyBreakdown[curr].count++;
+      currencyBreakdown[curr].profit += profit;
+    });
+    
+    // Статистика
+    let statsHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Всего сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">$${totalProfit.toLocaleString()}</div><div class="lbl">Общая прибыль</div></div>
+      <div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Общая прибыль (USD)</div><div class="rate-note">конвертация по курсу</div></div>
     `;
     
-    const lm = {};
-    cargo.forEach(c => { const l = c.logist || '—'; if (!lm[l]) lm[l] = { count: 0, turnover: 0, profit: 0 }; lm[l].count++; lm[l].turnover += parseFloat(c.client_price||0); lm[l].profit += tp(c); });
-    document.getElementById('logistTable').innerHTML = Object.entries(lm).map(([n,d]) => `<tr><td>${esc(n)}</td><td>${d.count}</td><td>$${d.turnover.toLocaleString()}</td><td class="profit-positive">$${d.profit.toLocaleString()}</td></tr>`).join('');
+    // Добавляем разбивку по валютам
+    for (const [cur, data] of Object.entries(currencyBreakdown)) {
+      const sym = currencySymbol(cur);
+      statsHTML += `<div class="stat-card"><div class="num">${sym}${Math.round(data.profit).toLocaleString()}</div><div class="lbl">Прибыль в ${cur}</div></div>`;
+    }
     
+    document.getElementById('statsRow').innerHTML = statsHTML;
+    
+    // Заработок по логистам (в USD)
+    const lm = {};
+    cargo.forEach(c => {
+      const l = c.logist || '—';
+      if (!lm[l]) lm[l] = { count: 0, turnoverUSD: 0, profitUSD: 0 };
+      lm[l].count++;
+      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
+      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
+      lm[l].turnoverUSD += clientUSD;
+      lm[l].profitUSD += (clientUSD - carrierUSD);
+    });
+    
+    document.getElementById('logistTable').innerHTML = Object.entries(lm)
+      .sort((a, b) => b[1].profitUSD - a[1].profitUSD)
+      .map(([n, d]) => 
+        `<tr>
+          <td>${esc(n)}</td>
+          <td>${d.count}</td>
+          <td>$${Math.round(d.turnoverUSD).toLocaleString()}</td>
+          <td class="profit-positive">$${Math.round(d.profitUSD).toLocaleString()}</td>
+        </tr>`
+      ).join('');
+    
+    // Последние сделки (10 штук)
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">$${tp(c).toLocaleString()}</td><td>${esc(c.logist||'—')}</td></tr>`).join('');
-  } catch (err) { document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>'; }
+    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
+      const p = parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0);
+      const csym = currencySymbol(c.currency || 'USD');
+      return `<tr>
+        <td>${i+1}</td>
+        <td>${esc(c.client_name || '—')}</td>
+        <td>${esc(c.carrier_name || '—')}</td>
+        <td>${esc(c.product || '—')}</td>
+        <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
+        <td class="profit-positive">${csym}${p.toLocaleString()}</td>
+        <td>${c.currency || 'USD'}</td>
+        <td>${esc(c.logist || '—')}</td>
+      </tr>`;
+    }).join('');
+    
+  } catch (err) { 
+    document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>'; 
+    console.error(err);
+  }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-loadUsers();
-loadData();
+// Инициализация
+fetchExchangeRates().then(() => {
+  loadUsers();
+  loadData();
+});
 </script>
 </body>
 </html>
