@@ -124,7 +124,7 @@ function updateBankBalance(currency, field = 'balance') {
   if (field === 'overdraft') bankBalances.overdraftAMD = value;
   else bankBalances[currency] = value;
   saveBankBalances();
-  renderBankAccounts(); // обновить все карточки
+  renderBankAccounts();
 }
 
 function formatCurrency(amount, currency) {
@@ -143,26 +143,35 @@ function renderBankAccounts() {
   
   document.getElementById('bankAccounts').innerHTML = accounts.map(acc => {
     const balance = bankBalances[acc.currency] || 0;
+    let displayBalance = balance;
     let extraHtml = '';
+    
     if (acc.currency === 'AMD') {
       const overdraft = bankBalances.overdraftAMD || 0;
       const available = balance - overdraft;
+      displayBalance = available;
       extraHtml = `
-        <div class="bank-sub">Доступно: ${formatCurrency(available, 'AMD')}</div>
+        <div class="bank-sub">
+          Баланс: ${formatCurrency(balance, 'AMD')}<br>
+          Овердрафт: ${formatCurrency(overdraft, 'AMD')}
+        </div>
         <input type="number" id="overdraftInput_AMD" placeholder="Овердрафт" value="${overdraft}" onfocus="this.select()">
         <span class="overdraft-label">Овердрафт (займ)</span>
         <button class="btn-save-balance" onclick="updateBankBalance('AMD', 'overdraft')">💾 Обновить овердрафт</button>
       `;
     }
+    
     return `
       <div class="bank-card">
         <div class="bank-header">
           <span class="bank-currency">${acc.currency}</span>
           <span class="bank-flag">${acc.flag}</span>
         </div>
-        <div class="bank-balance" id="bankBalance_${acc.currency}">${formatCurrency(balance, acc.currency)}</div>
-        <div class="bank-label">${acc.label}</div>
-        <input type="number" id="bankInput_${acc.currency}" placeholder="Новый баланс" value="${balance}" onfocus="this.select()">
+        <div class="bank-balance" id="bankBalance_${acc.currency}">
+          ${formatCurrency(displayBalance, acc.currency)}
+        </div>
+        <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
+        <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс на счёте" value="${balance}" onfocus="this.select()">
         <button class="btn-save-balance" onclick="updateBankBalance('${acc.currency}')">💾 Обновить баланс</button>
         ${extraHtml}
       </div>
@@ -275,24 +284,26 @@ async function loadData() {
     const res = await fetch(API_URL + '/api/cargo');
     const cargo = await res.json();
     
-    let totalProfitUSD = 0;
-    let waitingFromClientsUSD = 0;
-    let waitingToCarriersUSD = 0;
-    let totalReceivedUSD = 0;
-    let totalPaidUSD = 0;
+    let totalProfitAMD = 0;
+    let waitingClientsAMD = 0;
+    let waitingCarriersAMD = 0;
+    let receivedAMD = 0;
+    let paidAMD = 0;
     
     cargo.forEach(c => {
-      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD');
-      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD');
-      const profitUSD = clientUSD - carrierUSD;
-      totalProfitUSD += profitUSD;
-      if (!c.client_paid) waitingFromClientsUSD += clientUSD;
-      else totalReceivedUSD += clientUSD;
-      if (!c.carrier_paid) waitingToCarriersUSD += carrierUSD;
-      else totalPaidUSD += carrierUSD;
+      const clientCur = c.client_currency || c.currency || 'USD';
+      const carrierCur = c.carrier_currency || c.currency || 'USD';
+      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
+      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
+      const profitAMD = usdToAMD(clientUSD - carrierUSD);
+      totalProfitAMD += profitAMD;
+      if (!c.client_paid) waitingClientsAMD += usdToAMD(clientUSD);
+      else receivedAMD += usdToAMD(clientUSD);
+      if (!c.carrier_paid) waitingCarriersAMD += usdToAMD(carrierUSD);
+      else paidAMD += usdToAMD(carrierUSD);
     });
     
-    const cashGapUSD = totalPaidUSD - totalReceivedUSD;
+    const cashGapAMD = paidAMD - receivedAMD;
     
     // Банковский баланс в AMD
     const amdRate = exchangeRates?.AMD || 400;
@@ -303,31 +314,33 @@ async function loadData() {
                     (bankBalances.RUB || 0) / rubRate * amdRate +
                     (bankBalances.AMD || 0) - (bankBalances.overdraftAMD || 0);
     
-    const netBalanceAMD = bankAMD + usdToAMD(totalReceivedUSD - totalPaidUSD);
+    const netBalanceAMD = bankAMD + usdToAMD(receivedAMD - paidAMD);
     
     const statsHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(usdToAMD(totalProfitUSD)).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
-      <div class="stat-card stat-success"><div class="num">֏${Math.round(usdToAMD(totalReceivedUSD)).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(totalPaidUSD)).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
-      <div class="stat-card ${cashGapUSD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(usdToAMD(Math.abs(cashGapUSD))).toLocaleString()}</div><div class="lbl">${cashGapUSD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (AMD)</div></div>
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
+      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
+      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingFromClientsUSD)).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(usdToAMD(waitingToCarriersUSD)).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     `;
     document.getElementById('statsRow').innerHTML = statsHTML;
     
-    // Логисты в AMD
+    // Заработок по логистам
     const lm = {};
     cargo.forEach(c => {
       const l = c.logist || '—';
       if (!lm[l]) lm[l] = { count: 0, turnoverAMD: 0, profitAMD: 0 };
       lm[l].count++;
-      const clientAMD = usdToAMD(convertToUSD(parseFloat(c.client_price || 0), c.currency || 'USD'));
-      const carrierAMD = usdToAMD(convertToUSD(parseFloat(c.carrier_price || 0), c.currency || 'USD'));
-      lm[l].turnoverAMD += clientAMD;
-      lm[l].profitAMD += (clientAMD - carrierAMD);
+      const clientCur = c.client_currency || c.currency || 'USD';
+      const carrierCur = c.carrier_currency || c.currency || 'USD';
+      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
+      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
+      lm[l].turnoverAMD += usdToAMD(clientUSD);
+      lm[l].profitAMD += usdToAMD(clientUSD - carrierUSD);
     });
     
     document.getElementById('logistTable').innerHTML = Object.entries(lm)
@@ -336,25 +349,32 @@ async function loadData() {
         `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`
       ).join('');
     
+    // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
-      const p = parseFloat(c.client_price || 0) - parseFloat(c.carrier_price || 0);
-      const csym = currencySymbol(c.currency || 'USD');
+      const clientCur = c.client_currency || c.currency || 'USD';
+      const carrierCur = c.carrier_currency || c.currency || 'USD';
+      const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
+      const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
+      const profitAMD = usdToAMD(clientUSD - carrierUSD);
       return `<tr>
         <td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td>
         <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-        <td class="profit-positive">${csym}${p.toLocaleString()}</td><td>${c.currency||'USD'}</td><td>${esc(c.logist||'—')}</td>
+        <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
+        <td>${clientCur}/${carrierCur}</td><td>${esc(c.logist||'—')}</td>
       </tr>`;
     }).join('');
     
   } catch (err) {
     document.getElementById('statsRow').innerHTML = '<p>Ошибка загрузки</p>';
+    console.error(err);
   }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
+// Инициализация
 loadBankBalances();
 renderBankAccounts();
 fetchExchangeRates().then(() => {
