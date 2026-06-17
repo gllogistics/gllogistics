@@ -51,6 +51,7 @@
     .btn-del { background: none; border: none; color: #C62828; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; }
     .btn-edit { background: none; border: none; color: #55B7BD; cursor: pointer; font-size: 0.7rem; padding: 4px 6px; margin-right: 2px; }
     .commission-auto { background: #EDF7F7 !important; color: #3d9aa0 !important; font-weight: 700; }
+    .rate-note { font-size: 0.65rem; color: #8fa8ab; }
   </style>
 </head>
 <body>
@@ -160,11 +161,37 @@ async function addCarrier(name) { return api('/api/carriers', 'POST', { name });
 let allCargoData = [];
 let clientsData = [];
 let carriersData = [];
+let exchangeRates = null; // { USD: 1, EUR: 0.85, AMD: 485.12 }
+
+// Fetch live exchange rates from free API
+async function fetchExchangeRates() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!res.ok) throw new Error('Rate fetch failed');
+    const data = await res.json();
+    exchangeRates = data.rates; // e.g., { EUR: 0.92, AMD: 402.15 }
+  } catch (e) {
+    console.warn('Не удалось загрузить курсы валют, используется резервный курс', e);
+    // fallback approximate rates
+    exchangeRates = { USD: 1, EUR: 0.92, AMD: 400 };
+  }
+}
 
 function currencySymbol(cur) {
   if (cur === 'EUR') return '€';
   if (cur === 'AMD') return '֏';
   return '$';
+}
+
+// Convert amount from given currency to USD
+function convertToUSD(amount, fromCurrency) {
+  if (!exchangeRates || !amount) return 0;
+  const cur = fromCurrency || 'USD';
+  if (cur === 'USD') return amount;
+  const rate = exchangeRates[cur];
+  if (!rate || rate === 0) return 0;
+  // rates are 1 USD = rate units of cur, so 1 cur = 1/rate USD
+  return amount / rate;
 }
 
 function calcCommission() {
@@ -173,9 +200,7 @@ function calcCommission() {
   document.getElementById('fCommission').value = (cp - crp).toFixed(2);
 }
 
-function updateCurrencySymbols() {
-  // optionally change placeholders or labels – kept simple
-}
+function updateCurrencySymbols() { /* placeholder */ }
 
 function populateDatalists() {
   document.getElementById('clientList').innerHTML = clientsData.map(c => `<option value="${esc(c.name)}">`).join('');
@@ -276,8 +301,14 @@ function clearFilter() {
 }
 
 async function refreshData() {
-  try { allCargoData = await loadCargo(); clientsData = await loadClients(); carriersData = await loadCarriers(); populateDatalists(); renderAll(); }
-  catch (err) { document.getElementById('emptyMsg').textContent = 'Ошибка загрузки.'; }
+  try {
+    allCargoData = await loadCargo();
+    clientsData = await loadClients();
+    carriersData = await loadCarriers();
+    populateDatalists();
+    if (!exchangeRates) await fetchExchangeRates();
+    renderAll();
+  } catch (err) { document.getElementById('emptyMsg').textContent = 'Ошибка загрузки.'; }
 }
 
 function renderAll() {
@@ -292,7 +323,6 @@ function renderAll() {
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   if (fc !== 'all') list = list.filter(c => (c.currency || 'USD') === fc);
 
-  // update filter options
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
     document.getElementById('filterLogist').innerHTML = '<option value="all">Все</option>' + logists.map(l => `<option value="${l}" ${fl===l?'selected':''}>${l}</option>`).join('');
@@ -302,23 +332,20 @@ function renderAll() {
   const prevFc = fcSelect.value;
   fcSelect.innerHTML = '<option value="all">Все</option>' + currencies.map(c => `<option value="${c}" ${prevFc===c?'selected':''}>${c}</option>`).join('');
 
-  // stats
-  const currencyProfits = {};
+  // Calculate total profit in USD
+  let totalProfitUSD = 0;
   list.forEach(c => {
-    const curr = c.currency || 'USD';
-    const p = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
-    currencyProfits[curr] = (currencyProfits[curr] || 0) + p;
+    const profit = parseFloat(c.client_price||0) - parseFloat(c.carrier_price||0);
+    totalProfitUSD += convertToUSD(profit, c.currency || 'USD');
   });
+
   const totalCount = list.length;
   const totalAll = isAdmin ? allCargoData.length : totalCount;
   let statsHTML = `<div class="stat-card"><div class="num">${totalCount}</div><div class="lbl">Сделок</div></div>`;
-  for (const [cur, amt] of Object.entries(currencyProfits)) {
-    statsHTML += `<div class="stat-card stat-profit"><div class="num">${currencySymbol(cur)}${Math.round(amt).toLocaleString()}</div><div class="lbl">Прибыль ${cur}</div></div>`;
-  }
+  statsHTML += `<div class="stat-card stat-profit"><div class="num">$${Math.round(totalProfitUSD).toLocaleString()}</div><div class="lbl">Прибыль USD</div><div class="rate-note">конвертация по курсу</div></div>`;
   if (isAdmin) statsHTML += `<div class="stat-card"><div class="num">${totalAll}</div><div class="lbl">Всего</div></div>`;
   document.getElementById('statsRow').innerHTML = statsHTML;
 
-  // table
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
   const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
   document.getElementById('emptyMsg').style.display = list.length ? 'none' : 'block';
@@ -349,7 +376,8 @@ function renderAll() {
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-refreshData();
+// Initial load with exchange rates
+fetchExchangeRates().then(() => refreshData());
 </script>
 </body>
 </html>
