@@ -427,12 +427,12 @@ async function loadData() {
       <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
       <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
     `;
-    // Нижняя строка (4 элемента)
+    // Нижняя строка (4 элемента) – счета и чистый баланс слева, ожидания справа
     const bottomHTML = `
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
       <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     `;
     
     document.getElementById('statsRowTop').innerHTML = topHTML;
