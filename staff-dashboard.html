@@ -29,24 +29,72 @@
     .bank-card input:focus, .rate-card input:focus { border-color: #55B7BD; }
     .bank-card .btn-save-balance, .rate-card .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 4px; }
     .bank-card .overdraft-label { font-size: 0.65rem; color: #E65100; font-weight: 600; margin-top: 8px; display: block; }
+    .bank-balance-negative { color: #C62828 !important; }
+    .bank-balance-zero { color: #8fa8ab !important; }
+    .bank-balance-positive { color: #1B7A3E !important; }
+    .bank-card-negative { border: 2px solid rgba(198,40,40,0.3) !important; background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%) !important; }
 
-    /* Статистика – две строки с фиксированным числом колонок */
-    .stats-row { display: grid; gap: 12px; margin-bottom: 1.2rem; }
-    .stats-row-top { grid-template-columns: repeat(5, 1fr); }
-    .stats-row-bottom { grid-template-columns: repeat(4, 1fr); }
-    /* Адаптив: если экран узкий, уменьшаем колонки */
-    @media (max-width: 900px) {
-      .stats-row-top { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-      .stats-row-bottom { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-    }
+    /* Сетка статистики */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 1rem; }
 
-    .stat-card { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); text-align: center; }
-    .stat-card .num { font-size: 1.8rem; font-weight: 800; color: #55B7BD; }
-    .stat-card .lbl { font-size: 0.65rem; color: #8fa8ab; text-transform: uppercase; }
-    .stat-profit { background: #EDF7F7; } .stat-profit .num { color: #3d9aa0; }
-    .stat-warning { background: #FFF3E0; } .stat-warning .num { color: #E65100; }
-    .stat-danger { background: #FFEBEE; } .stat-danger .num { color: #C62828; }
-    .stat-success { background: #E8F5E9; } .stat-success .num { color: #2E7D32; }
+    /* ===== STAT CARDS v2 ===== */
+    .stat-card { border-radius: 18px; padding: 14px 16px; position: relative; transition: transform 0.15s, box-shadow 0.15s; text-align: left; display: flex; flex-direction: column; gap: 4px; border: 1.5px solid rgba(85,183,189,0.2); background: #fff; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .stat-card .num { font-size: 1.55rem; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
+    .stat-card .lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-card .desc { font-size: 0.68rem; font-weight: 500; margin-top: 3px; line-height: 1.3; opacity: 0.85; }
+    .stat-card .tag { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; width: fit-content; }
+    .stat-card .icon { font-size: 1.1rem; }
+    .stat-card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+
+    /* Прибыль и Сделки */
+    .stat-profit { background: linear-gradient(135deg,#e8f5e9,#f1fbf2); border-color: rgba(46,125,50,0.3); }
+    .stat-profit .num { color: #1B5E20; } .stat-profit .lbl { color: #2E7D32; } .stat-profit .desc { color: #388E3C; } .stat-profit .tag { background: #C8E6C9; color: #1B5E20; }
+
+    /* Получено */
+    .stat-success { background: linear-gradient(135deg,#e0f7e9,#f0fdf4); border-color: rgba(27,122,62,0.3); }
+    .stat-success .num { color: #145A2E; } .stat-success .lbl { color: #1B7A3E; } .stat-success .desc { color: #2E7D32; } .stat-success .tag { background: #B9F2D0; color: #145A2E; }
+
+    /* Оплачено */
+    .stat-warning { background: linear-gradient(135deg,#fff3e0,#fffdf5); border-color: rgba(230,81,0,0.25); }
+    .stat-warning .num { color: #BF360C; } .stat-warning .lbl { color: #E65100; } .stat-warning .desc { color: #E65100; } .stat-warning .tag { background: #FFE0B2; color: #BF360C; }
+
+    /* Свободные средства */
+    .stat-free { background: linear-gradient(135deg,#e0f4f5,#f0fbfc); border-color: rgba(85,183,189,0.35); }
+    .stat-free .num { color: #155a5e; } .stat-free .lbl { color: #1E7A80; } .stat-free .desc { color: #3d9aa0; } .stat-free .tag { background: #B2EBF2; color: #155a5e; }
+
+    /* Отрицательный счёт */
+    .stat-danger { background: linear-gradient(135deg,#ffebee,#fff5f5); border: 2px solid rgba(198,40,40,0.35); }
+    .stat-danger .num { color: #B71C1C; } .stat-danger .lbl { color: #C62828; } .stat-danger .desc { color: #C62828; } .stat-danger .tag { background: #FFCDD2; color: #B71C1C; }
+
+    /* Чистый баланс отрицательный */
+    .stat-netbal { background: linear-gradient(135deg,#fce4e4,#fff0f0); border: 2px solid rgba(183,28,28,0.4); animation: pulse-red 2.5s infinite; }
+    .stat-netbal .num { color: #7F0000; } .stat-netbal .lbl { color: #B71C1C; } .stat-netbal .desc { color: #C62828; } .stat-netbal .tag { background: #FFCDD2; color: #7F0000; }
+
+    /* Дебиторка */
+    .stat-debtor { background: linear-gradient(135deg,#e3f2fd,#f0f8ff); border-color: rgba(21,101,192,0.3); }
+    .stat-debtor .num { color: #0D47A1; } .stat-debtor .lbl { color: #1565C0; } .stat-debtor .desc { color: #1976D2; } .stat-debtor .tag { background: #BBDEFB; color: #0D47A1; }
+
+    /* Кредиторка */
+    .stat-creditor { background: linear-gradient(135deg,#f3e5f5,#fdf5ff); border-color: rgba(123,31,162,0.3); }
+    .stat-creditor .num { color: #4A148C; } .stat-creditor .lbl { color: #7B1FA2; } .stat-creditor .desc { color: #8E24AA; } .stat-creditor .tag { background: #E1BEE7; color: #4A148C; }
+
+    @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(198,40,40,0.2); } 50% { box-shadow: 0 0 0 8px rgba(198,40,40,0); } }
+
+    /* Финансовый срез */
+    .fin-summary { background:#fff; border:1.5px solid rgba(85,183,189,0.25); border-radius:16px; padding:14px 18px; margin-bottom:12px; }
+    .fin-summary h4 { font-size:0.72rem; font-weight:700; color:#1E3B42; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; justify-content:space-between; }
+    .fin-bar { display:flex; border-radius:8px; overflow:hidden; height:30px; margin-bottom:8px; }
+    .fin-bar-get { background:linear-gradient(90deg,#1B7A3E,#2E7D32); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.72rem; font-weight:800; }
+    .fin-bar-pay { background:linear-gradient(90deg,#BF360C,#E65100); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.72rem; font-weight:800; }
+    .fin-row { display:flex; justify-content:space-between; font-size:0.72rem; color:#5a7a80; flex-wrap:wrap; gap:6px; }
+    .fin-extra { margin-top:10px; padding-top:10px; border-top:1px solid rgba(85,183,189,0.15); display:flex; gap:20px; flex-wrap:wrap; font-size:0.72rem; color:#5a7a80; }
+
+    /* Легенда */
+    .stats-legend { display:flex; gap:12px; flex-wrap:wrap; padding:8px 14px; background:#f8fdfd; border-radius:10px; border:1px solid rgba(85,183,189,0.2); font-size:0.68rem; color:#5a7a80; margin-bottom:1.2rem; }
+    .leg-item { display:flex; align-items:center; gap:4px; font-weight:600; }
+    .leg-dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+
     .section-title { color: #55B7BD; font-size: 1rem; margin: 1.5rem 0 0.8rem; text-transform: uppercase; }
     .table-wrap { background: #FFFFFF; border-radius: 20px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); overflow-x: auto; margin-bottom: 1.5rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -108,9 +156,21 @@
     </div>
   </div>
   
-  <!-- Статистика: два ряда -->
-  <div class="stats-row stats-row-top" id="statsRowTop"></div>
-  <div class="stats-row stats-row-bottom" id="statsRowBottom"></div>
+  <!-- Статистика в одной адаптивной сетке -->
+  <div class="stats-grid" id="statsGrid"></div>
+  
+  <!-- Финансовый срез -->
+  <div class="fin-summary" id="financeSummary"></div>
+  
+  <!-- Легенда -->
+  <div class="stats-legend">
+    <span class="leg-item"><span class="leg-dot" style="background:#1B5E20"></span> Прибыль / Сделки</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#145A2E"></span> Получено</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#BF360C"></span> Оплачено</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#B71C1C"></span> Отрицательный баланс</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#0D47A1"></span> Дебиторка</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#4A148C"></span> Кредиторка</span>
+  </div>
   
   <h3 class="section-title">👥 Управление логистами</h3>
   <div class="form-add">
@@ -204,13 +264,16 @@ function renderBankAccounts() {
       `;
     }
     
+    const balanceClass = displayBalance < 0 ? 'bank-balance-negative' : displayBalance === 0 ? 'bank-balance-zero' : 'bank-balance-positive';
+    const cardClass = displayBalance < 0 ? ' bank-card-negative' : '';
+    
     return `
-      <div class="bank-card">
+      <div class="bank-card${cardClass}">
         <div class="bank-header">
           <span class="bank-currency">${acc.currency}</span>
           <span class="bank-flag">${acc.flag}</span>
         </div>
-        <div class="bank-balance" id="bankBalance_${acc.currency}">
+        <div class="bank-balance ${balanceClass}">
           ${formatCurrency(displayBalance, acc.currency)}
         </div>
         <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
@@ -257,22 +320,13 @@ async function saveManualRates() {
   const rub = parseFloat(document.getElementById('manualRateRUB').value);
   if (!usd || !eur || !rub) return alert('Заполните все курсы');
   try {
-    await fetch(API_URL + '/api/rates', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currency: 'AMD', rate: usd })
-    });
-    await fetch(API_URL + '/api/rates', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currency: 'EUR', rate: eur })
-    });
-    await fetch(API_URL + '/api/rates', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currency: 'RUB', rate: rub })
-    });
+    await fetch(API_URL + '/api/rates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currency: 'AMD', rate: usd }) });
+    await fetch(API_URL + '/api/rates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currency: 'EUR', rate: eur }) });
+    await fetch(API_URL + '/api/rates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currency: 'RUB', rate: rub }) });
     exchangeRates = { USD: 1, AMD: usd, EUR: eur, RUB: rub };
     updateRateDisplay();
     loadData();
-    alert('Курсы сохранены на сервере!');
+    alert('Курсы сохранены!');
   } catch (e) { alert('Ошибка сохранения курсов'); }
 }
 
@@ -301,22 +355,12 @@ function convertToUSD(amount, currency) {
   if (currency === 'USD') return amount;
   const rate = exchangeRates[currency];
   if (!rate) return 0;
-  if (currency === 'AMD') {
-    return amount / exchangeRates.AMD;
-  } else {
-    return (amount * rate) / exchangeRates.AMD;
-  }
+  if (currency === 'AMD') return amount / exchangeRates.AMD;
+  return (amount * rate) / exchangeRates.AMD;
 }
 
-function usdToAMD(usd) {
-  return usd * (exchangeRates?.AMD || 400);
-}
-
-function currencySymbol(cur) {
-  if (cur === 'EUR') return '€';
-  if (cur === 'AMD') return '֏';
-  return '$';
-}
+function usdToAMD(usd) { return usd * (exchangeRates?.AMD || 400); }
+function currencySymbol(cur) { if (cur === 'EUR') return '€'; if (cur === 'AMD') return '֏'; return '$'; }
 
 // ---------- Пользователи ----------
 async function loadUsers() {
@@ -329,15 +373,7 @@ async function loadUsers() {
 
 function renderLogists() {
   document.getElementById('logistListTable').innerHTML = usersList.map((u, i) => 
-    `<tr>
-      <td>${esc(u.username)}</td>
-      <td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
-      <td>
-        <span id="pwd_${i}">••••••</span>
-        <span class="show-pwd" onclick="toggleShowPwd(${i})">Показать</span>
-      </td>
-      <td>${u.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${u.username}')">Удалить</button>` : ''}</td>
-    </tr>`
+    `<tr><td>${esc(u.username)}</td><td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td><td><span id="pwd_${i}">••••••</span> <span class="show-pwd" onclick="toggleShowPwd(${i})">Показать</span></td><td>${u.role !== 'admin' ? `<button class="btn-sm-del" onclick="deleteLogist('${u.username}')">Удалить</button>` : ''}</td></tr>`
   ).join('');
 }
 
@@ -345,7 +381,6 @@ let pwdCache = {};
 
 async function toggleShowPwd(i) {
   const el = document.getElementById('pwd_' + i);
-  const btn = event.target;
   if (el.textContent === '••••••') {
     if (!pwdCache[usersList[i].username]) {
       const res = await fetch(API_URL + '/api/user-pwd/' + usersList[i].username);
@@ -353,11 +388,8 @@ async function toggleShowPwd(i) {
       pwdCache[usersList[i].username] = data.password;
     }
     el.textContent = pwdCache[usersList[i].username];
-    btn.textContent = 'Скрыть';
-  } else {
-    el.textContent = '••••••';
-    btn.textContent = 'Показать';
-  }
+    event.target.textContent = 'Скрыть';
+  } else { el.textContent = '••••••'; event.target.textContent = 'Показать'; }
 }
 
 async function addLogist() {
@@ -365,18 +397,8 @@ async function addLogist() {
   const pass = document.getElementById('newLogistPass').value.trim();
   if (!name || !pass) return alert('Введите имя и пароль');
   try {
-    const res = await fetch(API_URL + '/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name, password: pass, role: 'logist' })
-    });
-    if (res.ok) {
-      pwdCache[name] = pass;
-      document.getElementById('newLogistName').value = '';
-      document.getElementById('newLogistPass').value = '';
-      await loadUsers();
-      alert('Логист ' + name + ' добавлен!\nЛогин: ' + name + '\nПароль: ' + pass);
-    }
+    const res = await fetch(API_URL + '/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: name, password: pass, role: 'logist' }) });
+    if (res.ok) { pwdCache[name] = pass; document.getElementById('newLogistName').value = ''; document.getElementById('newLogistPass').value = ''; await loadUsers(); alert('Логист ' + name + ' добавлен!'); }
   } catch (err) { alert('Ошибка'); }
 }
 
@@ -413,30 +435,106 @@ async function loadData() {
     const amdRate = exchangeRates?.AMD || 400;
     const rubRate = exchangeRates?.RUB || 4.5;
     const eurRate = exchangeRates?.EUR || 440;
-    const bankAMD = (bankBalances.USD || 0) * amdRate +
-                    (bankBalances.EUR || 0) * eurRate +
-                    (bankBalances.RUB || 0) * rubRate +
-                    (bankBalances.AMD || 0) - (bankBalances.overdraft_AMD || 0);
+    const bankAMD = (bankBalances.USD || 0) * amdRate + (bankBalances.EUR || 0) * eurRate + (bankBalances.RUB || 0) * rubRate + (bankBalances.AMD || 0) - (bankBalances.overdraft_AMD || 0);
     const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
     
-    // Верхняя строка (5 элементов)
-    const topHTML = `
-      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
-      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
-      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
-    `;
-    // Нижняя строка (4 элемента) – счета и чистый баланс слева, ожидания справа
-    const bottomHTML = `
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
-      <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+    const cashGapClass = cashGapAMD > 0 ? 'stat-danger' : 'stat-free';
+    const cashGapIcon = cashGapAMD > 0 ? '⚠️' : '💰';
+    const cashGapLbl = cashGapAMD > 0 ? 'Кассовый разрыв' : 'Свободные средства';
+    const cashGapDesc = cashGapAMD > 0 ? 'Заплатили больше, чем получили' : 'Получили больше, чем заплатили';
+    const cashGapTag = cashGapAMD > 0 ? '⚠️ требуется внимание' : '✅ можем использовать';
+    
+    const netBalClass = netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal';
+    const netBalIcon = netBalanceAMD >= 0 ? '💎' : '🚨';
+    const netBalLbl = netBalanceAMD >= 0 ? 'Чистый баланс' : 'Чистый баланс';
+    const netBalDesc = netBalanceAMD >= 0 ? 'Счета + получено − оплачено' : 'Отрицательный: нужна подпитка';
+    const netBalTag = netBalanceAMD >= 0 ? '👍 всё хорошо' : '🔥 срочно';
+    
+    // Статистика (9 карточек)
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card stat-profit">
+        <div class="card-head"><span class="lbl">Прибыль</span><span class="icon">💹</span></div>
+        <div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div>
+        <div class="desc">разница между тарифом клиента и ставкой перевозчика</div>
+        <div class="tag">✅ наша маржа</div>
+      </div>
+      
+      <div class="stat-card stat-success">
+        <div class="card-head"><span class="lbl">Получено</span><span class="icon">📥</span></div>
+        <div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div>
+        <div class="desc">деньги, которые уже поступили от клиентов</div>
+        <div class="tag">✅ доход</div>
+      </div>
+      
+      <div class="stat-card stat-warning">
+        <div class="card-head"><span class="lbl">Оплачено</span><span class="icon">📤</span></div>
+        <div class="num">֏${Math.round(paidAMD).toLocaleString()}</div>
+        <div class="desc">деньги, которые мы уже отдали перевозчикам</div>
+        <div class="tag">🔥 расход</div>
+      </div>
+      
+      <div class="stat-card ${cashGapClass}">
+        <div class="card-head"><span class="lbl">${cashGapLbl}</span><span class="icon">${cashGapIcon}</span></div>
+        <div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div>
+        <div class="desc">${cashGapDesc}</div>
+        <div class="tag">${cashGapTag}</div>
+      </div>
+      
+      <div class="stat-card stat-debtor">
+        <div class="card-head"><span class="lbl">Ждём от клиентов</span><span class="icon">🕐</span></div>
+        <div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div>
+        <div class="desc">дебиторская задолженность — нам должны</div>
+        <div class="tag">📋 дебиторка</div>
+      </div>
+      
+      <div class="stat-card stat-creditor">
+        <div class="card-head"><span class="lbl">Должны перевозчикам</span><span class="icon">📋</span></div>
+        <div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div>
+        <div class="desc">кредиторская задолженность — мы должны</div>
+        <div class="tag">📌 кредиторка</div>
+      </div>
+      
+      <div class="stat-card stat-profit">
+        <div class="card-head"><span class="lbl">Счета (доступно)</span><span class="icon">🏦</span></div>
+        <div class="num">֏${Math.round(bankAMD).toLocaleString()}</div>
+        <div class="desc">банковские счета с вычетом овердрафта</div>
+        <div class="tag">💳 ликвидность</div>
+      </div>
+      
+      <div class="stat-card ${netBalClass}">
+        <div class="card-head"><span class="lbl">${netBalLbl}</span><span class="icon">${netBalIcon}</span></div>
+        <div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div>
+        <div class="desc">${netBalDesc}</div>
+        <div class="tag">${netBalTag}</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="card-head"><span class="lbl">Всего сделок</span><span class="icon">📦</span></div>
+        <div class="num">${cargo.length}</div>
+        <div class="desc">общее количество проведённых сделок</div>
+        <div class="tag">📊 активность</div>
+      </div>
     `;
     
-    document.getElementById('statsRowTop').innerHTML = topHTML;
-    document.getElementById('statsRowBottom').innerHTML = bottomHTML;
+    // Финансовый срез
+    const total = receivedAMD + paidAMD;
+    const pct = total > 0 ? Math.round((receivedAMD / total) * 100) : 50;
+    document.getElementById('financeSummary').innerHTML = `
+      <h4>💡 Финансовый срез <span style="font-weight:400;color:#8fa8ab">Получено vs Оплачено</span></h4>
+      <div class="fin-bar">
+        <div class="fin-bar-get" style="width:${pct}%">✅ ${pct}%</div>
+        <div class="fin-bar-pay" style="width:${100-pct}%">📤 ${100-pct}%</div>
+      </div>
+      <div class="fin-row">
+        <span><b style="color:#1B7A3E">֏${Math.round(receivedAMD).toLocaleString('ru')}</b> получено</span>
+        <span style="color:#1E7A80;font-weight:700">Прибыль: <b>֏${Math.round(totalProfitAMD).toLocaleString('ru')}</b></span>
+        <span><b style="color:#BF360C">֏${Math.round(paidAMD).toLocaleString('ru')}</b> оплачено</span>
+      </div>
+      <div class="fin-extra">
+        <span>🕐 Ждём: <b style="color:#1565C0">֏${Math.round(waitingClientsAMD).toLocaleString('ru')}</b></span>
+        <span>📋 Должны: <b style="color:#7B1FA2">֏${Math.round(waitingCarriersAMD).toLocaleString('ru')}</b></span>
+      </div>
+    `;
     
     // Заработок по логистам
     const lm = {};
@@ -454,9 +552,7 @@ async function loadData() {
     
     document.getElementById('logistTable').innerHTML = Object.entries(lm)
       .sort((a, b) => b[1].profitAMD - a[1].profitAMD)
-      .map(([n, d]) => 
-        `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`
-      ).join('');
+      .map(([n, d]) => `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`).join('');
     
     // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
@@ -467,22 +563,14 @@ async function loadData() {
       const clientUSD = convertToUSD(parseFloat(c.client_price || 0), clientCur);
       const carrierUSD = convertToUSD(parseFloat(c.carrier_price || 0), carrierCur);
       const profitAMD = usdToAMD(clientUSD - carrierUSD);
-      return `<tr>
-        <td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td>
-        <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-        <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
-        <td>${clientCur}/${carrierCur}</td><td>${esc(c.logist||'—')}</td>
-      </tr>`;
+      return `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td><td>${clientCur}/${carrierCur}</td><td>${esc(c.logist||'—')}</td></tr>`;
     }).join('');
     
-  } catch (err) {
-    document.getElementById('statsRowTop').innerHTML = '<p>Ошибка загрузки данных</p>';
-  }
+  } catch (err) { document.getElementById('statsGrid').innerHTML = '<p>Ошибка загрузки данных</p>'; }
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 
-// Инициализация
 fetchExchangeRates().then(() => {
   fetchBankBalances().then(() => {
     updateRateDisplay();
