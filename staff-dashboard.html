@@ -8,37 +8,49 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #F5FAFA; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
+    body { background: #EDF4F4; font-family: 'Inter', sans-serif; padding: 1.5rem; color: #1a1a1a; min-height: 100vh; }
     .app-wrapper { max-width: 1300px; margin: 0 auto; }
-    .top-bar { background: #FFFFFF; border-radius: 60px; padding: 0.7rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(85,183,189,0.25); }
-    .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; color: #1a1a1a; }
-    .top-bar .brand img { height: 40px; }
-    .btn-logout { background: #1E3B42; color: white; padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; }
-    .nav-links { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .nav-links a { background: #FFFFFF; color: #55B7BD; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(85,183,189,0.25); }
-    .nav-links a.active, .nav-links a:hover { background: #55B7BD; color: #0D1F23; }
+
+    .top-bar { background: #FFFFFF; border-radius: 16px; padding: 0.65rem 1.8rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border: none; box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 4px 16px rgba(30,59,66,0.06); }
+    .top-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1rem; text-decoration: none; color: #0D1F23; letter-spacing: -0.2px; }
+    .top-bar .brand img { height: 32px; }
+    .btn-logout { background: #F5FAFA; color: #1E3B42; border: 1.5px solid rgba(85,183,189,0.3); border-radius: 10px; padding: 7px 18px; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.18s; }
+    .btn-logout:hover { background: #E0F4F5; border-color: #55B7BD; color: #1E7A80; }
+
+    .nav-links { display: flex; gap: 4px; margin-bottom: 1.4rem; flex-wrap: wrap; padding: 4px; background: rgba(255,255,255,0.7); border-radius: 14px; width: fit-content; border: 1px solid rgba(85,183,189,0.15); }
+    .nav-links a { background: transparent; color: #5a7a80; padding: 8px 18px; border-radius: 11px; text-decoration: none; font-size: 0.8rem; font-weight: 600; border: none; transition: all 0.16s; }
+    .nav-links a:hover { background: #E8F6F6; color: #1E7A80; }
+    .nav-links a.active { background: #55B7BD; color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(85,183,189,0.4); }
+
+    .section-title { color: #8fa8ab; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.2px; margin: 1.8rem 0 0.8rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(85,183,189,0.2), transparent); }
+
     .bank-accounts, .rates-block { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
-    .bank-card, .rate-card { background: #FFFFFF; border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.2); }
+    .bank-card, .rate-card { background: #FFFFFF; border-radius: 16px; padding: 1.2rem; border: 1px solid rgba(85,183,189,0.15); box-shadow: 0 1px 4px rgba(30,59,66,0.04); transition: box-shadow 0.2s, transform 0.15s; }
+    .bank-card:hover, .rate-card:hover { box-shadow: 0 4px 20px rgba(85,183,189,0.15); transform: translateY(-1px); }
     .bank-card .bank-header, .rate-card .rate-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .bank-card .bank-currency, .rate-card .rate-currency { font-size: 1.2rem; font-weight: 800; color: #55B7BD; }
-    .bank-card .bank-flag, .rate-card .rate-flag { font-size: 1.5rem; }
-    .bank-card .bank-balance { font-size: 1.6rem; font-weight: 800; color: #1E3B42; margin-bottom: 4px; }
-    .rate-card .rate-value { font-size: 1.4rem; font-weight: 700; color: #1E3B42; margin-bottom: 4px; }
-    .bank-card .bank-sub, .rate-card .rate-sub { font-size: 0.8rem; color: #8fa8ab; margin-bottom: 8px; }
-    .bank-card input, .rate-card input { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px; font-size: 0.9rem; font-weight: 600; color: #1a1a1a; outline: none; margin-bottom: 6px; }
-    .bank-card input:focus, .rate-card input:focus { border-color: #55B7BD; }
-    .bank-card .btn-save-balance, .rate-card .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 4px; }
-    .bank-card .overdraft-label { font-size: 0.65rem; color: #E65100; font-weight: 600; margin-top: 8px; display: block; }
-    .bank-balance-negative { color: #C62828 !important; }
-    .bank-balance-zero { color: #8fa8ab !important; }
-    .bank-balance-positive { color: #1B7A3E !important; }
-    .bank-card-negative { border: 2px solid rgba(198,40,40,0.3) !important; background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%) !important; }
+    .bank-card .bank-currency, .rate-card .rate-currency { font-size: 0.95rem; font-weight: 800; color: #55B7BD; }
+    .bank-card .bank-flag, .rate-card .rate-flag { font-size: 1.1rem; }
+    .bank-card .bank-balance { font-size: 1.45rem; font-weight: 800; color: #1E3B42; margin-bottom: 4px; letter-spacing: -0.5px; }
+    .rate-card .rate-value { font-size: 1.3rem; font-weight: 800; color: #1E7A80; margin-bottom: 4px; }
+    .bank-card .bank-label { font-size: 0.75rem; color: #8fa8ab; margin-bottom: 8px; font-weight: 500; }
+    .bank-card .bank-sub, .rate-card .rate-sub { font-size: 0.72rem; color: #8fa8ab; margin-bottom: 8px; line-height: 1.5; }
+    .bank-card input, .rate-card input { width: 100%; background: #F5FAFA; border: 1px solid rgba(85,183,189,0.2); border-radius: 9px; padding: 6px 10px; font-size: 0.82rem; font-weight: 600; color: #1a1a1a; outline: none; margin-bottom: 6px; transition: border-color 0.15s; }
+    .bank-card input:focus, .rate-card input:focus { border-color: #55B7BD; box-shadow: 0 0 0 3px rgba(85,183,189,0.12); }
+    .bank-card .btn-save-balance, .rate-card .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 7px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.15s, transform 0.1s; }
+    .bank-card .btn-save-balance:hover, .rate-card .btn-save:hover { opacity: 0.88; transform: scale(0.98); }
+    .bank-card .overdraft-label { font-size: 0.72rem; font-weight: 700; color: #E65100; margin-bottom: 4px; }
+    .rate-card .rate-note { font-size: 0.68rem; color: #aac4c7; margin-top: 4px; }
 
-    /* Сетка статистики */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+    .stats-row { display: grid; gap: 10px; margin-bottom: 10px; }
+    .stats-row-top { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .stats-row-bottom { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 900px) {
+      .stats-row-top { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+      .stats-row-bottom { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
 
-    /* ===== STAT CARDS v2 ===== */
-    .stat-card { border-radius: 18px; padding: 14px 16px; position: relative; transition: transform 0.15s, box-shadow 0.15s; text-align: left; display: flex; flex-direction: column; gap: 4px; border: 1.5px solid rgba(85,183,189,0.2); background: #fff; }
+    .stat-card { border-radius: 18px; padding: 14px 16px; position: relative; transition: transform 0.15s, box-shadow 0.15s; text-align: left; display: flex; flex-direction: column; gap: 4px; border: 1.5px solid rgba(85,183,189,0.2); background: #fff; box-shadow: 0 1px 4px rgba(30,59,66,0.04); }
     .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
     .stat-card .num { font-size: 1.55rem; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
     .stat-card .lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -47,41 +59,32 @@
     .stat-card .icon { font-size: 1.1rem; }
     .stat-card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
 
-    /* Прибыль и Сделки */
     .stat-profit { background: linear-gradient(135deg,#e8f5e9,#f1fbf2); border-color: rgba(46,125,50,0.3); }
     .stat-profit .num { color: #1B5E20; } .stat-profit .lbl { color: #2E7D32; } .stat-profit .desc { color: #388E3C; } .stat-profit .tag { background: #C8E6C9; color: #1B5E20; }
 
-    /* Получено */
     .stat-success { background: linear-gradient(135deg,#e0f7e9,#f0fdf4); border-color: rgba(27,122,62,0.3); }
     .stat-success .num { color: #145A2E; } .stat-success .lbl { color: #1B7A3E; } .stat-success .desc { color: #2E7D32; } .stat-success .tag { background: #B9F2D0; color: #145A2E; }
 
-    /* Оплачено */
     .stat-warning { background: linear-gradient(135deg,#fff3e0,#fffdf5); border-color: rgba(230,81,0,0.25); }
     .stat-warning .num { color: #BF360C; } .stat-warning .lbl { color: #E65100; } .stat-warning .desc { color: #E65100; } .stat-warning .tag { background: #FFE0B2; color: #BF360C; }
 
-    /* Свободные средства */
     .stat-free { background: linear-gradient(135deg,#e0f4f5,#f0fbfc); border-color: rgba(85,183,189,0.35); }
     .stat-free .num { color: #155a5e; } .stat-free .lbl { color: #1E7A80; } .stat-free .desc { color: #3d9aa0; } .stat-free .tag { background: #B2EBF2; color: #155a5e; }
 
-    /* Отрицательный счёт */
-    .stat-danger { background: linear-gradient(135deg,#ffebee,#fff5f5); border: 2px solid rgba(198,40,40,0.35); }
+    .stat-danger { background: linear-gradient(135deg,#ffebee,#fff5f5); border: 2px solid rgba(198,40,40,0.35); animation: pulse-red 2.5s infinite; }
     .stat-danger .num { color: #B71C1C; } .stat-danger .lbl { color: #C62828; } .stat-danger .desc { color: #C62828; } .stat-danger .tag { background: #FFCDD2; color: #B71C1C; }
 
-    /* Чистый баланс отрицательный */
     .stat-netbal { background: linear-gradient(135deg,#fce4e4,#fff0f0); border: 2px solid rgba(183,28,28,0.4); animation: pulse-red 2.5s infinite; }
     .stat-netbal .num { color: #7F0000; } .stat-netbal .lbl { color: #B71C1C; } .stat-netbal .desc { color: #C62828; } .stat-netbal .tag { background: #FFCDD2; color: #7F0000; }
 
-    /* Дебиторка */
     .stat-debtor { background: linear-gradient(135deg,#e3f2fd,#f0f8ff); border-color: rgba(21,101,192,0.3); }
     .stat-debtor .num { color: #0D47A1; } .stat-debtor .lbl { color: #1565C0; } .stat-debtor .desc { color: #1976D2; } .stat-debtor .tag { background: #BBDEFB; color: #0D47A1; }
 
-    /* Кредиторка */
     .stat-creditor { background: linear-gradient(135deg,#f3e5f5,#fdf5ff); border-color: rgba(123,31,162,0.3); }
     .stat-creditor .num { color: #4A148C; } .stat-creditor .lbl { color: #7B1FA2; } .stat-creditor .desc { color: #8E24AA; } .stat-creditor .tag { background: #E1BEE7; color: #4A148C; }
 
     @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(198,40,40,0.2); } 50% { box-shadow: 0 0 0 8px rgba(198,40,40,0); } }
 
-    /* Финансовый срез */
     .fin-summary { background:#fff; border:1.5px solid rgba(85,183,189,0.25); border-radius:16px; padding:14px 18px; margin-bottom:12px; }
     .fin-summary h4 { font-size:0.72rem; font-weight:700; color:#1E3B42; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; justify-content:space-between; }
     .fin-bar { display:flex; border-radius:8px; overflow:hidden; height:30px; margin-bottom:8px; }
@@ -90,31 +93,44 @@
     .fin-row { display:flex; justify-content:space-between; font-size:0.72rem; color:#5a7a80; flex-wrap:wrap; gap:6px; }
     .fin-extra { margin-top:10px; padding-top:10px; border-top:1px solid rgba(85,183,189,0.15); display:flex; gap:20px; flex-wrap:wrap; font-size:0.72rem; color:#5a7a80; }
 
-    /* Легенда */
     .stats-legend { display:flex; gap:12px; flex-wrap:wrap; padding:8px 14px; background:#f8fdfd; border-radius:10px; border:1px solid rgba(85,183,189,0.2); font-size:0.68rem; color:#5a7a80; margin-bottom:1.2rem; }
     .leg-item { display:flex; align-items:center; gap:4px; font-weight:600; }
     .leg-dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
 
-    .section-title { color: #55B7BD; font-size: 1rem; margin: 1.5rem 0 0.8rem; text-transform: uppercase; }
-    .table-wrap { background: #FFFFFF; border-radius: 20px; padding: 1rem; border: 1px solid rgba(85,183,189,0.2); overflow-x: auto; margin-bottom: 1.5rem; }
+    .table-wrap { background: #FFFFFF; border-radius: 16px; padding: 0; border: 1px solid rgba(85,183,189,0.12); box-shadow: 0 1px 8px rgba(30,59,66,0.04); overflow: hidden; margin-bottom: 1.5rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    th { color: #55B7BD; text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(85,183,189,0.2); font-size: 0.65rem; text-transform: uppercase; background: #F5FAFA; }
-    td { padding: 8px; border-bottom: 1px solid #EEF4F4; color: #2d3a3d; }
-    .profit-positive { color: #3d9aa0; font-weight: 700; }
-    .status-badge { padding: 3px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 700; display: inline-block; }
-    .status-loading { background: #FFF3E0; color: #E65100; }
-    .status-onroad { background: #E3F2FD; color: #1565C0; }
-    .status-loaded { background: #E8F5F5; color: #3d9aa0; }
-    .status-completed { background: #EDE7F6; color: #4527A0; }
-    .form-add { background: #FFFFFF; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(85,183,189,0.25); display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-    .form-add input { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; outline: none; flex: 1; min-width: 150px; }
+    th { color: #8fa8ab; text-align: left; font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 11px 12px; background: #F7FBFB; border-bottom: 1px solid rgba(85,183,189,0.12); white-space: nowrap; }
+    td { padding: 11px 12px; color: #2a4a50; border-bottom: 1px solid rgba(85,183,189,0.07); vertical-align: middle; }
+    td:first-child { font-weight: 600; color: #1E3B42; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: rgba(85,183,189,0.025); }
+    tr:hover td { background: #F0F9F9; }
+    .profit-positive { color: #1a6b3c; font-weight: 700; }
+
+    .status-badge { padding: 3px 9px; border-radius: 6px; font-size: 0.63rem; font-weight: 700; display: inline-block; letter-spacing: 0.2px; white-space: nowrap; }
+    .status-loading { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+    .status-onroad { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+    .status-loaded { background: #F0FDFA; color: #0D9488; border: 1px solid #99F6E4; }
+    .status-completed { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+
+    .form-add { background: #F9FDFD; border-radius: 14px; padding: 12px 14px; margin-bottom: 1rem; border: 1px solid rgba(85,183,189,0.18); display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .form-add input { background: #fff; border: 1px solid rgba(85,183,189,0.25); border-radius: 10px; padding: 8px 12px; font-size: 0.83rem; outline: none; flex: 1; min-width: 150px; color: #1E3B42; transition: border-color 0.15s; }
+    .form-add input:focus { border-color: #55B7BD; box-shadow: 0 0 0 3px rgba(85,183,189,0.1); }
     .pwd-wrap { position: relative; flex: 1; min-width: 150px; }
     .pwd-wrap input { width: 100%; padding-right: 40px; }
-    .pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
-    .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
-    .btn-sm-del { background: #C62828; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; }
-    .show-pwd { color: #55B7BD; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
-    .rate-note { font-size: 0.6rem; color: #8fa8ab; margin-top: 2px; }
+    .pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1rem; color: #8fa8ab; }
+    .btn-sm { background: #55B7BD; color: #0D1F23; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
+    .btn-sm:hover { opacity: 0.88; transform: scale(0.98); }
+    .btn-sm-del { background: #ef4444; color: #fff; border: none; padding: 4px 11px; border-radius: 8px; font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+    .btn-sm-del:hover { opacity: 0.85; }
+    .show-pwd { color: #55B7BD; background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(85,183,189,0.35); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(85,183,189,0.6); }
+
+    input:focus, select:focus { outline: none; }
   </style>
 </head>
 <body>
@@ -156,13 +172,11 @@
     </div>
   </div>
   
-  <!-- Статистика в одной адаптивной сетке -->
-  <div class="stats-grid" id="statsGrid"></div>
+  <div class="stats-row stats-row-top" id="statsRowTop"></div>
+  <div class="stats-row stats-row-bottom" id="statsRowBottom"></div>
   
-  <!-- Финансовый срез -->
   <div class="fin-summary" id="financeSummary"></div>
   
-  <!-- Легенда -->
   <div class="stats-legend">
     <span class="leg-item"><span class="leg-dot" style="background:#1B5E20"></span> Прибыль / Сделки</span>
     <span class="leg-item"><span class="leg-dot" style="background:#145A2E"></span> Получено</span>
@@ -204,7 +218,6 @@ let usersList = [];
 let exchangeRates = null;
 let bankBalances = {};
 
-// ---------- Банковские счета ----------
 async function fetchBankBalances() {
   try {
     const res = await fetch(API_URL + '/api/bank-balances');
@@ -269,13 +282,8 @@ function renderBankAccounts() {
     
     return `
       <div class="bank-card${cardClass}">
-        <div class="bank-header">
-          <span class="bank-currency">${acc.currency}</span>
-          <span class="bank-flag">${acc.flag}</span>
-        </div>
-        <div class="bank-balance ${balanceClass}">
-          ${formatCurrency(displayBalance, acc.currency)}
-        </div>
+        <div class="bank-header"><span class="bank-currency">${acc.currency}</span><span class="bank-flag">${acc.flag}</span></div>
+        <div class="bank-balance ${balanceClass}">${formatCurrency(displayBalance, acc.currency)}</div>
         <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
         <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс на счёте" value="${balance}" onfocus="this.select()">
         <button class="btn-save-balance" onclick="saveBankBalance('${acc.currency}')">💾 Обновить баланс</button>
@@ -297,7 +305,6 @@ function saveOverdraft() {
   updateBankBalance('overdraft_AMD', overdraft);
 }
 
-// ---------- Курсы валют ----------
 async function fetchExchangeRates() {
   try {
     const res = await fetch(API_URL + '/api/rates');
@@ -349,7 +356,6 @@ function updateRateDisplay() {
   document.getElementById('rateRUB').textContent = `1 RUB = ${exchangeRates.RUB} AMD`;
 }
 
-// ---------- Конвертация валют ----------
 function convertToUSD(amount, currency) {
   if (!exchangeRates || !amount) return 0;
   if (currency === 'USD') return amount;
@@ -362,7 +368,6 @@ function convertToUSD(amount, currency) {
 function usdToAMD(usd) { return usd * (exchangeRates?.AMD || 400); }
 function currencySymbol(cur) { if (cur === 'EUR') return '€'; if (cur === 'AMD') return '֏'; return '$'; }
 
-// ---------- Пользователи ----------
 async function loadUsers() {
   try {
     const res = await fetch(API_URL + '/api/users');
@@ -410,7 +415,6 @@ async function deleteLogist(name) {
   await loadUsers();
 }
 
-// ---------- Данные по сделкам ----------
 async function loadData() {
   try {
     const res = await fetch(API_URL + '/api/cargo');
@@ -438,105 +442,25 @@ async function loadData() {
     const bankAMD = (bankBalances.USD || 0) * amdRate + (bankBalances.EUR || 0) * eurRate + (bankBalances.RUB || 0) * rubRate + (bankBalances.AMD || 0) - (bankBalances.overdraft_AMD || 0);
     const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
     
-    const cashGapClass = cashGapAMD > 0 ? 'stat-danger' : 'stat-free';
-    const cashGapIcon = cashGapAMD > 0 ? '⚠️' : '💰';
-    const cashGapLbl = cashGapAMD > 0 ? 'Кассовый разрыв' : 'Свободные средства';
-    const cashGapDesc = cashGapAMD > 0 ? 'Заплатили больше, чем получили' : 'Получили больше, чем заплатили';
-    const cashGapTag = cashGapAMD > 0 ? '⚠️ требуется внимание' : '✅ можем использовать';
-    
-    const netBalClass = netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal';
-    const netBalIcon = netBalanceAMD >= 0 ? '💎' : '🚨';
-    const netBalLbl = netBalanceAMD >= 0 ? 'Чистый баланс' : 'Чистый баланс';
-    const netBalDesc = netBalanceAMD >= 0 ? 'Счета + получено − оплачено' : 'Отрицательный: нужна подпитка';
-    const netBalTag = netBalanceAMD >= 0 ? '👍 всё хорошо' : '🔥 срочно';
-    
-    // Статистика (9 карточек)
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card stat-profit">
-        <div class="card-head"><span class="lbl">Прибыль</span><span class="icon">💹</span></div>
-        <div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div>
-        <div class="desc">разница между тарифом клиента и ставкой перевозчика</div>
-        <div class="tag">✅ наша маржа</div>
-      </div>
-      
-      <div class="stat-card stat-success">
-        <div class="card-head"><span class="lbl">Получено</span><span class="icon">📥</span></div>
-        <div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div>
-        <div class="desc">деньги, которые уже поступили от клиентов</div>
-        <div class="tag">✅ доход</div>
-      </div>
-      
-      <div class="stat-card stat-warning">
-        <div class="card-head"><span class="lbl">Оплачено</span><span class="icon">📤</span></div>
-        <div class="num">֏${Math.round(paidAMD).toLocaleString()}</div>
-        <div class="desc">деньги, которые мы уже отдали перевозчикам</div>
-        <div class="tag">🔥 расход</div>
-      </div>
-      
-      <div class="stat-card ${cashGapClass}">
-        <div class="card-head"><span class="lbl">${cashGapLbl}</span><span class="icon">${cashGapIcon}</span></div>
-        <div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div>
-        <div class="desc">${cashGapDesc}</div>
-        <div class="tag">${cashGapTag}</div>
-      </div>
-      
-      <div class="stat-card stat-debtor">
-        <div class="card-head"><span class="lbl">Ждём от клиентов</span><span class="icon">🕐</span></div>
-        <div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div>
-        <div class="desc">дебиторская задолженность — нам должны</div>
-        <div class="tag">📋 дебиторка</div>
-      </div>
-      
-      <div class="stat-card stat-creditor">
-        <div class="card-head"><span class="lbl">Должны перевозчикам</span><span class="icon">📋</span></div>
-        <div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div>
-        <div class="desc">кредиторская задолженность — мы должны</div>
-        <div class="tag">📌 кредиторка</div>
-      </div>
-      
-      <div class="stat-card stat-profit">
-        <div class="card-head"><span class="lbl">Счета (доступно)</span><span class="icon">🏦</span></div>
-        <div class="num">֏${Math.round(bankAMD).toLocaleString()}</div>
-        <div class="desc">банковские счета с вычетом овердрафта</div>
-        <div class="tag">💳 ликвидность</div>
-      </div>
-      
-      <div class="stat-card ${netBalClass}">
-        <div class="card-head"><span class="lbl">${netBalLbl}</span><span class="icon">${netBalIcon}</span></div>
-        <div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div>
-        <div class="desc">${netBalDesc}</div>
-        <div class="tag">${netBalTag}</div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="card-head"><span class="lbl">Всего сделок</span><span class="icon">📦</span></div>
-        <div class="num">${cargo.length}</div>
-        <div class="desc">общее количество проведённых сделок</div>
-        <div class="tag">📊 активность</div>
-      </div>
+    const topHTML = `
+      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
+      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
+      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>
+    `;
+    const bottomHTML = `
+      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
+      <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
+      <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
+      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
     `;
     
-    // Финансовый срез
-    const total = receivedAMD + paidAMD;
-    const pct = total > 0 ? Math.round((receivedAMD / total) * 100) : 50;
-    document.getElementById('financeSummary').innerHTML = `
-      <h4>💡 Финансовый срез <span style="font-weight:400;color:#8fa8ab">Получено vs Оплачено</span></h4>
-      <div class="fin-bar">
-        <div class="fin-bar-get" style="width:${pct}%">✅ ${pct}%</div>
-        <div class="fin-bar-pay" style="width:${100-pct}%">📤 ${100-pct}%</div>
-      </div>
-      <div class="fin-row">
-        <span><b style="color:#1B7A3E">֏${Math.round(receivedAMD).toLocaleString('ru')}</b> получено</span>
-        <span style="color:#1E7A80;font-weight:700">Прибыль: <b>֏${Math.round(totalProfitAMD).toLocaleString('ru')}</b></span>
-        <span><b style="color:#BF360C">֏${Math.round(paidAMD).toLocaleString('ru')}</b> оплачено</span>
-      </div>
-      <div class="fin-extra">
-        <span>🕐 Ждём: <b style="color:#1565C0">֏${Math.round(waitingClientsAMD).toLocaleString('ru')}</b></span>
-        <span>📋 Должны: <b style="color:#7B1FA2">֏${Math.round(waitingCarriersAMD).toLocaleString('ru')}</b></span>
-      </div>
-    `;
+    document.getElementById('statsRowTop').innerHTML = topHTML;
+    document.getElementById('statsRowBottom').innerHTML = bottomHTML;
     
-    // Заработок по логистам
+    renderFinanceSummary(Math.round(receivedAMD), Math.round(paidAMD), Math.round(totalProfitAMD), Math.round(waitingClientsAMD), Math.round(waitingCarriersAMD));
+    
     const lm = {};
     cargo.forEach(c => {
       const l = c.logist || '—';
@@ -550,11 +474,8 @@ async function loadData() {
       lm[l].profitAMD += usdToAMD(clientUSD - carrierUSD);
     });
     
-    document.getElementById('logistTable').innerHTML = Object.entries(lm)
-      .sort((a, b) => b[1].profitAMD - a[1].profitAMD)
-      .map(([n, d]) => `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`).join('');
+    document.getElementById('logistTable').innerHTML = Object.entries(lm).sort((a, b) => b[1].profitAMD - a[1].profitAMD).map(([n, d]) => `<tr><td>${esc(n)}</td><td>${d.count}</td><td>֏${Math.round(d.turnoverAMD).toLocaleString()}</td><td class="profit-positive">֏${Math.round(d.profitAMD).toLocaleString()}</td></tr>`).join('');
     
-    // Последние сделки
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
     document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
@@ -565,8 +486,26 @@ async function loadData() {
       const profitAMD = usdToAMD(clientUSD - carrierUSD);
       return `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td><td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td><td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td><td>${clientCur}/${carrierCur}</td><td>${esc(c.logist||'—')}</td></tr>`;
     }).join('');
-    
-  } catch (err) { document.getElementById('statsGrid').innerHTML = '<p>Ошибка загрузки данных</p>'; }
+  } catch (err) { document.getElementById('statsRowTop').innerHTML = '<p>Ошибка загрузки данных</p>'; }
+}
+
+function renderFinanceSummary(received, paid, profit, waitingClients, waitingCarriers) {
+  const total = received + paid;
+  const pct = total > 0 ? Math.round((received / total) * 100) : 50;
+  const el = document.getElementById('financeSummary');
+  if (!el) return;
+  el.innerHTML = `
+    <h4>💡 Финансовый срез <span style="font-weight:400;color:#8fa8ab">Получено vs Оплачено</span></h4>
+    <div class="fin-bar"><div class="fin-bar-get" style="width:${pct}%">✅ ${pct}%</div><div class="fin-bar-pay" style="width:${100-pct}%">📤 ${100-pct}%</div></div>
+    <div class="fin-row">
+      <span><b style="color:#1B7A3E">֏${received.toLocaleString('ru')}</b> получено</span>
+      <span style="color:#1E7A80;font-weight:700">Прибыль: <b>֏${profit.toLocaleString('ru')}</b></span>
+      <span><b style="color:#BF360C">֏${paid.toLocaleString('ru')}</b> оплачено</span>
+    </div>
+    <div class="fin-extra">
+      <span>🕐 Ждём: <b style="color:#1565C0">֏${waitingClients.toLocaleString('ru')}</b></span>
+      <span>📋 Должны: <b style="color:#7B1FA2">֏${waitingCarriers.toLocaleString('ru')}</b></span>
+    </div>`;
 }
 
 function esc(s) { return (s||'').replace(/</g,'&lt;'); }
