@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -25,12 +26,16 @@
     .nav-links a:hover { background: #E8F6F6; color: #1E7A80; }
     .nav-links a.active { background: #55B7BD; color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(85,183,189,0.4); }
 
-    .filter-bar { background: #fff; border-radius: 14px; padding: 12px 16px; margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; border: 1px solid rgba(85,183,189,0.15); box-shadow: 0 1px 4px rgba(30,59,66,0.04); }
-    .filter-bar label { font-size: 0.75rem; font-weight: 700; color: #5a7a80; display: flex; align-items: center; gap: 6px; }
-    .filter-bar input[type="date"], .filter-bar select { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 9px; padding: 6px 10px; font-size: 0.8rem; color: #1E3B42; outline: none; transition: border-color 0.15s; }
-    .filter-bar input[type="date"]:focus, .filter-bar select:focus { border-color: #55B7BD; box-shadow: 0 0 0 3px rgba(85,183,189,0.1); }
-    .btn-reset { background: #F5FAFA; color: #5a7a80; border: 1px solid rgba(85,183,189,0.2); border-radius: 9px; padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-    .btn-reset:hover { background: #E0F4F5; color: #1E7A80; }
+    /* ══════════════════
+       ФИЛЬТР-БАРА
+       ══════════════════ */
+    .filter-bar { background: #fff; border-radius: 14px; padding: 10px 16px; margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; border: 1px solid rgba(85,183,189,0.15); box-shadow: 0 1px 4px rgba(30,59,66,0.04); font-size: 0.8rem; color: #5a7a80; font-weight: 600; }
+    .filter-bar input[type="date"] { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 9px; padding: 6px 10px; font-size: 0.8rem; color: #1E3B42; outline: none; cursor: pointer; transition: border-color 0.15s; }
+    .filter-bar input[type="date"]:focus { border-color: #55B7BD; box-shadow: 0 0 0 3px rgba(85,183,189,0.1); }
+    .filter-bar select { background: #F5FAFA; border: 1px solid rgba(85,183,189,0.25); border-radius: 9px; padding: 6px 10px; font-size: 0.8rem; color: #1E3B42; outline: none; min-width: 120px; cursor: pointer; transition: border-color 0.15s; }
+    .filter-bar select:focus { border-color: #55B7BD; box-shadow: 0 0 0 3px rgba(85,183,189,0.1); }
+    .btn-reset { background: #F5FAFA; color: #5a7a80; border: 1px solid rgba(85,183,189,0.2); border-radius: 9px; padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn-reset:hover { background: #E0F4F5; color: #1E7A80; border-color: #55B7BD; }
 
     .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; }
     .stat-card { background: #fff; border-radius: 16px; padding: 12px 16px; border: 1.5px solid rgba(85,183,189,0.18); flex: 1; min-width: 120px; box-shadow: 0 1px 4px rgba(30,59,66,0.04); transition: transform 0.15s, box-shadow 0.15s; }
@@ -42,8 +47,36 @@
     .stat-warning .num { color: #BF360C; } .stat-warning { background: linear-gradient(135deg,#fff3e0,#fffdf8); border-color: rgba(230,81,0,0.2); }
     .stat-danger .num { color: #B71C1C; } .stat-danger { background: linear-gradient(135deg,#ffebee,#fff8f8); border-color: rgba(198,40,40,0.25); }
 
-    .btn-new { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 22px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 1rem; box-shadow: 0 3px 10px rgba(85,183,189,0.3); transition: opacity 0.15s, transform 0.1s; }
+    /* ══════════════════════════════════════
+       ФОРМА НОВОЙ / РЕДАКТИРОВАНИЯ СДЕЛКИ
+       ══════════════════════════════════════ */
+    #formTitle { font-size: 1rem; font-weight: 800; color: #1E3B42; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 2px solid rgba(85,183,189,0.2); letter-spacing: -0.2px; }
+    #addForm { background: #fff; border-radius: 16px; border: 1.5px solid rgba(85,183,189,0.2); box-shadow: 0 2px 16px rgba(30,59,66,0.06); padding: 1.4rem 1.6rem; margin-bottom: 1.2rem; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; margin-bottom: 12px; }
+    .form-row > div { display: flex; flex-direction: column; gap: 5px; }
+    .form-row label { font-size: 0.72rem; font-weight: 700; color: #5a7a80; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-row input[type="text"], .form-row input[type="number"], .form-row input[type="date"], .form-row select,
+    #addForm input[type="text"], #addForm input[type="number"], #addForm input[type="date"], #addForm select {
+      background: #F5FAFA; border: 1.5px solid rgba(85,183,189,0.22); border-radius: 10px; padding: 8px 12px; font-size: 0.85rem; font-weight: 500; color: #1E3B42; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+    }
+    #addForm input:focus, #addForm select:focus { border-color: #55B7BD; background: #fff; box-shadow: 0 0 0 3px rgba(85,183,189,0.12); }
+    .price-group { display: flex; gap: 6px; align-items: center; }
+    .price-group input { flex: 1; }
+    .price-group select { width: 60px !important; flex-shrink: 0; padding: 8px 6px !important; text-align: center; font-weight: 700 !important; color: #1E7A80 !important; }
+    .commission-auto { background: #EDF9F9 !important; border-color: rgba(85,183,189,0.35) !important; color: #1E7A80 !important; font-weight: 700 !important; cursor: default; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #F5FAFA; border-radius: 10px; border: 1px solid rgba(85,183,189,0.18); cursor: pointer; transition: background 0.15s; user-select: none; }
+    .checkbox-row:hover { background: #E8F6F6; }
+    .checkbox-row input[type="checkbox"] { width: 16px !important; height: 16px !important; accent-color: #55B7BD; cursor: pointer; flex-shrink: 0; padding: 0 !important; border-radius: 4px !important; }
+    .checkbox-row label { font-size: 0.82rem !important; font-weight: 600 !important; color: #1E3B42 !important; text-transform: none !important; letter-spacing: 0 !important; cursor: pointer; }
+    #paymentCheckboxes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    #paymentCheckboxes > div { flex: 1; min-width: 180px; }
+    .btn-save { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 24px; border-radius: 11px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 3px 10px rgba(85,183,189,0.3); }
+    .btn-save:hover { opacity: 0.88; transform: scale(0.98); }
+    .btn-cancel { background: #F5FAFA; color: #5a7a80; border: 1.5px solid rgba(85,183,189,0.25); padding: 10px 20px; border-radius: 11px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-left: 8px; transition: all 0.15s; }
+    .btn-cancel:hover { background: #E0F4F5; color: #1E7A80; border-color: #55B7BD; }
+    .btn-new { background: #55B7BD; color: #0D1F23; border: none; padding: 10px 22px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 1rem; box-shadow: 0 3px 10px rgba(85,183,189,0.3); transition: opacity 0.15s, transform 0.1s; display: inline-flex; align-items: center; gap: 6px; }
     .btn-new:hover { opacity: 0.88; transform: scale(0.98); }
+    #emptyMsg { text-align: center; padding: 2rem; color: #8fa8ab; font-size: 0.9rem; font-weight: 500; }
 
     .table-wrap { background: #FFFFFF; border-radius: 16px; border: 1px solid rgba(85,183,189,0.12); box-shadow: 0 1px 8px rgba(30,59,66,0.04); overflow: hidden; margin-bottom: 1.5rem; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -105,8 +138,8 @@
   </div>
   <div class="stats-row" id="statsRow"></div>
   <button class="btn-new" onclick="toggleForm()">+ Новая сделка</button>
-  <div class="form-add" id="addForm" style="display:none;">
-    <h3 style="color:#55B7BD;margin-bottom:12px;" id="formTitle">Новая сделка</h3>
+  <div id="addForm" style="display:none;">
+    <h3 id="formTitle">Новая сделка</h3>
     <input type="hidden" id="editId">
     <div class="form-row">
       <div><label>Клиент *</label><input type="text" id="fClient" list="clientList"><datalist id="clientList"></datalist></div>
@@ -150,7 +183,7 @@
       <div><label>Прибыль (AMD)</label><input type="text" id="fCommission" readonly class="commission-auto"></div>
       <div><label>Логист</label><input type="text" id="fLogist"></div>
     </div>
-    <div class="form-row" id="paymentCheckboxes" style="display:none;">
+    <div id="paymentCheckboxes" style="display:none;">
       <div><div class="checkbox-row"><input type="checkbox" id="fClientPaid"> <label>✅ Клиент оплатил</label></div></div>
       <div><div class="checkbox-row"><input type="checkbox" id="fCarrierPaid"> <label>✅ Перевозчику оплачено</label></div></div>
     </div>
@@ -164,7 +197,7 @@
       <thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Загрузка</th><th>Выгрузка</th><th>Дата загрузки</th><th>Статус</th><th>Клиент</th><th>Перевоз</th><th>Прибыль (AMD)</th><th>Оплата</th><th>Логист</th><th></th></tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
-    <p style="text-align:center;color:#8fa8ab;padding:20px;" id="emptyMsg">Загрузка...</p>
+    <p id="emptyMsg">Загрузка...</p>
   </div>
 </div>
 
@@ -253,7 +286,7 @@ function toggleForm(show=true) {
     document.getElementById('fCarrierCurrency').value = 'USD';
     document.getElementById('formTitle').textContent = 'Новая сделка';
     document.getElementById('editId').value = '';
-    document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'block' : 'none';
+    document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'flex' : 'none';
     ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fStatus').value = 'loading';
     document.getElementById('fClientPaid').checked = false;
@@ -331,7 +364,7 @@ async function editCargo(id) {
   calcCommission();
   document.getElementById('fLogist').value = c.logist || user;
   if (isAdmin) {
-    document.getElementById('paymentCheckboxes').style.display = 'block';
+    document.getElementById('paymentCheckboxes').style.display = 'flex';
     document.getElementById('fClientPaid').checked = c.client_paid || false;
     document.getElementById('fCarrierPaid').checked = c.carrier_paid || false;
   }
@@ -465,3 +498,4 @@ fetchExchangeRates().then(refreshData);
 </script>
 </body>
 </html>
+```
