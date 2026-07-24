@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -277,20 +276,37 @@ function populateDatalists() {
   document.getElementById('carrierList').innerHTML = carriersData.map(c => `<option value="${esc(c.name)}">`).join('');
 }
 
-function toggleForm(show=true) {
+/* ──────────────────────────────────────────────────────────
+   ИСПРАВЛЕНИЕ БАГА:
+   Раньше toggleForm(show) при show === true ВСЕГДА сбрасывала
+   поля (в т.ч. editId), даже если её вызывали из editCargo()
+   уже ПОСЛЕ того, как поля были заполнены данными сделки.
+   Из-за этого редактирование превращалось в создание новой записи.
+
+   Теперь у функции два параметра:
+   - show  — показать/скрыть форму
+   - reset — сбрасывать ли поля (по умолчанию true, чтобы кнопка
+             "+ Новая сделка" продолжала работать как раньше)
+
+   editCargo() ниже вызывает toggleForm(true, false) — то есть
+   "покажи форму, но не трогай уже подставленные значения".
+   ────────────────────────────────────────────────────────── */
+function toggleForm(show = true, reset = true) {
   const form = document.getElementById('addForm');
   if (show) {
     form.style.display = 'block';
-    document.getElementById('fLogist').value = user;
-    document.getElementById('fClientCurrency').value = 'USD';
-    document.getElementById('fCarrierCurrency').value = 'USD';
-    document.getElementById('formTitle').textContent = 'Новая сделка';
-    document.getElementById('editId').value = '';
-    document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'flex' : 'none';
-    ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('fStatus').value = 'loading';
-    document.getElementById('fClientPaid').checked = false;
-    document.getElementById('fCarrierPaid').checked = false;
+    if (reset) {
+      document.getElementById('fLogist').value = user;
+      document.getElementById('fClientCurrency').value = 'USD';
+      document.getElementById('fCarrierCurrency').value = 'USD';
+      document.getElementById('formTitle').textContent = 'Новая сделка';
+      document.getElementById('editId').value = '';
+      document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'flex' : 'none';
+      ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fStatus').value = 'loading';
+      document.getElementById('fClientPaid').checked = false;
+      document.getElementById('fCarrierPaid').checked = false;
+    }
   } else {
     form.style.display = 'none';
   }
@@ -369,7 +385,7 @@ async function editCargo(id) {
     document.getElementById('fCarrierPaid').checked = c.carrier_paid || false;
   }
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
-  toggleForm(true);
+  toggleForm(true, false);
 }
 
 async function deleteCargo(id) {
@@ -498,4 +514,3 @@ fetchExchangeRates().then(refreshData);
 </script>
 </body>
 </html>
-```
