@@ -1,6 +1,20 @@
 const API_URL = 'https://gl-api.gltransam.workers.dev';
 const ADMIN_USER = 'TigranMetspagyan';
-const SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 часов — считаем сессию истёкшей после этого
+const SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+const INACTIVITY_MS = 30 * 60 * 1000; // 30 минут неактивности → выход
+let inactivityTimer;
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    alert('Сессия завершена из-за неактивности (30 мин).');
+    doLogout();
+  }, INACTIVITY_MS);
+}
+['click','keydown','mousemove','touchstart'].forEach(e =>
+  document.addEventListener(e, resetInactivityTimer, { passive: true })
+);
+resetInactivityTimer();
 
 const user = localStorage.getItem('gl_staff_user');
 const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0', 10);
@@ -241,7 +255,8 @@ function renderAll() {
   const start = document.getElementById('filterStart').value,
         end = document.getElementById('filterEnd').value,
         fl = document.getElementById('filterLogist').value,
-        fp = document.getElementById('filterPayment').value;
+        fp = document.getElementById('filterPayment').value,
+        search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
   let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
   if (start) list = list.filter(c => c.load_date >= start);
@@ -252,6 +267,10 @@ function renderAll() {
   if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
   if (fp === 'carrier_paid') list = list.filter(c => c.carrier_paid);
   if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid);
+  if (search) list = list.filter(c =>
+    [c.client_name, c.carrier_name, c.product, c.logist, c.city_load, c.city_unload, c.country_load, c.country_unload]
+      .some(v => v && v.toLowerCase().includes(search))
+  );
 
   if (isAdmin) {
     const logists = [...new Set(allCargoData.map(c => c.logist).filter(Boolean))];
@@ -333,10 +352,127 @@ function init() {
   document.getElementById('filterEnd').addEventListener('change', renderAll);
   document.getElementById('filterLogist').addEventListener('change', renderAll);
   document.getElementById('filterPayment').addEventListener('change', renderAll);
+  document.getElementById('searchInput')?.addEventListener('input', renderAll);
+  document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
   document.getElementById('fClientPrice').addEventListener('input', calcCommission);
   document.getElementById('fCarrierPrice').addEventListener('input', calcCommission);
   document.getElementById('fClientCurrency').addEventListener('change', calcCommission);
   document.getElementById('fCarrierCurrency').addEventListener('change', calcCommission);
 
   fetchExchangeRates().then(refreshData);
+}
+
+// ── Экспорт в Excel по шаблону ────────────────────────────────────────────────
+async function exportToExcel() {
+  if (!window.XLSX) { alert('SheetJS не загружен'); return; }
+
+  // Получаем отфильтрованные данные
+  const start = document.getElementById('filterStart').value;
+  const end   = document.getElementById('filterEnd').value;
+  const fl    = document.getElementById('filterLogist').value;
+  const fp    = document.getElementById('filterPayment').value;
+  const search= (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+
+  let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
+  if (start) list = list.filter(c => c.load_date >= start);
+  if (end)   list = list.filter(c => c.load_date <= end);
+  if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
+  if (fp === 'client_pending')  list = list.filter(c => !c.client_paid);
+  if (fp === 'client_paid')     list = list.filter(c => c.client_paid);
+  if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
+  if (fp === 'carrier_paid')    list = list.filter(c => c.carrier_paid);
+  if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid);
+  if (search) list = list.filter(c =>
+    [c.client_name, c.carrier_name, c.product, c.logist].some(v => v && v.toLowerCase().includes(search))
+  );
+
+  if (!list.length) { alert('Нет данных для экспорта'); return; }
+
+  const rates = exchangeRates || { AMD: 367, EUR: 418, RUB: 4.73 };
+
+  // Заголовки по шаблону
+  const headers = [
+    'Ամսաthiv',        // B: Дата клиента (load_date)
+    'Գумар',            // C: Сумма клиента
+    'Ар жу йт',         // D: Валюта клиента
+    'Փо хар жеq',       // E: Курс клиента (ЦБ)
+    'Bnдаmenea ՀՀ драm',// F: =C*E
+    'Ամсатhiv',         // G: Дата перевозчика (unload_date)
+    'Գumар',            // H: Сумма перевозчика
+    'Ар жу йт',         // I: Валюта перевозчика
+    'Փо хар жеq',       // J: Курс перевозчика
+    'Bnдаmenea ՀՀ драm',// K: =H*J
+    'Шрж harki harkman baza ՀՀ драm', // L: K-F
+    'Гumара',           // M: Комиссия (жёлтая)
+    'Вчарман амсатhива',// N: Дата оплаты
+    '5%',               // O: M*5%
+    'Арж ута',          // P: Валюта комиссии
+    'Փо хар жеq',       // Q: Курс
+    'Оч рezi шah гумара', // R: O*Q
+  ];
+
+  // Правильные армянские заголовки из шаблона
+  const hdrs = [
+    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Ընд ՀՀ дрм',
+    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Ընд ՀՀ дрм',
+    'Шрж hark baza ՀՀ', 'Гумар', 'Вчар амс', '5%', 'Арж', 'Փох', 'Оч рez шah',
+  ];
+
+  // Строим данные
+  const rows = list.map(c => {
+    const ccur = c.client_currency || c.currency || 'USD';
+    const kcur = c.carrier_currency || c.currency || 'USD';
+    const crate = ccur === 'AMD' ? 1 : ccur === 'EUR' ? rates.EUR : ccur === 'RUB' ? rates.RUB : rates.AMD;
+    const krate = kcur === 'AMD' ? 1 : kcur === 'EUR' ? rates.EUR : kcur === 'RUB' ? rates.RUB : rates.AMD;
+    const camt = parseFloat(c.client_price) || 0;
+    const kamt = parseFloat(c.carrier_price) || 0;
+    const comm = parseFloat(c.commission) || null;
+
+    return [
+      c.load_date || '',      // B
+      camt,                   // C
+      ccur,                   // D
+      crate,                  // E
+      camt * crate,           // F = C*E
+      c.unload_date || '',    // G
+      kamt,                   // H
+      kcur,                   // I
+      krate,                  // J
+      kamt * krate,           // K = H*J
+      (kamt * krate) - (camt * crate), // L = K-F
+      comm !== null ? comm : 'ՉԿԱ', // M жёлтая
+      '',                     // N дата оплаты
+      comm !== null ? comm * 0.05 : '', // O = M*5%
+      comm !== null ? ccur : '', // P валюта
+      '',                     // Q курс нерезидента
+      '',                     // R = O*Q
+    ];
+  });
+
+  // Создаём workbook через SheetJS
+  const wb = XLSX.utils.book_new();
+
+  // Заголовки из шаблона (армянские)
+  const sheetHeaders = [
+    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Bnд ՀՀ дрм',
+    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Bnд ՀՀ дрм',
+    'Шрж hark baza', 'Гумара', 'Вчар амс', '5%', 'Арж', 'Փох', 'Оч рez',
+  ];
+
+  const wsData = [sheetHeaders, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Ширины колонок
+  ws['!cols'] = [
+    {wch:12},{wch:10},{wch:6},{wch:10},{wch:14},
+    {wch:12},{wch:12},{wch:6},{wch:10},{wch:14},
+    {wch:16},{wch:10},{wch:12},{wch:8},{wch:6},{wch:10},{wch:12},
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Сделки');
+
+  // Имя файла с датой
+  const today = new Date().toISOString().slice(0,10);
+  const fname = `GL_Cargo_${today}.xlsx`;
+  XLSX.writeFile(wb, fname);
 }
