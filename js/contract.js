@@ -538,7 +538,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
       });
     } catch (_) {}
 
-    // Письмо клиенту с PDF-ссылкой
+    // Письмо клиенту с PDF во вложении
     try {
       await fetch(WORKER_URL + '/api/send-email', {
         method: 'POST',
@@ -546,12 +546,11 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         body: JSON.stringify({
           to: customerEmail,
           subject: 'GL Logistics — Ваш договор №' + contractNumber + ' подписан',
+          pdfKey: cloudinaryUrl ? new URL(cloudinaryUrl).pathname.split('/api/contract-pdf/')[1] : null,
+          pdfName: 'contract-' + contractNumber + '.pdf',
           html: `<p>Уважаемый(ая) ${signatoryName},</p>
 <p>Ваш договор №<b>${contractNumber}</b> успешно подписан и отправлен в GL Logistics.</p>
-${cloudinaryUrl
-  ? `<p><a href="${cloudinaryUrl}" style="background:#55B7BD;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;margin:16px 0">📄 Скачать PDF договора</a></p>`
-  : '<p>PDF был автоматически скачан на ваше устройство.</p>'
-}
+<p>Договор прикреплён к этому письму в виде PDF-файла.</p>
 <p>Спасибо за выбор GL Logistics!</p>
 <hr>
 <p style="color:#888;font-size:12px">GL Logistics LLC · +374 93 66 14 54 · info@gllogistics.org · gllogistics.org</p>`
