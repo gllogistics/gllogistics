@@ -411,14 +411,28 @@ async function exportToExcel() {
     'Оч рezi шah гумара', // R: O*Q
   ];
 
-  // Правильные армянские заголовки из шаблона
-  const hdrs = [
-    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Ընд ՀՀ дрм',
-    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Ընд ՀՀ дрм',
-    'Шрж hark baza ՀՀ', 'Гумар', 'Вчар амс', '5%', 'Арж', 'Փох', 'Оч рez шah',
+  // Заголовки точно по шаблону: сначала перевозчик (что платим), потом клиент (что берём)
+  const sheetHeaders = [
+    'Ամсатhив',          // B: Дата перевозчика
+    'Гумар',             // C: Сумма перевозчика
+    'Арж',               // D: Валюта перевозчика
+    'Փох',               // E: Курс перевозчика (ЦБ)
+    'Bnд ՀՀ дрм',        // F: =C*E (AMD перевозчику)
+    'Ամсатhив',          // G: Дата клиента
+    'Гумар',             // H: Сумма клиента
+    'Арж',               // I: Валюта клиента
+    'Փох',               // J: Курс клиента
+    'Bnд ՀՀ дрм',        // K: =H*J (AMD от клиента)
+    'Шрж hark baza',     // L: K-F (налоговая база)
+    'Гумара',            // M: Комиссия (жёлтая)
+    'Вчар амс',          // N: Дата оплаты
+    '5%',                // O: M*5%
+    'Арж',               // P: Валюта
+    'Փох',               // Q: Курс нерезидента
+    'Оч рez',            // R: O*Q
   ];
 
-  // Строим данные
+  // Строим данные: сначала перевозчик, потом клиент
   const rows = list.map(c => {
     const ccur = c.client_currency || c.currency || 'USD';
     const kcur = c.carrier_currency || c.currency || 'USD';
@@ -429,35 +443,25 @@ async function exportToExcel() {
     const comm = parseFloat(c.commission) || null;
 
     return [
-      c.load_date || '',      // B
-      camt,                   // C
-      ccur,                   // D
-      crate,                  // E
-      camt * crate,           // F = C*E
-      c.unload_date || '',    // G
-      kamt,                   // H
-      kcur,                   // I
-      krate,                  // J
-      kamt * krate,           // K = H*J
-      (kamt * krate) - (camt * crate), // L = K-F
-      comm !== null ? comm : 'ՉԿԱ', // M жёлтая
-      '',                     // N дата оплаты
-      comm !== null ? comm * 0.05 : '', // O = M*5%
-      comm !== null ? ccur : '', // P валюта
-      '',                     // Q курс нерезидента
-      '',                     // R = O*Q
+      c.unload_date || '',    // B: дата перевозчика
+      kamt,                   // C: сумма перевозчика
+      kcur,                   // D: валюта перевозчика
+      krate,                  // E: курс перевозчика
+      kamt * krate,           // F: AMD перевозчику
+      c.load_date || '',      // G: дата клиента
+      camt,                   // H: сумма клиента
+      ccur,                   // I: валюта клиента
+      crate,                  // J: курс клиента
+      camt * crate,           // K: AMD от клиента
+      (camt * crate) - (kamt * krate), // L: налоговая база (клиент - перевозчик)
+      comm !== null ? comm : 'ՉԿԱ', // M: комиссия
+      '',                     // N: дата оплаты
+      comm !== null ? comm * 0.05 : '', // O: 5%
+      comm !== null ? ccur : '',        // P: валюта
+      '',                     // Q: курс нерезидента
+      '',                     // R: O*Q
     ];
   });
-
-  // Создаём workbook через SheetJS
-  const wb = XLSX.utils.book_new();
-
-  // Заголовки из шаблона (армянские)
-  const sheetHeaders = [
-    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Bnд ՀՀ дрм',
-    'Ամсатhив', 'Гумар', 'Арж', 'Փох', 'Bnд ՀՀ дрм',
-    'Шрж hark baza', 'Гумара', 'Вчар амс', '5%', 'Арж', 'Փох', 'Оч рez',
-  ];
 
   const wsData = [sheetHeaders, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
