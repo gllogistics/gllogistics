@@ -142,12 +142,17 @@ async function saveManualRates() {
 
 async function autoFetchRates() {
   try {
-    const data = await api('/api/rates');
+    const data = await api('/api/rates/refresh');
+    if (data.error) throw new Error(data.error);
     document.getElementById('manualRateUSD').value = data.AMD;
     document.getElementById('manualRateEUR').value = data.EUR;
     document.getElementById('manualRateRUB').value = data.RUB;
-    alert('Курс ЦБ Армении загружен! Нажмите «Сохранить», чтобы применить.');
-  } catch (e) { alert('Не удалось загрузить курсы автоматически.'); }
+    // Сразу применяем — не нужно нажимать Сохранить
+    exchangeRates = { USD: 1, AMD: data.AMD, EUR: data.EUR, RUB: data.RUB };
+    updateRateDisplay();
+    loadData();
+    alert(`Курс ЦБ Армении обновлён (${data.source || 'cb.am'}):\n1 USD = ${data.AMD} AMD\n1 EUR = ${data.EUR} AMD\n1 RUB = ${data.RUB} AMD`);
+  } catch (e) { alert('Не удалось загрузить курсы ЦБ Армении: ' + e.message); }
 }
 
 function updateRateDisplay() {
