@@ -671,7 +671,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     toHide.forEach(el => { el.dataset.oldDisplay = el.style.display; el.style.display = 'none'; });
 
     const canvasEl = await html2canvas(previewDiv, {
-      scale: 2, useCORS: true, backgroundColor: '#FFFFFF', logging: false,
+      scale: 2, useCORS: true, backgroundColor: null, logging: false,
       ignoreElements: el => el.id === 'stampResizeHandle' || el.id === 'sigResizeHandle'
                          || el.id === 'stampHint'         || el.id === 'sigHint',
     });
@@ -691,7 +691,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
     const imgH = usableW * imgRatio;
 
     if (imgH <= pageH - margin * 2) {
-      pdf.addImage(canvasEl.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, imgH);
+      pdf.addImage(canvasEl.toDataURL('image/png'), 'PNG', margin, margin, usableW, imgH);
     } else {
       let yOffset = 0;
       const sliceH = Math.floor(canvasEl.width * (pageH - margin * 2) / usableW);
@@ -702,7 +702,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         slice.getContext('2d').drawImage(canvasEl, 0, yOffset, canvasEl.width, slice.height, 0, 0, canvasEl.width, slice.height);
         if (yOffset > 0) pdf.addPage();
         const sliceImgH = slice.height * usableW / canvasEl.width;
-        pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, sliceImgH);
+        pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, usableW, sliceImgH);
         yOffset += sliceH;
       }
     }
