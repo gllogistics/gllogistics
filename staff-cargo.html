@@ -128,7 +128,9 @@
       <option value="carrier_paid">Перевозчику оплачено</option>
       <option value="gap">Кассовый разрыв</option>
     </select>
+    <input type="text" id="searchInput" placeholder="🔍 Поиск..." style="margin-left:12px;padding:6px 10px;border-radius:8px;border:1px solid #2a4a50;background:#0A1F25;color:#fff;width:160px;font-size:0.8rem;">
     <button id="resetFilterBtn" class="btn-reset">✕ Сбросить</button>
+    <button id="exportExcelBtn" class="btn-reset" style="background:#1E7A80;color:#fff;margin-left:6px;">📊 Excel</button>
   </div>
   <div class="stats-row" id="statsRow"></div>
   <button class="btn-new" id="newDealBtn">+ Новая сделка</button>
@@ -195,6 +197,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/staff-cargo.js"></script>
 </body>
 </html>
