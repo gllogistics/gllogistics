@@ -489,15 +489,24 @@ function showSigOverlay() {
 initSigOverlay();
 
 function captureSignature(){
-  const dataUrl = signaturePad?.toDataURL('image/png');
-  if (!dataUrl || signaturePad?.isEmpty()) return;
+  if (!signaturePad) return;
+  const dataUrl = signaturePad.toDataURL('image/png');
+  if (!dataUrl) return;
   signatureDataUrl = dataUrl;
   document.getElementById('signaturePreview').src = signatureDataUrl;
   document.getElementById('signaturePreview').style.display = 'block';
+  // Показываем overlay без полного рендера договора — быстро
   adjustOverlayPositions();
+  let sigOv = document.getElementById('sigOverlay');
+  if (!sigOv) {
+    sigOv = document.createElement('div');
+    sigOv.id = 'sigOverlay';
+    sigOv.innerHTML = `<img id="sigOverlayImg" src="" alt="signature"><div id="sigResizeHandle"></div><div id="sigHint">↔ перетащите · ↘ тяните угол</div>`;
+    previewDiv.appendChild(sigOv);
+    initSigOverlay();
+  }
   showSigOverlay();
-  renderContract();
-  setTimeout(()=>{ window.scrollTo({top: sigY - 150, behavior:'smooth'}); }, 150);
+  window.scrollTo({top: previewDiv.getBoundingClientRect().top + window.scrollY + sigY - 150, behavior:'smooth'});
 }
 function initSignaturePad(){
   const ratio = window.devicePixelRatio || 1;
