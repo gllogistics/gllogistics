@@ -31,19 +31,21 @@
     .contract-scroll { overflow-y: visible; padding: 2rem 2rem; }
     .contract-preview { font-family: 'Times New Roman', 'Georgia', serif; font-size: 12px; line-height: 1.5; color: #1E2F33; position: relative; min-height: 600px; }
     /* Draggable stamp overlay */
-    #stampOverlay {
+    #stampOverlay, #sigOverlay {
       position: absolute; cursor: move; user-select: none;
       border: 2px dashed rgba(85,183,189,0.6); border-radius: 4px;
       display: none; touch-action: none;
     }
-    #stampOverlay:hover { border-color: #55B7BD; }
-    #stampOverlay img { width: 100%; height: 100%; object-fit: contain; opacity: 0.82; display: block; }
-    #stampResizeHandle {
+    #stampOverlay:hover, #sigOverlay:hover { border-color: #55B7BD; }
+    #stampOverlay img, #sigOverlay img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #stampOverlay img { opacity: 0.82; }
+    #sigOverlay img { opacity: 1; }
+    #stampResizeHandle, #sigResizeHandle {
       position: absolute; bottom: -6px; right: -6px;
       width: 14px; height: 14px; background: #55B7BD; border-radius: 50%;
       cursor: se-resize; border: 2px solid #fff;
     }
-    #stampHint {
+    #stampHint, #sigHint {
       position: absolute; bottom: -22px; left: 0; font-size: 10px;
       color: #55B7BD; white-space: nowrap; pointer-events: none;
     }
@@ -108,6 +110,11 @@
         <img id="stampOverlayImg" src="" alt="stamp">
         <div id="stampResizeHandle"></div>
         <div id="stampHint">↔ перетащите · ↘ тяните угол</div>
+      </div>
+      <div id="sigOverlay">
+        <img id="sigOverlayImg" src="" alt="signature">
+        <div id="sigResizeHandle"></div>
+        <div id="sigHint">↔ перетащите · ↘ тяните угол</div>
       </div>
     </div></div></div>
     <div class="form-panel">
