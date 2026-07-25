@@ -475,9 +475,17 @@ function renderContract(){
   document.getElementById('contractNumberDisplay').textContent=contractNumber;
   const fn=contracts[currentType][currentLang];
   previewDiv.innerHTML=watermark() + docFooter() + fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
-  // Перемещаем оверлей печати обратно в previewDiv (innerHTML его сбрасывает)
-  const overlay = document.getElementById('stampOverlay');
-  if (overlay && overlay.parentNode !== previewDiv) previewDiv.appendChild(overlay);
+
+  // innerHTML сбрасывает весь DOM — пересоздаём stampOverlay
+  let overlay = document.getElementById('stampOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'stampOverlay';
+    overlay.innerHTML = `<img id="stampOverlayImg" src="" alt="stamp"><div id="stampResizeHandle"></div><div id="stampHint">↔ перетащите · ↘ тяните угол</div>`;
+    previewDiv.appendChild(overlay);
+    // Переинициализируем drag после пересоздания
+    initStampOverlay();
+  }
   showStampOverlay();
 }
 
