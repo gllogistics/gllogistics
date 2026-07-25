@@ -513,12 +513,13 @@ function initSignaturePad(){
   canvas.width  = (canvas.offsetWidth  || 300) * ratio;
   canvas.height = (canvas.offsetHeight || 80)  * ratio;
   canvas.getContext('2d').scale(ratio, ratio);
-  signaturePad=new SignaturePad(canvas,{
-    backgroundColor:'rgba(255,255,255,0)',
-    penColor:'rgb(10,10,10)',
-    minWidth:1, maxWidth:3,
-    onEnd: captureSignature
+  signaturePad = new SignaturePad(canvas, {
+    backgroundColor: 'rgba(255,255,255,0)',
+    penColor: 'rgb(10,10,10)',
+    minWidth: 1, maxWidth: 3,
   });
+  // SignaturePad v4 использует события вместо onEnd callback
+  signaturePad.addEventListener('endStroke', captureSignature);
 }
 initSignaturePad();
 window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignaturePad();if(d&&d.length>0){signaturePad.fromData(d);captureSignature();}});
