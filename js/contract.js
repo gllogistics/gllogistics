@@ -514,6 +514,26 @@ window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignatur
 
 document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';showSigOverlay();renderContract();});
 
+// Загрузка подписи с компьютера
+document.getElementById('sigUploadTrigger').addEventListener('click',()=>document.getElementById('sigInput').click());
+document.getElementById('sigInput').addEventListener('change',(e)=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=(ev)=>{
+    signatureDataUrl=ev.target.result;
+    document.getElementById('signaturePreview').src=signatureDataUrl;
+    document.getElementById('signaturePreview').style.display='block';
+    // Очищаем canvas чтобы не было двойной подписи
+    if(signaturePad) signaturePad.clear();
+    adjustOverlayPositions();
+    showSigOverlay();
+    renderContract();
+    setTimeout(()=>{ window.scrollTo({top: sigY - 150, behavior:'smooth'}); }, 150);
+  };
+  r.readAsDataURL(f);
+});
+
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
 document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';adjustOverlayPositions();showStampOverlay();renderContract();
   setTimeout(()=>{
