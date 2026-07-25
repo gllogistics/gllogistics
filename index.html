@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="GL Logistics — международные грузоперевозки из Европы, Китая и по странам СНГ. Ваш надёжный партнёр в логистике с 2023 года.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://unpkg.com https://*.basemaps.cartocdn.com; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self';">
 <title>GL Logistics — Your supply chain partner everywhere</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -310,9 +312,9 @@
     </div>
   </div>
   <div class="lang-buttons">
-<button class="lang-btn active" onclick="setLang('en')">EN</button>
-<button class="lang-btn" onclick="setLang('ru')">RU</button>
-<button class="lang-btn" onclick="setLang('am')">HAY</button>
+<button class="lang-btn active" data-setlang="en">EN</button>
+<button class="lang-btn" data-setlang="ru">RU</button>
+<button class="lang-btn" data-setlang="am">HAY</button>
   </div>
 </nav>
 
@@ -467,41 +469,8 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
-<script>
-  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
-  formspree('initForm', { formElement: '#priceForm', formId: 'mdajazoz' });
-</script>
+<script src="js/formspree-init.js"></script>
 <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
-<script>
-  const officeCoords = [40.1559722, 44.5058611];
-  const map = L.map('map').setView(officeCoords, 17);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-  L.marker(officeCoords).addTo(map).bindPopup("<b>GL Logistics</b><br>Երևան, Շենգավիթ, Սևանի 86/2").openPopup();
-  
-  function setLang(lang) {
-    document.querySelectorAll('[data-lang]').forEach(el => {
-      el.classList.toggle('lang-active', el.dataset.lang === lang);
-    });
-    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-    if (lang === 'am') document.querySelector('.lang-btn[onclick="setLang(\'am\')"]').classList.add('active');
-    if (lang === 'ru') document.querySelector('.lang-btn[onclick="setLang(\'ru\')"]').classList.add('active');
-    if (lang === 'en') document.querySelector('.lang-btn[onclick="setLang(\'en\')"]').classList.add('active');
-    document.documentElement.lang = lang;
-  }
-  setLang('en');
-  
-  const obs = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')), { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-  const chatToggle = document.getElementById('chatToggle'), chatOptions = document.getElementById('chatOptions');
-  chatToggle.addEventListener('click', () => chatOptions.classList.toggle('show-chat'));
-  document.addEventListener('click', (e) => { if (!chatToggle.contains(e.target) && !chatOptions.contains(e.target)) chatOptions.classList.remove('show-chat'); });
-  
-  const modal = document.getElementById('priceModal');
-  const priceBtn = document.getElementById('priceRequestBtn');
-  const closeModal = document.getElementById('closeModal');
-  priceBtn.onclick = () => modal.classList.add('active');
-  closeModal.onclick = () => modal.classList.remove('active');
-  window.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
-</script>
+<script src="js/main.js"></script>
 </body>
 </html>
