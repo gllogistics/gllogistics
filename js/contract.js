@@ -440,24 +440,18 @@ document.getElementById('signDate').valueAsDate=new Date();
 // см. worker-additions.js). Если этот эндпоинт ещё не добавлен на сервере,
 // функция просто вернёт пустую строку и PDF всё равно скачается локально +
 // уйдёт в Formspree — сайт не сломается, просто ссылка на PDF не появится в письме.
-async function uploadPdfSigned(pdfBlob, fileName) {
+async function uploadPdfToR2(pdfBlob, fileName) {
   try {
-    const sigRes = await fetch(WORKER_URL + '/api/cloudinary-sign', { method: 'POST' });
-    if (!sigRes.ok) return '';
-    const { signature, timestamp, apiKey, cloudName } = await sigRes.json();
-    if (!signature || !timestamp || !apiKey || !cloudName) return '';
-    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-    const cf = new FormData();
-    cf.append('file', pdfFile);
-    cf.append('api_key', apiKey);
-    cf.append('timestamp', timestamp);
-    cf.append('signature', signature);
-    const cr = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, { method: 'POST', body: cf });
-    if (!cr.ok) return '';
-    const cd = await cr.json();
-    return cd.secure_url || '';
+    const res = await fetch(WORKER_URL + '/api/upload-contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/pdf' },
+      body: pdfBlob,
+    });
+    if (!res.ok) return { url: '', key: '' };
+    const data = await res.json();
+    return { url: data.url || '', key: data.key || '' };
   } catch (_) {
-    return '';
+    return { url: '', key: '' };
   }
 }
 
@@ -518,7 +512,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     btn.innerHTML = '📤 Ուղարկվում է...';
 
-    const cloudinaryUrl = await uploadPdfSigned(pdfBlob, fileName);
+    const { url: cloudinaryUrl, key: pdfKey } = await uploadPdfToR2(pdfBlob, fileName);
 
     // Уведомление в офис GL Logistics
     try {
@@ -528,12 +522,14 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         body: JSON.stringify({
           to: 'info@gllogistics.org',
           subject: 'GL Logistics — New Contract ' + contractNumber,
+          pdfKey: pdfKey || null,
+          pdfName: 'contract-' + contractNumber + '.pdf',
           html: `<h2>Новый подписанный договор №${contractNumber}</h2>
 <p><b>Компания:</b> ${companyName}</p>
 <p><b>Подписант:</b> ${signatoryName}</p>
 <p><b>Email клиента:</b> ${customerEmail}</p>
 <p><b>Тип:</b> ${currentType} / ${currentLang}</p>
-<p><b>PDF:</b> ${cloudinaryUrl ? `<a href="${cloudinaryUrl}">${cloudinaryUrl}</a>` : 'Клиент скачал локально'}</p>`
+<p><b>PDF прикреплён к письму.</b></p>`
         })
       });
     } catch (_) {}
@@ -546,7 +542,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
         body: JSON.stringify({
           to: customerEmail,
           subject: 'GL Logistics — Ваш договор №' + contractNumber + ' подписан',
-          pdfKey: cloudinaryUrl ? new URL(cloudinaryUrl).pathname.split('/api/contract-pdf/')[1] : null,
+          pdfKey: pdfKey || null,
           pdfName: 'contract-' + contractNumber + '.pdf',
           html: `<p>Уважаемый(ая) ${signatoryName},</p>
 <p>Ваш договор №<b>${contractNumber}</b> успешно подписан и отправлен в GL Logistics.</p>
