@@ -655,9 +655,28 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   const fileName       = 'contract_' + contractNumber + '.pdf';
 
   try {
+    // Убираем рамки overlay перед скриншотом
+    const overlays = [
+      document.getElementById('stampOverlay'),
+      document.getElementById('sigOverlay'),
+    ].filter(Boolean);
+    overlays.forEach(el => {
+      el.style.border = 'none';
+      el.style.borderRadius = '0';
+    });
+    const hints = previewDiv.querySelectorAll('#stampHint, #sigHint, #stampResizeHandle, #sigResizeHandle');
+    hints.forEach(el => el.style.display = 'none');
+
     const canvasEl = await html2canvas(previewDiv, {
       scale: 2, useCORS: true, backgroundColor: '#FFFFFF', logging: false
     });
+
+    // Восстанавливаем рамки
+    overlays.forEach(el => {
+      el.style.border = '2px dashed rgba(85,183,189,0.6)';
+      el.style.borderRadius = '4px';
+    });
+    hints.forEach(el => el.style.display = '');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageW = pdf.internal.pageSize.getWidth();
