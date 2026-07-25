@@ -12,6 +12,7 @@ function setLang(lang) {
   if (lang === 'ru') document.querySelector('.lang-btn[data-setlang="ru"]').classList.add('active');
   if (lang === 'en') document.querySelector('.lang-btn[data-setlang="en"]').classList.add('active');
   document.documentElement.lang = lang;
+  document.body.classList.remove('lang-loading');
 }
 
 document.querySelectorAll('.lang-btn[data-setlang]').forEach(btn => {
