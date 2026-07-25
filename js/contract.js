@@ -520,60 +520,42 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     const cloudinaryUrl = await uploadPdfSigned(pdfBlob, fileName);
 
+    // Письмо в офис GL Logistics
     try {
-      const glBody = {
-        _subject:        'GL Logistics — New Contract ' + contractNumber,
-        contract_number: contractNumber,
-        contract_type:   currentType,
-        language:        currentLang,
-        company:         companyName,
-        signatory:       signatoryName,
-        customer_email:  customerEmail,
-        pdf_link:        cloudinaryUrl || '(client downloaded locally)',
-        message: [
-          'New signed contract №' + contractNumber,
-          'Company:   ' + companyName,
-          'Signatory: ' + signatoryName,
-          'Email:     ' + customerEmail,
-          'PDF:       ' + (cloudinaryUrl || 'client downloaded locally')
-        ].join('\n')
-      };
-      await fetch(FORMSPREE_MAIN, {
+      await fetch(WORKER_URL + '/api/send-email', {
         method: 'POST',
-        body:    JSON.stringify(glBody),
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: 'info@gllogistics.org',
+          subject: 'GL Logistics — New Contract ' + contractNumber,
+          html: `<h2>Новый подписанный договор №${contractNumber}</h2>
+<p><b>Компания:</b> ${companyName}</p>
+<p><b>Подписант:</b> ${signatoryName}</p>
+<p><b>Email клиента:</b> ${customerEmail}</p>
+<p><b>Тип:</b> ${currentType} / ${currentLang}</p>
+<p><b>PDF:</b> ${cloudinaryUrl ? `<a href="${cloudinaryUrl}">${cloudinaryUrl}</a>` : 'Клиент скачал локально'}</p>`
+        })
       });
     } catch (_) {}
 
+    // Письмо клиенту с PDF-ссылкой
     try {
-      const clientBody = {
-        email:           customerEmail,
-        _replyto:        'info@gllogistics.org',
-        _subject:        'GL Logistics — Your Contract ' + contractNumber + ' is signed',
-        contract_number: contractNumber,
-        company:         companyName,
-        signatory:       signatoryName,
-        message: [
-          'Dear ' + signatoryName + ',',
-          '',
-          'Your contract No. ' + contractNumber + ' has been successfully signed and submitted to GL Logistics.',
-          '',
-          cloudinaryUrl ? 'Download your PDF here: ' + cloudinaryUrl
-                        : 'Your PDF was automatically downloaded to your device.',
-          '',
-          'Thank you for choosing GL Logistics!',
-          '',
-          'Best regards,',
-          'GL Logistics LLC',
-          '📞 +374 93 66 14 54',
-          '🌐 gl-logistics.am',
-          '✉️  info@gllogistics.org'
-        ].join('\n')
-      };
-      await fetch(FORMSPREE_CLIENT, {
+      await fetch(WORKER_URL + '/api/send-email', {
         method: 'POST',
-        body:    JSON.stringify(clientBody),
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: customerEmail,
+          subject: 'GL Logistics — Ваш договор №' + contractNumber + ' подписан',
+          html: `<p>Уважаемый(ая) ${signatoryName},</p>
+<p>Ваш договор №<b>${contractNumber}</b> успешно подписан и отправлен в GL Logistics.</p>
+${cloudinaryUrl
+  ? `<p><a href="${cloudinaryUrl}" style="background:#55B7BD;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;margin:16px 0">📄 Скачать PDF договора</a></p>`
+  : '<p>PDF был автоматически скачан на ваше устройство.</p>'
+}
+<p>Спасибо за выбор GL Logistics!</p>
+<hr>
+<p style="color:#888;font-size:12px">GL Logistics LLC · +374 93 66 14 54 · info@gllogistics.org · gllogistics.org</p>`
+        })
       });
     } catch (_) {}
 
