@@ -134,7 +134,10 @@
         <div class="input-group"><label data-i18n="account_label">Հ/Հ · Р/С · ACCOUNT NO.</label><input type="text" id="bankAccount" placeholder="1660030207153200"></div>
         <div class="upload-row">
           <div class="stamp-upload" id="stampTrigger">🏢 <span data-i18n="upload_stamp">ԿՆԻՔ</span><input type="file" id="stampInput" accept="image/*" style="display:none;"><img id="stampPreview" class="stamp-preview-img" alt="stamp"></div>
-          <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button><img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
+          <div class="signature-area">✍️ <span data-i18n="upload_signature">ՍՏՈՐԱԳՐՈՒԹՅՈՒՆ</span><div class="signature-canvas-box"><canvas id="signatureCanvas"></canvas></div><button type="button" id="clearSignature" style="background:#3a5a60; border:none; color:white; padding:4px 12px; border-radius:20px; margin-top:5px; cursor:pointer; font-size:0.7rem;">Մաքրել</button>
+              <button type="button" id="sigUploadTrigger" style="background:#1E7A80;border:none;color:white;padding:4px 12px;border-radius:20px;cursor:pointer;font-size:0.7rem;">📁 Նայլից</button>
+              <input type="file" id="sigInput" accept="image/*" style="display:none">
+            <img id="signaturePreview" class="sig-preview-img" alt="signature"></div>
         </div>
         <div class="checkbox-group"><input type="checkbox" id="agree" required><label for="agree" data-i18n="agree_text">Ես կարդացել և ընդունում եմ պայմանագրի բոլոր պայմանները:</label></div>
         <button type="submit" class="btn-submit" data-i18n="submit_btn">✍️ ՍՏՈՐԱԳՐԵԼ ԵՎ ՈՒՂԱՐԿԵԼ</button>
