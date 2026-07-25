@@ -376,10 +376,17 @@ let stampX = 60, stampY = 1900, stampSize = 130;
 let sigX = 320, sigY = 1900, sigW = 200, sigH = 60;
 
 function adjustOverlayPositions() {
-  const h = document.getElementById('contractPreview')?.offsetHeight || 2000;
+  const preview = document.getElementById('contractPreview');
+  const h = preview?.offsetHeight || 2000;
   const signatureZone = Math.round(h * 0.87);
+  // Печать — внизу где подписи
   stampY = signatureZone;
-  sigY   = signatureZone;
+  // Подпись — в текущей видимой области чтобы сразу была видна
+  const scrollTop = window.scrollY;
+  const previewTop = preview?.getBoundingClientRect().top + scrollTop || 0;
+  const visibleTop = Math.max(0, scrollTop - previewTop + 100);
+  sigY = Math.min(visibleTop, signatureZone);
+  sigX = 320;
 }
 
 const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
