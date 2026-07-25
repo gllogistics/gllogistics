@@ -3,20 +3,12 @@
 // и чтобы CSP страниц мог разрешать скрипты через 'self' без 'unsafe-inline'.
 
 function sigStamp(sig, st) {
-  // Печать отображается в отдельном draggable overlay (#stampOverlay),
-  // поэтому здесь рендерим только подпись (st игнорируется намеренно).
-  var row = 'display:table;width:100%;border-collapse:separate;border-spacing:10px 0;margin-top:8px;';
-  var html = '<div style="' + row + '">';
-  html += '<div style="display:table-cell;vertical-align:bottom;width:100%;">';
-  if (sig) {
-    html += '<img src="' + sig + '" alt="signature" '
-          + 'style="display:block;width:auto;height:70px;max-width:220px;'
-          + 'object-fit:contain;background:transparent;margin-bottom:4px;">';
-  }
-  html += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
-  html += '</div>';
-  html += '</div>';
-  return html;
+  // Подпись и печать отображаются в draggable overlay (#sigOverlay, #stampOverlay).
+  // Здесь оставляем только линию подписи как визуальный ориентир.
+  return '<div style="display:table;width:100%;margin-top:8px;">'
+       + '<div style="display:table-cell;vertical-align:bottom;width:60%;">'
+       + '<div style="height:1px;background:#2A5E66;width:100%;margin-top:70px;"></div>'
+       + '</div></div>';
 }
 
 // Водяной знак
