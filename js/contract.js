@@ -8,8 +8,8 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/drp98zkka/upload';
 // эндпоинт на сервере, загрузка PDF в Cloudinary будет тихо пропускаться (см. try/catch ниже),
 // PDF всё равно скачается локально и данные всё равно уйдут в Formspree.
 const WORKER_URL = 'https://gl-api.gltransam.workers.dev';
-const FORMSPREE_MAIN='https://formspree.io/f/mredrzjr';
-const FORMSPREE_CLIENT='https://formspree.io/f/mzdwybvb';
+const FORMSPREE_MAIN = 'https://formspree.io/f/mredrzjr';
+const FORMSPREE_CLIENT = 'https://formspree.io/f/mlgqowjp';
 
 // sigStamp / watermark / docFooter теперь приходят из js/contract-shared.js
 
@@ -520,7 +520,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     const cloudinaryUrl = await uploadPdfSigned(pdfBlob, fileName);
 
-    // Письмо в офис GL Logistics
+    // Уведомление в офис GL Logistics
     try {
       await fetch(WORKER_URL + '/api/send-email', {
         method: 'POST',
