@@ -422,6 +422,7 @@ function initStampOverlay() {
 function showStampOverlay() {
   const overlay = document.getElementById('stampOverlay');
   const img     = document.getElementById('stampOverlayImg');
+  if (!overlay) return;
   if (!stampDataUrl) { overlay.style.display = 'none'; return; }
   img.src = stampDataUrl;
   overlay.style.display = 'block';
