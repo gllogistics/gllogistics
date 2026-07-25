@@ -194,6 +194,7 @@
   [data-lang].lang-active { display: block; }
   .li[data-lang] { display: none; }
   .li[data-lang].lang-active { display: inline; }
+  body.lang-loading [data-lang] { visibility: hidden; }
 
   .modal {
     display: none;
@@ -292,7 +293,7 @@
   }
 </style>
 </head>
-<body>
+<body class="lang-loading">
 
 <nav class="nav">
   <div class="nav-left">
@@ -301,14 +302,14 @@
       <span class="logo-text">GL Logistics</span>
     </a>
     <div class="nav-links">
-      <a href="#about"><span data-lang="am" class="lang-active li">Մեր մասին</span><span data-lang="ru" class="li">О нас</span><span data-lang="en" class="li">About</span></a>
-      <a href="#services"><span data-lang="am" class="lang-active li">Ծառայություններ</span><span data-lang="ru" class="li">Услуги</span><span data-lang="en" class="li">Services</span></a>
-      <a href="#directions"><span data-lang="am" class="lang-active li">Մեր ուղղությունները</span><span data-lang="ru" class="li">Направления</span><span data-lang="en" class="li">Routes</span></a>
-      <a href="#partners"><span data-lang="am" class="lang-active li">Մեր գործընկերները</span><span data-lang="ru" class="li">Партнёры</span><span data-lang="en" class="li">Partners</span></a>
-      <a href="#contact"><span data-lang="am" class="lang-active li">Կապ</span><span data-lang="ru" class="li">Контакты</span><span data-lang="en" class="li">Contact</span></a>
-      <a href="/contract" class="contract-link"><span data-lang="am" class="lang-active li">📄 Պայմանագիր</span><span data-lang="ru" class="li">📄 Договор</span><span data-lang="en" class="li">📄 Contract</span></a>
+      <a href="#about"><span data-lang="am" class="li">Մեր մասին</span><span data-lang="ru" class="li">О нас</span><span data-lang="en" class="li">About</span></a>
+      <a href="#services"><span data-lang="am" class="li">Ծառայություններ</span><span data-lang="ru" class="li">Услуги</span><span data-lang="en" class="li">Services</span></a>
+      <a href="#directions"><span data-lang="am" class="li">Մեր ուղղությունները</span><span data-lang="ru" class="li">Направления</span><span data-lang="en" class="li">Routes</span></a>
+      <a href="#partners"><span data-lang="am" class="li">Մեր գործընկերները</span><span data-lang="ru" class="li">Партнёры</span><span data-lang="en" class="li">Partners</span></a>
+      <a href="#contact"><span data-lang="am" class="li">Կապ</span><span data-lang="ru" class="li">Контакты</span><span data-lang="en" class="li">Contact</span></a>
+      <a href="/contract" class="contract-link"><span data-lang="am" class="li">📄 Պայմանագիր</span><span data-lang="ru" class="li">📄 Договор</span><span data-lang="en" class="li">📄 Contract</span></a>
       <!-- 🔐 LOGIN BUTTON -->
-      <a href="/staff" class="login-link">   <img src="images/GL_LOGISTICs_line_-09.jpg.png" style="height:18px;width:auto;vertical-align:middle;margin-right:4px;">   <span data-lang="am" class="lang-active li">Մուտք</span><span data-lang="ru" class="li">Вход</span><span data-lang="en" class="li">Login</span> </a>
+      <a href="/staff" class="login-link">   <img src="images/GL_LOGISTICs_line_-09.jpg.png" style="height:18px;width:auto;vertical-align:middle;margin-right:4px;">   <span data-lang="am" class="li">Մուտք</span><span data-lang="ru" class="li">Вход</span><span data-lang="en" class="li">Login</span> </a>
     </div>
   </div>
   <div class="lang-buttons">
@@ -324,92 +325,92 @@
   <img class="hero-logo-bg" src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics">
   <div class="hero-content">
     <div class="hero-tag">
-      <span data-lang="am" class="lang-active li">Միջազգային լոգիստիկա · 2023-ից</span>
+      <span data-lang="am" class="li">Միջազգային լոգիստիկա · 2023-ից</span>
       <span data-lang="ru" class="li">Международные перевозки · С 2023</span>
       <span data-lang="en" class="li">Your supply chain partner everywhere.· Since 2023</span>
     </div>
     <h1 class="hero-title">
-      <span data-lang="am" class="lang-active li">ՋԻ ԷԼ Լոգիստիկս</span>
+      <span data-lang="am" class="li">ՋԻ ԷԼ Լոգիստիկս</span>
       <span data-lang="ru" class="li">Джи Эл Логистикс</span>
       <span data-lang="en" class="li">GL Logistics</span>
     </h1>
     <p class="hero-sub">
-      <span data-lang="am" class="lang-active li">Ձեր հուսալի գործընկերը մատակարարման շղթաներում: Բեռնափոխադրումների ամբողջական ցիկլ Չինաստանից, Եվրոպայից և ԱՊՀ տարածքով:</span>
+      <span data-lang="am" class="li">Ձեր հուսալի գործընկերը մատակարարման շղթաներում: Բեռնափոխադրումների ամբողջական ցիկլ Չինաստանից, Եվրոպայից և ԱՊՀ տարածքով:</span>
       <span data-lang="ru" class="li">Ваш надёжный партнёр в поставках. Полный цикл грузоперевозок из Китая, Европы и по СНГ.</span>
       <span data-lang="en" class="li">Full-cycle freight from Europe, China and across CIS.</span>
     </p>
     <div class="hero-cta">
-      <a href="#contact" class="btn-primary"><span data-lang="am" class="lang-active li">Կապ հաստատել</span><span data-lang="ru" class="li">Связаться</span><span data-lang="en" class="li">Contact Us</span> →</a>
-      <a href="/contract" class="btn-outline"><span data-lang="am" class="lang-active li">📄 Ստորագրել պայմանագիր</span><span data-lang="ru" class="li">📄 Подписать договор</span><span data-lang="en" class="li">📄 Sign Contract</span></a>
+      <a href="#contact" class="btn-primary"><span data-lang="am" class="li">Կապ հաստատել</span><span data-lang="ru" class="li">Связаться</span><span data-lang="en" class="li">Contact Us</span> →</a>
+      <a href="/contract" class="btn-outline"><span data-lang="am" class="li">📄 Ստորագրել պայմանագիր</span><span data-lang="ru" class="li">📄 Подписать договор</span><span data-lang="en" class="li">📄 Sign Contract</span></a>
     </div>
   </div>
 </section>
 
 <div class="stats">
-  <div class="stat reveal"><div class="stat-num">2023</div><div class="stat-label"><span data-lang="am" class="lang-active li">Հիմնադրման տարի</span><span data-lang="ru" class="li">Год основания</span><span data-lang="en" class="li">Year founded</span></div></div>
-  <div class="stat reveal d1"><div class="stat-num">3</div><div class="stat-label"><span data-lang="am" class="lang-active li">Հիմնական ուղղություններ</span><span data-lang="ru" class="li">Ключевых направления</span><span data-lang="en" class="li">Key directions</span></div></div>
-  <div class="stat reveal d2"><div class="stat-num">11+</div><div class="stat-label"><span data-lang="am" class="lang-active li">Խոշոր գործընկերներ</span><span data-lang="ru" class="li">Крупных партнёров</span><span data-lang="en" class="li">Major partners</span></div></div>
-  <div class="stat reveal d3"><div class="stat-num">24/7</div><div class="stat-label"><span data-lang="am" class="lang-active li">Հաճախորդների աջակցություն</span><span data-lang="ru" class="li">Поддержка клиентов</span><span data-lang="en" class="li">Customer support</span></div></div>
+  <div class="stat reveal"><div class="stat-num">2023</div><div class="stat-label"><span data-lang="am" class="li">Հիմնադրման տարի</span><span data-lang="ru" class="li">Год основания</span><span data-lang="en" class="li">Year founded</span></div></div>
+  <div class="stat reveal d1"><div class="stat-num">3</div><div class="stat-label"><span data-lang="am" class="li">Հիմնական ուղղություններ</span><span data-lang="ru" class="li">Ключевых направления</span><span data-lang="en" class="li">Key directions</span></div></div>
+  <div class="stat reveal d2"><div class="stat-num">11+</div><div class="stat-label"><span data-lang="am" class="li">Խոշոր գործընկերներ</span><span data-lang="ru" class="li">Крупных партнёров</span><span data-lang="en" class="li">Major partners</span></div></div>
+  <div class="stat reveal d3"><div class="stat-num">24/7</div><div class="stat-label"><span data-lang="am" class="li">Հաճախորդների աջակցություն</span><span data-lang="ru" class="li">Поддержка клиентов</span><span data-lang="en" class="li">Customer support</span></div></div>
 </div>
 
 <section class="section" id="about">
-  <div class="section-label"><span data-lang="am" class="lang-active li">Ընկերության մասին</span><span data-lang="ru" class="li">О компании</span><span data-lang="en" class="li">About Us</span></div>
-  <h2 class="section-title reveal"><span data-lang="am" class="lang-active li">ՋԻ ԷԼ<br>Լոգիստիկս</span><span data-lang="ru" class="li">Джи Эл<br>Логистикс</span><span data-lang="en" class="li">GL<br>Logistics</span></h2>
+  <div class="section-label"><span data-lang="am" class="li">Ընկերության մասին</span><span data-lang="ru" class="li">О компании</span><span data-lang="en" class="li">About Us</span></div>
+  <h2 class="section-title reveal"><span data-lang="am" class="li">ՋԻ ԷԼ<br>Լոգիստիկս</span><span data-lang="ru" class="li">Джи Эл<br>Логистикс</span><span data-lang="en" class="li">GL<br>Logistics</span></h2>
   <div class="about-grid">
     <div class="about-text reveal">
-      <p><span data-lang="am" class="lang-active li">ՋԻ ԷԼ Լոգիստիկս ՍՊԸ-ն առաջարկում է փոխշահավետ համագործակցություն միջազգային բեռնափոխադրումների ոլորտում։ Մեր կազմակերպությունը մասնագիտացված է բիզնեսի լոգիստիկայի օպտիմալացման համար համապարփակ լուծումներ տրամադրելու գործում:</span>
+      <p><span data-lang="am" class="li">ՋԻ ԷԼ Լոգիստիկս ՍՊԸ-ն առաջարկում է փոխշահավետ համագործակցություն միջազգային բեռնափոխադրումների ոլորտում։ Մեր կազմակերպությունը մասնագիտացված է բիզնեսի լոգիստիկայի օպտիմալացման համար համապարփակ լուծումներ տրամադրելու գործում:</span>
          <span data-lang="ru" class="li">Мы — ООО «Джи Эл Логистикс», международная транспортно-экспедиторская компания. Основана в 2023 году.</span>
          <span data-lang="en" class="li">We are GL Logistics LLC, an international freight forwarding company based in Armenia. Founded in 2023.</span></p>
       <div class="about-tags">
-        <span class="about-tag"><span data-lang="am" class="lang-active li">Երևան, Հայաստան</span><span data-lang="ru" class="li">Ереван, Армения</span><span data-lang="en" class="li">Yerevan, Armenia</span></span>
-        <span class="about-tag"><span data-lang="am" class="lang-active li">Հիմն. 2023</span><span data-lang="ru" class="li">Основана 2023</span><span data-lang="en" class="li">Est. 2023</span></span>
-        <span class="about-tag"><span data-lang="am" class="lang-active li">ՀՎՀՀ 00521217</span><span data-lang="ru" class="li">ИНН 00521217</span><span data-lang="en" class="li">VAT 00521217</span></span>
+        <span class="about-tag"><span data-lang="am" class="li">Երևան, Հայաստան</span><span data-lang="ru" class="li">Ереван, Армения</span><span data-lang="en" class="li">Yerevan, Armenia</span></span>
+        <span class="about-tag"><span data-lang="am" class="li">Հիմն. 2023</span><span data-lang="ru" class="li">Основана 2023</span><span data-lang="en" class="li">Est. 2023</span></span>
+        <span class="about-tag"><span data-lang="am" class="li">ՀՎՀՀ 00521217</span><span data-lang="ru" class="li">ИНН 00521217</span><span data-lang="en" class="li">VAT 00521217</span></span>
       </div>
     </div>
     <div class="about-highlights">
       <div class="about-hl reveal">
-        <div class="about-hl-title"><span data-lang="am" class="lang-active li">Ինչու հենց մենք</span><span data-lang="ru" class="li">Надёжность и профессионализм</span><span data-lang="en" class="li">Reliability & Professionalism</span></div>
-        <div class="about-hl-text"><span data-lang="am" class="lang-active li">1. Ներկրումներ Եվրոպայից, Չինաստանից և ԱՊՀ երկրներից<br>2. Անհատականացված մոտեցում<br>3. Հուսալիություն և պրոֆեսիոնալիզմ</span><span data-lang="ru" class="li">Высокий уровень на каждой стадии логистического процесса.</span><span data-lang="en" class="li">High level at every stage of the logistics process.</span></div>
+        <div class="about-hl-title"><span data-lang="am" class="li">Ինչու հենց մենք</span><span data-lang="ru" class="li">Надёжность и профессионализм</span><span data-lang="en" class="li">Reliability & Professionalism</span></div>
+        <div class="about-hl-text"><span data-lang="am" class="li">1. Ներկրումներ Եվրոպայից, Չինաստանից և ԱՊՀ երկրներից<br>2. Անհատականացված մոտեցում<br>3. Հուսալիություն և պրոֆեսիոնալիզմ</span><span data-lang="ru" class="li">Высокий уровень на каждой стадии логистического процесса.</span><span data-lang="en" class="li">High level at every stage of the logistics process.</span></div>
       </div>
     </div>
   </div>
 </section>
 
 <section class="section" id="services" style="padding-top:0;">
-  <div class="section-label"><span data-lang="am" class="lang-active li">Ինչ ենք անում</span><span data-lang="ru" class="li">Что мы делаем</span><span data-lang="en" class="li">What We Do</span></div>
-  <h2 class="section-title reveal"><span data-lang="am" class="lang-active li">Մեր<br>Ծառայությունները</span><span data-lang="ru" class="li">Наши<br>Услуги</span><span data-lang="en" class="li">Our<br>Services</span></h2>
+  <div class="section-label"><span data-lang="am" class="li">Ինչ ենք անում</span><span data-lang="ru" class="li">Что мы делаем</span><span data-lang="en" class="li">What We Do</span></div>
+  <h2 class="section-title reveal"><span data-lang="am" class="li">Մեր<br>Ծառայությունները</span><span data-lang="ru" class="li">Наши<br>Услуги</span><span data-lang="en" class="li">Our<br>Services</span></h2>
   <div class="services-grid">
     <div class="service-card reveal"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><circle cx="26" cy="26" r="22"/><ellipse cx="26" cy="26" rx="11" ry="22"/><line x1="4" y1="26" x2="48" y2="26"/><line x1="8" y1="16" x2="44" y2="16"/><line x1="8" y1="36" x2="44" y2="36"/></svg>
-      <div class="service-title"><span data-lang="am" class="lang-active li">Միջազգային բեռնափոխադրումներ</span><span data-lang="ru" class="li">Международные перевозки</span><span data-lang="en" class="li">International Freight</span></div>
-      <div class="service-desc"><span data-lang="am" class="lang-active li">Բեռնափոխադրումների կազմակերպում ամբողջ աշխարհում:</span><span data-lang="ru" class="li">Организация грузовых перевозок по всему миру.</span><span data-lang="en" class="li">Global freight solutions by air, sea, rail and road.</span></div><span class="service-tag">EU · CIS · China</span></div>
+      <div class="service-title"><span data-lang="am" class="li">Միջազգային բեռնափոխադրումներ</span><span data-lang="ru" class="li">Международные перевозки</span><span data-lang="en" class="li">International Freight</span></div>
+      <div class="service-desc"><span data-lang="am" class="li">Բեռնափոխադրումների կազմակերպում ամբողջ աշխարհում:</span><span data-lang="ru" class="li">Организация грузовых перевозок по всему миру.</span><span data-lang="en" class="li">Global freight solutions by air, sea, rail and road.</span></div><span class="service-tag">EU · CIS · China</span></div>
     <div class="service-card reveal d1"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="20" width="44" height="28" rx="1"/><polyline points="2,22 26,6 50,22"/></svg>
-      <div class="service-title"><span data-lang="am" class="lang-active li">Պահեստային լոգիստիկա</span><span data-lang="ru" class="li">Складская логистика</span><span data-lang="en" class="li">Warehousing</span></div>
-      <div class="service-desc"><span data-lang="am" class="lang-active li">Պահեստավորում, մշակում և կառավարում:</span><span data-lang="ru" class="li">Хранение, обработка и управление грузами.</span><span data-lang="en" class="li">Storage, handling and cargo management.</span></div><span class="service-tag">Storage · Handling</span></div>
+      <div class="service-title"><span data-lang="am" class="li">Պահեստային լոգիստիկա</span><span data-lang="ru" class="li">Складская логистика</span><span data-lang="en" class="li">Warehousing</span></div>
+      <div class="service-desc"><span data-lang="am" class="li">Պահեստավորում, մշակում և կառավարում:</span><span data-lang="ru" class="li">Хранение, обработка и управление грузами.</span><span data-lang="en" class="li">Storage, handling and cargo management.</span></div><span class="service-tag">Storage · Handling</span></div>
     <div class="service-card reveal d2"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="20" width="34" height="20" rx="2"/><path d="M36 26 L44 26 L48 32 L48 40 L36 40 Z"/></svg>
-      <div class="service-title"><span data-lang="am" class="lang-active li">Սեփական ավտոպարկ</span><span data-lang="ru" class="li">Собственный автопарк</span><span data-lang="en" class="li">Own Fleet</span></div>
-      <div class="service-desc"><span data-lang="am" class="lang-active li">Ավտոբեռնափոխադրումներ ԱՊՀ և ԵՄ երկրներում:</span><span data-lang="ru" class="li">Автоперевозки по странам СНГ и ЕС.</span><span data-lang="en" class="li">Road transport across CIS and EU.</span></div><span class="service-tag">CIS · EU</span></div>
+      <div class="service-title"><span data-lang="am" class="li">Սեփական ավտոպարկ</span><span data-lang="ru" class="li">Собственный автопарк</span><span data-lang="en" class="li">Own Fleet</span></div>
+      <div class="service-desc"><span data-lang="am" class="li">Ավտոբեռնափոխադրումներ ԱՊՀ և ԵՄ երկրներում:</span><span data-lang="ru" class="li">Автоперевозки по странам СНГ и ЕС.</span><span data-lang="en" class="li">Road transport across CIS and EU.</span></div><span class="service-tag">CIS · EU</span></div>
     <div class="service-card reveal d3"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="28" width="44" height="18" rx="1"/><polyline points="4,28 4,14 22,6 40,14 48,14 48,28"/></svg>
-      <div class="service-title"><span data-lang="am" class="lang-active li">Ծովային կոնտեյներներ</span><span data-lang="ru" class="li">Морские контейнеры</span><span data-lang="en" class="li">Sea Containers</span></div>
-      <div class="service-desc"><span data-lang="am" class="lang-active li">Ուղիղ առաքումներ Չինաստանից:</span><span data-lang="ru" class="li">Прямые поставки из портов Китая.</span><span data-lang="en" class="li">Direct shipments from Chinese ports.</span></div><span class="service-tag">China → Black Sea</span></div>
+      <div class="service-title"><span data-lang="am" class="li">Ծովային կոնտեյներներ</span><span data-lang="ru" class="li">Морские контейнеры</span><span data-lang="en" class="li">Sea Containers</span></div>
+      <div class="service-desc"><span data-lang="am" class="li">Ուղիղ առաքումներ Չինաստանից:</span><span data-lang="ru" class="li">Прямые поставки из портов Китая.</span><span data-lang="en" class="li">Direct shipments from Chinese ports.</span></div><span class="service-tag">China → Black Sea</span></div>
     <div class="service-card reveal"><svg class="service-icon" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="18" width="40" height="24" rx="2"/></svg>
-      <div class="service-title"><span data-lang="am" class="lang-active li">Գերծավալային բեռներ</span><span data-lang="ru" class="li">Негабаритные грузы</span><span data-lang="en" class="li">Oversized Cargo</span></div>
-      <div class="service-desc"><span data-lang="am" class="lang-active li">Գերծավալային բեռների ներկրում և ուղեկցում:</span><span data-lang="ru" class="li">Импорт негабаритных грузов с сопровождением.</span><span data-lang="en" class="li">Oversized cargo import with escort.</span></div><span class="service-tag">Special Transport</span></div>
+      <div class="service-title"><span data-lang="am" class="li">Գերծավալային բեռներ</span><span data-lang="ru" class="li">Негабаритные грузы</span><span data-lang="en" class="li">Oversized Cargo</span></div>
+      <div class="service-desc"><span data-lang="am" class="li">Գերծավալային բեռների ներկրում և ուղեկցում:</span><span data-lang="ru" class="li">Импорт негабаритных грузов с сопровождением.</span><span data-lang="en" class="li">Oversized cargo import with escort.</span></div><span class="service-tag">Special Transport</span></div>
   </div>
 </section>
 
 <section class="dir-section" id="directions">
-  <div class="section-label"><span data-lang="am" class="lang-active li">Մեր ուղղությունները</span><span data-lang="ru" class="li">Наши направления</span><span data-lang="en" class="li">Our Routes</span></div>
-  <h2 class="section-title reveal"><span data-lang="am" class="lang-active li">Ուր ենք<br>առաքում</span><span data-lang="ru" class="li">Куда мы<br>доставляем</span><span data-lang="en" class="li">Where We<br>Deliver</span></h2>
+  <div class="section-label"><span data-lang="am" class="li">Մեր ուղղությունները</span><span data-lang="ru" class="li">Наши направления</span><span data-lang="en" class="li">Our Routes</span></div>
+  <h2 class="section-title reveal"><span data-lang="am" class="li">Ուր ենք<br>առաքում</span><span data-lang="ru" class="li">Куда мы<br>доставляем</span><span data-lang="en" class="li">Where We<br>Deliver</span></h2>
   <div class="dir-grid">
-    <div class="dir-card reveal" data-num="01"><span class="dir-flag">🇪🇺</span><div class="dir-title"><span data-lang="am" class="lang-active li">Եվրոպա</span><span data-lang="ru" class="li">Европа</span><span data-lang="en" class="li">Europe</span></div><div class="dir-desc"><span data-lang="am" class="lang-active li">Փոխադրումներ ԵՄ բոլոր երկրներով:</span><span data-lang="ru" class="li">Перевозки по всем странам ЕС.</span><span data-lang="en" class="li">Freight across all EU countries.</span></div></div>
-    <div class="dir-card reveal d1" data-num="02"><span class="dir-flag">🇨🇳</span><div class="dir-title"><span data-lang="am" class="lang-active li">Չինաստան</span><span data-lang="ru" class="li">Китай</span><span data-lang="en" class="li">China</span></div><div class="dir-desc"><span data-lang="am" class="lang-active li">Ներկրում Չինաստանից բոլոր տրանսպորտով:</span><span data-lang="ru" class="li">Импорт из Китая всеми видами транспорта.</span><span data-lang="en" class="li">Imports from China by all transport modes.</span></div></div>
-    <div class="dir-card reveal d2" data-num="03"><span class="dir-flags-multi">🇷🇺 🇰🇿 🇧🇾 🇦🇲</span><div class="dir-title"><span data-lang="am" class="lang-active li">ԱՊՀ</span><span data-lang="ru" class="li">СНГ</span><span data-lang="en" class="li">CIS</span></div><div class="dir-desc"><span data-lang="am" class="lang-active li">Կանոնավոր երթուղիներ ԱՊՀ երկրներում:</span><span data-lang="ru" class="li">Регулярные маршруты по странам СНГ.</span><span data-lang="en" class="li">Regular routes across CIS countries.</span></div></div>
+    <div class="dir-card reveal" data-num="01"><span class="dir-flag">🇪🇺</span><div class="dir-title"><span data-lang="am" class="li">Եվրոպա</span><span data-lang="ru" class="li">Европа</span><span data-lang="en" class="li">Europe</span></div><div class="dir-desc"><span data-lang="am" class="li">Փոխադրումներ ԵՄ բոլոր երկրներով:</span><span data-lang="ru" class="li">Перевозки по всем странам ЕС.</span><span data-lang="en" class="li">Freight across all EU countries.</span></div></div>
+    <div class="dir-card reveal d1" data-num="02"><span class="dir-flag">🇨🇳</span><div class="dir-title"><span data-lang="am" class="li">Չինաստան</span><span data-lang="ru" class="li">Китай</span><span data-lang="en" class="li">China</span></div><div class="dir-desc"><span data-lang="am" class="li">Ներկրում Չինաստանից բոլոր տրանսպորտով:</span><span data-lang="ru" class="li">Импорт из Китая всеми видами транспорта.</span><span data-lang="en" class="li">Imports from China by all transport modes.</span></div></div>
+    <div class="dir-card reveal d2" data-num="03"><span class="dir-flags-multi">🇷🇺 🇰🇿 🇧🇾 🇦🇲</span><div class="dir-title"><span data-lang="am" class="li">ԱՊՀ</span><span data-lang="ru" class="li">СНГ</span><span data-lang="en" class="li">CIS</span></div><div class="dir-desc"><span data-lang="am" class="li">Կանոնավոր երթուղիներ ԱՊՀ երկրներում:</span><span data-lang="ru" class="li">Регулярные маршруты по странам СНГ.</span><span data-lang="en" class="li">Regular routes across CIS countries.</span></div></div>
   </div>
 </section>
 
 <section class="partners-section" id="partners">
-  <div class="section-label"><span data-lang="am" class="lang-active li">Մեր գործընկերները</span><span data-lang="ru" class="li">Наши партнёры</span><span data-lang="en" class="li">Our Partners</span></div>
-  <h2 class="section-title reveal"><span data-lang="am" class="lang-active li">Մեզ վստահում են</span><span data-lang="ru" class="li">Нам доверяют</span><span data-lang="en" class="li">They Trust Us</span></h2>
+  <div class="section-label"><span data-lang="am" class="li">Մեր գործընկերները</span><span data-lang="ru" class="li">Наши партнёры</span><span data-lang="en" class="li">Our Partners</span></div>
+  <h2 class="section-title reveal"><span data-lang="am" class="li">Մեզ վստահում են</span><span data-lang="ru" class="li">Нам доверяют</span><span data-lang="en" class="li">They Trust Us</span></h2>
   <div class="partners-grid">
     <div class="partner-card reveal"><img class="partner-logo" src="images/Honeyst.png" alt="Honeyst"></div>
     <div class="partner-card reveal d1"><img class="partner-logo" src="images/CMEC.png" alt="CMEC"></div>
@@ -429,18 +430,18 @@
 
 <section class="contact-section" id="contact">
   <div class="contact-inner">
-    <div class="section-label"><span data-lang="am" class="lang-active li">Կապ մեզ հետ</span><span data-lang="ru" class="li">Свяжитесь с нами</span><span data-lang="en" class="li">Get in Touch</span></div>
+    <div class="section-label"><span data-lang="am" class="li">Կապ մեզ հետ</span><span data-lang="ru" class="li">Свяжитесь с нами</span><span data-lang="en" class="li">Get in Touch</span></div>
     <div class="contact-grid">
       <div>
-        <h2 class="contact-title reveal"><span data-lang="am" class="lang-active li">Պատրաստ ենք<br>աշխատել</span><span data-lang="ru" class="li">Готовы<br>работать</span><span data-lang="en" class="li">Ready<br>to work</span></h2>
-        <p class="contact-sub"><span data-lang="am" class="lang-active li">Քննարկեք ձեր բեռը կամ երթուղին:</span><span data-lang="ru" class="li">Обсудите ваш груз или маршрут.</span><span data-lang="en" class="li">Discuss your cargo or route.</span></p>
-        <button class="btn-primary" id="priceRequestBtn"><span data-lang="am" class="lang-active li">Գնի հարցում →</span><span data-lang="ru" class="li">Запрос цены →</span><span data-lang="en" class="li">Price Request →</span></button>
+        <h2 class="contact-title reveal"><span data-lang="am" class="li">Պատրաստ ենք<br>աշխատել</span><span data-lang="ru" class="li">Готовы<br>работать</span><span data-lang="en" class="li">Ready<br>to work</span></h2>
+        <p class="contact-sub"><span data-lang="am" class="li">Քննարկեք ձեր բեռը կամ երթուղին:</span><span data-lang="ru" class="li">Обсудите ваш груз или маршрут.</span><span data-lang="en" class="li">Discuss your cargo or route.</span></p>
+        <button class="btn-primary" id="priceRequestBtn"><span data-lang="am" class="li">Գնի հարցում →</span><span data-lang="ru" class="li">Запрос цены →</span><span data-lang="en" class="li">Price Request →</span></button>
       </div>
       <div class="contact-items">
         <div class="contact-item reveal"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div class="contact-item-label">Email</div><div class="contact-item-val"><a href="mailto:info@gllogistics.org">info@gllogistics.org</a></div></div></div>
-        <div class="contact-item reveal d1"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.73a16 16 0 006.29 6.29l1.18-1.18a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><div><div class="contact-item-label"><span data-lang="am" class="lang-active li">Հեռախոս</span><span data-lang="ru" class="li">Телефон</span><span data-lang="en" class="li">Phone</span></div><div class="contact-item-val"><a href="tel:+37493661454">+374 93 66 14 54</a><br><a href="tel:+37433105544">+374 33 10 55 44</a></div></div></div>
-        <div class="contact-item reveal d2"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><div><div class="contact-item-label"><span data-lang="am" class="lang-active li">Հասցե</span><span data-lang="ru" class="li">Адрес</span><span data-lang="en" class="li">Address</span></div><div class="contact-item-val"><span data-lang="am" class="lang-active li">Երևան, Շենգավիթ, Սևանի 86/2</span><span data-lang="ru" class="li">г. Ереван, Шенгавит, ул. Севана 86/2</span><span data-lang="en" class="li">Yerevan, Shengavit, Sevana 86/2</span></div></div></div>
-        <div class="contact-item reveal d3"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><div><div class="contact-item-label"><span data-lang="am" class="lang-active li">Տնօրեն</span><span data-lang="ru" class="li">Директор</span><span data-lang="en" class="li">Director</span></div><div class="contact-item-val"><span data-lang="am" class="lang-active li">Տ. Մեծպագյան</span><span data-lang="ru" class="li">Т. Мецпагян</span><span data-lang="en" class="li">T. Metspagyan</span></div></div></div>
+        <div class="contact-item reveal d1"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.73a16 16 0 006.29 6.29l1.18-1.18a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><div><div class="contact-item-label"><span data-lang="am" class="li">Հեռախոս</span><span data-lang="ru" class="li">Телефон</span><span data-lang="en" class="li">Phone</span></div><div class="contact-item-val"><a href="tel:+37493661454">+374 93 66 14 54</a><br><a href="tel:+37433105544">+374 33 10 55 44</a></div></div></div>
+        <div class="contact-item reveal d2"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><div><div class="contact-item-label"><span data-lang="am" class="li">Հասցե</span><span data-lang="ru" class="li">Адрес</span><span data-lang="en" class="li">Address</span></div><div class="contact-item-val"><span data-lang="am" class="li">Երևան, Շենգավիթ, Սևանի 86/2</span><span data-lang="ru" class="li">г. Ереван, Шенгавит, ул. Севана 86/2</span><span data-lang="en" class="li">Yerevan, Shengavit, Sevana 86/2</span></div></div></div>
+        <div class="contact-item reveal d3"><svg class="contact-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><div><div class="contact-item-label"><span data-lang="am" class="li">Տնօրեն</span><span data-lang="ru" class="li">Директор</span><span data-lang="en" class="li">Director</span></div><div class="contact-item-val"><span data-lang="am" class="li">Տ. Մեծպագյան</span><span data-lang="ru" class="li">Т. Мецпагян</span><span data-lang="en" class="li">T. Metspagyan</span></div></div></div>
       </div>
     </div>
   </div>
