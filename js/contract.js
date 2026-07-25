@@ -539,11 +539,10 @@ document.getElementById('sigInput').addEventListener('change',(e)=>{
   const f=e.target.files[0];
   if(!f) return;
   const r=new FileReader();
-  r.onload=(ev)=>{
-    signatureDataUrl=ev.target.result;
+  r.onload=async(ev)=>{
+    signatureDataUrl = await removeBackground(ev.target.result, 230);
     document.getElementById('signaturePreview').src=signatureDataUrl;
     document.getElementById('signaturePreview').style.display='block';
-    // Очищаем canvas чтобы не было двойной подписи
     if(signaturePad) signaturePad.clear();
     adjustOverlayPositions();
     showSigOverlay();
@@ -553,8 +552,38 @@ document.getElementById('sigInput').addEventListener('change',(e)=>{
   r.readAsDataURL(f);
 });
 
+// ── Удаление фона изображения (белый/светлый фон → прозрачный) ──────────────
+function removeBackground(dataUrl, threshold = 240) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, c.width, c.height);
+      const d = data.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        // Если пиксель светлее порога — делаем прозрачным
+        if (r >= threshold && g >= threshold && b >= threshold) {
+          d[i+3] = 0;
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.src = dataUrl;
+  });
+}
+
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
-document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';adjustOverlayPositions();showStampOverlay();renderContract();
+document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=async(ev)=>{
+  // Убираем фон автоматически
+  stampDataUrl = await removeBackground(ev.target.result);
+  document.getElementById('stampPreview').src=stampDataUrl;
+  document.getElementById('stampPreview').style.display='block';
+  adjustOverlayPositions();showStampOverlay();renderContract();
   setTimeout(()=>{
     const scroll = document.querySelector('.contract-scroll');
     if (scroll) scroll.scrollTop = Math.max(0, stampY - 150);
