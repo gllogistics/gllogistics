@@ -372,8 +372,15 @@ const uiLabels={am:{contract_number_label:"ՊԱՅՄԱՆԱԳՐԻ ՀԱՄԱՐ (ԹԻ
 // ── State & core logic ────────────────────────────────────────────────────────
 let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUrl=null, signaturePad;
 // ── Stamp overlay drag & resize ───────────────────────────────────────────────
-let stampX = 60, stampY = 1900, stampSize = 130; // внизу где подписи
-let sigX = 300, sigY = 1920, sigW = 200, sigH = 60; // подпись правее
+let stampX = 60, stampY = 1900, stampSize = 130;
+let sigX = 320, sigY = 1900, sigW = 200, sigH = 60;
+
+function adjustOverlayPositions() {
+  const h = document.getElementById('contractPreview')?.offsetHeight || 2000;
+  const signatureZone = Math.round(h * 0.87);
+  stampY = signatureZone;
+  sigY   = signatureZone;
+}
 
 const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
 
@@ -486,8 +493,10 @@ function captureSignature(){
     signatureDataUrl=signaturePad.toDataURL('image/png');
     document.getElementById('signaturePreview').src=signatureDataUrl;
     document.getElementById('signaturePreview').style.display='block';
+    adjustOverlayPositions();
     showSigOverlay();
     renderContract();
+    setTimeout(()=>{ window.scrollTo({top: sigY - 150, behavior:'smooth'}); }, 150);
   }
 }
 function initSignaturePad(){
@@ -506,12 +515,11 @@ window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignatur
 document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';showSigOverlay();renderContract();});
 
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
-document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';showStampOverlay();renderContract();
-  // Скроллим к печати чтобы пользователь её видел
+document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';adjustOverlayPositions();showStampOverlay();renderContract();
   setTimeout(()=>{
     const scroll = document.querySelector('.contract-scroll');
-    const overlay = document.getElementById('stampOverlay');
-    if (scroll && overlay) scroll.scrollTop = Math.max(0, stampY - 100);
+    if (scroll) scroll.scrollTop = Math.max(0, stampY - 150);
+    else window.scrollTo(0, stampY);
   }, 100);
 };r.readAsDataURL(f);}});
 
