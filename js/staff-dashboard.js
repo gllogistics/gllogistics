@@ -146,7 +146,7 @@ async function autoFetchRates() {
     document.getElementById('manualRateUSD').value = data.AMD;
     document.getElementById('manualRateEUR').value = data.EUR;
     document.getElementById('manualRateRUB').value = data.RUB;
-    alert('Курсы загружены! Нажмите «Сохранить», чтобы применить.');
+    alert('Курс ЦБ Армении загружен! Нажмите «Сохранить», чтобы применить.');
   } catch (e) { alert('Не удалось загрузить курсы автоматически.'); }
 }
 
