@@ -373,6 +373,7 @@ const uiLabels={am:{contract_number_label:"ՊԱՅՄԱՆԱԳՐԻ ՀԱՄԱՐ (ԹԻ
 let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUrl=null, signaturePad;
 // ── Stamp overlay drag & resize ───────────────────────────────────────────────
 let stampX = 60, stampY = 1900, stampSize = 130; // внизу где подписи
+let sigX = 300, sigY = 1920, sigW = 200, sigH = 60; // подпись правее
 
 const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
 
@@ -434,11 +435,58 @@ function showStampOverlay() {
 
 initStampOverlay();
 
+function initSigOverlay() {
+  const overlay = document.getElementById('sigOverlay');
+  const handle  = document.getElementById('sigResizeHandle');
+  if (!overlay || !handle) return;
+  let dragging = false, startX, startY, startLeft, startTop;
+  overlay.addEventListener('pointerdown', (e) => {
+    if (e.target === handle) return;
+    dragging = true; startX = e.clientX; startY = e.clientY;
+    startLeft = overlay.offsetLeft; startTop = overlay.offsetTop;
+    overlay.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  overlay.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    sigX = Math.max(0, startLeft + e.clientX - startX);
+    sigY = Math.max(0, startTop  + e.clientY - startY);
+    overlay.style.left = sigX + 'px'; overlay.style.top = sigY + 'px';
+  });
+  overlay.addEventListener('pointerup', () => { dragging = false; });
+  let resizing = false, startRX, startRY, startRW, startRH;
+  handle.addEventListener('pointerdown', (e) => {
+    resizing = true; startRX = e.clientX; startRY = e.clientY;
+    startRW = sigW; startRH = sigH;
+    handle.setPointerCapture(e.pointerId); e.stopPropagation(); e.preventDefault();
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if (!resizing) return;
+    sigW = Math.max(80, startRW + e.clientX - startRX);
+    sigH = Math.max(30, startRH + e.clientY - startRY);
+    overlay.style.width = sigW + 'px'; overlay.style.height = sigH + 'px';
+  });
+  handle.addEventListener('pointerup', () => { resizing = false; });
+}
+
+function showSigOverlay() {
+  const overlay = document.getElementById('sigOverlay');
+  const img     = document.getElementById('sigOverlayImg');
+  if (!overlay) return;
+  if (!signatureDataUrl) { overlay.style.display = 'none'; return; }
+  img.src = signatureDataUrl;
+  overlay.style.display = 'block';
+  overlay.style.left   = sigX + 'px'; overlay.style.top    = sigY + 'px';
+  overlay.style.width  = sigW + 'px'; overlay.style.height = sigH + 'px';
+}
+
+initSigOverlay();
+
 function captureSignature(){
   if(signaturePad && !signaturePad.isEmpty()){
     signatureDataUrl=signaturePad.toDataURL('image/png');
     document.getElementById('signaturePreview').src=signatureDataUrl;
     document.getElementById('signaturePreview').style.display='block';
+    showSigOverlay();
     renderContract();
   }
 }
@@ -455,7 +503,7 @@ function initSignaturePad(){
 initSignaturePad();
 window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignaturePad();if(d&&d.length>0){signaturePad.fromData(d);captureSignature();}});
 
-document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';renderContract();});
+document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';showSigOverlay();renderContract();});
 
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
 document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';showStampOverlay();renderContract();
@@ -490,10 +538,19 @@ function renderContract(){
     overlay.id = 'stampOverlay';
     overlay.innerHTML = `<img id="stampOverlayImg" src="" alt="stamp"><div id="stampResizeHandle"></div><div id="stampHint">↔ перетащите · ↘ тяните угол</div>`;
     previewDiv.appendChild(overlay);
-    // Переинициализируем drag после пересоздания
     initStampOverlay();
   }
+  // Пересоздаём sigOverlay
+  let sigOv = document.getElementById('sigOverlay');
+  if (!sigOv) {
+    sigOv = document.createElement('div');
+    sigOv.id = 'sigOverlay';
+    sigOv.innerHTML = `<img id="sigOverlayImg" src="" alt="signature"><div id="sigResizeHandle"></div><div id="sigHint">↔ перетащите · ↘ тяните угол</div>`;
+    previewDiv.appendChild(sigOv);
+    initSigOverlay();
+  }
   showStampOverlay();
+  showSigOverlay();
 }
 
 function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
