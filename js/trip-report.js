@@ -107,8 +107,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel: '⛽ Топливо', toll: '🛣 Платная дорога', parking: '🅿️ Стоянка', other: '📦 Прочее' };
-const catClass = { fuel: 'cat-fuel', toll: 'cat-toll', parking: 'cat-parking', other: 'cat-other' };
+const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -171,19 +171,22 @@ async function openTrip(trip) {
 function renderTripStats(trip) {
   const expenses = trip.expenses || [];
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
-  const fuelExpenses = expenses.filter(e => e.category === 'fuel').reduce((s, e) => s + (e.amount_amd || 0), 0);
+  const advanceAMD = expenses.filter(e=>e.category==='advance').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const salaryAMD  = expenses.filter(e=>e.category==='salary').reduce((s,e)=>s+(e.amount_amd||0),0);
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
 
   document.getElementById('tripStats').innerHTML = `
-    <div class="stat"><div class="val">${fmt(trip.wialon_mileage)} <span style="font-size:.6rem">км</span></div><div class="lbl">Пробег GPS</div></div>
+    <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
     <div class="stat ${trip.wialon_fuel_rate > trip.fuel_rate_plan ? 'red' : 'green'}">
-      <div class="val">${fmt(trip.wialon_fuel_rate)} <span style="font-size:.6rem">л/100</span></div><div class="lbl">Расход факт</div></div>
-    <div class="stat"><div class="val">${fmt(trip.fuel_rate_plan)} <span style="font-size:.6rem">л/100</span></div><div class="lbl">Расход план</div></div>
+      <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
+    <div class="stat"><div class="val">${fmt(trip.fuel_rate_plan)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход план</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
-      <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)} <span style="font-size:.6rem">л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat yellow"><div class="val">֏${fmt(totalAMD)}</div><div class="lbl">Расходы итого</div></div>
-    <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Чеков</div></div>`;
+      <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
+    <div class="stat orange"><div class="val">֏${fmt(advanceAMD)}</div><div class="lbl">💵 Аванс</div></div>
+    <div class="stat orange"><div class="val">֏${fmt(salaryAMD)}</div><div class="lbl">👷 Зарплата</div></div>
+    <div class="stat yellow"><div class="val">֏${fmt(totalAMD)}</div><div class="lbl">Итого расходы</div></div>
+    <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
 
   // Wialon блок
   if (trip.wialon_mileage > 0) {
@@ -250,6 +253,10 @@ function openTripModal(trip = null) {
   document.getElementById('fDateEnd').value = trip?.date_end || '';
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
+  document.getElementById('fAdvance').value = trip?.advance_amount || '';
+  document.getElementById('fAdvanceCur').value = trip?.advance_currency || 'AMD';
+  document.getElementById('fSalary').value = trip?.salary_amount || '';
+  document.getElementById('fSalaryCur').value = trip?.salary_currency || 'AMD';
   document.getElementById('fNotes').value = trip?.notes || '';
   document.getElementById('tripModal').classList.add('open');
 }
@@ -269,6 +276,10 @@ async function saveTrip() {
     fuel_rate_plan: parseFloat(document.getElementById('fFuelRate').value) || 30,
     notes: document.getElementById('fNotes').value,
     status: 'open',
+    advance_amount: parseFloat(document.getElementById('fAdvance').value) || 0,
+    advance_currency: document.getElementById('fAdvanceCur').value,
+    salary_amount: parseFloat(document.getElementById('fSalary').value) || 0,
+    salary_currency: document.getElementById('fSalaryCur').value,
   };
   if (editingTripId) {
     const existing = trips.find(t => t.id === editingTripId);
@@ -405,6 +416,37 @@ async function loadCargo() {
 }
 
 // Events
+document.getElementById('uploadBankBtn').addEventListener('click', () => document.getElementById('bankFileInput').click());
+document.getElementById('bankFileInput').addEventListener('change', async (e) => {
+  if (!currentTrip || !e.target.files[0]) return;
+  const file = e.target.files[0];
+  const btn = document.getElementById('uploadBankBtn');
+  btn.textContent = '⏳...'; btn.disabled = true;
+  try {
+    const uploadR = await fetch(WORKER + '/api/trips/upload-receipt', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'application/pdf' },
+      body: file,
+    });
+    const uploadD = await uploadR.json();
+    await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', {
+      category: 'bank',
+      amount: 0,
+      currency: 'AMD',
+      date: new Date().toISOString().slice(0,10),
+      description: 'Банковская выписка: ' + file.name,
+      receipt_key: uploadD.key,
+    });
+    await openTrip({ id: currentTrip.id });
+    e.target.value = '';
+    alert('✅ Выписка загружена!');
+  } catch(err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.textContent = '🏦 Выписка'; btn.disabled = false;
+  }
+});
+
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('newTripBtn').addEventListener('click', () => openTripModal());
 document.getElementById('saveTripBtn').addEventListener('click', saveTrip);
