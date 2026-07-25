@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://gl-api.gltransam.workers.dev; object-src 'none'; base-uri 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GL Logistics — вход для персонала.">
   <title>GL Logistics | Вход</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,38 +24,8 @@
   <p class="error" id="errorMsg">Неверный логин или пароль</p>
   <input type="text" id="username" placeholder="Логин" autocomplete="username">
   <input type="password" id="password" placeholder="Пароль" autocomplete="current-password">
-  <button onclick="doLogin()">Войти</button>
+  <button id="loginBtn">Войти</button>
 </div>
-
-<script>
-const API_URL = 'https://gl-api.gltransam.workers.dev';
-
-async function doLogin() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  if (!username || !password) return;
-  
-  try {
-    const res = await fetch(API_URL + '/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    if (res.ok) {
-      localStorage.setItem('gl_staff_user', username);
-      if (username === 'TigranMetspagyan') {
-        window.location.href = 'staff-dashboard.html';
-      } else {
-        window.location.href = 'staff-cargo.html';
-      }
-    } else {
-      document.getElementById('errorMsg').style.display = 'block';
-    }
-  } catch (err) {
-    document.getElementById('errorMsg').textContent = 'Ошибка соединения';
-    document.getElementById('errorMsg').style.display = 'block';
-  }
-}
-</script>
+<script src="js/staff.js"></script>
 </body>
 </html>
