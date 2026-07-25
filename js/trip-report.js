@@ -302,26 +302,17 @@ async function deleteTrip() {
 async function syncWialon() {
   if (!currentTrip) return;
   const btn = document.getElementById('wialonSyncBtn');
-  btn.textContent = '⏳ Загрузка...';
-  btn.disabled = true;
+  btn.textContent = '⏳ Загрузка...'; btn.disabled = true;
   try {
-    const data = await fetchWialonData(currentTrip);
-    if (!data) { alert('Не удалось получить данные из Wialon. Проверьте даты рейса.'); return; }
-    await api('/api/trips/' + currentTrip.id, 'PUT', {
-      ...currentTrip,
-      wialon_mileage: data.mileage,
-      wialon_fuel_used: data.fuelUsed,
-      wialon_fuel_rate: data.fuelRate,
-      wialon_fillings: JSON.stringify(data.fillings),
-    });
+    const data = await api('/api/trips/' + currentTrip.id + '/wialon-sync', 'POST');
+    if (data.error) { alert('Ошибка Wialon: ' + data.error); return; }
     await openTrip({ id: currentTrip.id });
     await loadTrips();
-    alert(`✅ Данные Wialon загружены!\nПробег: ${fmt(data.mileage)} км\nРасход: ${fmt(data.fuelUsed)} л`);
+    alert(`✅ Данные Wialon загружены!\nПробег: ${fmt(data.mileage)} км\nРасход: ${fmt(data.fuelUsed)} л\nЗаправок: ${data.fillings?.length || 0}`);
   } catch (e) {
-    alert('Ошибка Wialon: ' + e.message);
+    alert('Ошибка: ' + e.message);
   } finally {
-    btn.textContent = '🛰 Wialon';
-    btn.disabled = false;
+    btn.textContent = '🛰 Wialon'; btn.disabled = false;
   }
 }
 
