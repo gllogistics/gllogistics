@@ -374,6 +374,8 @@ let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUr
 // ── Stamp overlay drag & resize ───────────────────────────────────────────────
 let stampX = 60, stampY = 60, stampSize = 130; // позиция и размер в px
 
+const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
+
 function initStampOverlay() {
   const overlay = document.getElementById('stampOverlay');
   const handle  = document.getElementById('stampResizeHandle');
@@ -456,8 +458,6 @@ document.getElementById('clearSignature').addEventListener('click',()=>{signatur
 
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
 document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';showStampOverlay();renderContract();};r.readAsDataURL(f);}});
-
-const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
 
 function renderContract(){
   const c=document.getElementById('company').value.trim()||'[COMPANY]',
