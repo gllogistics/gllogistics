@@ -371,7 +371,65 @@ const uiLabels={am:{contract_number_label:"ՊԱՅՄԱՆԱԳՐԻ ՀԱՄԱՐ (ԹԻ
 
 // ── State & core logic ────────────────────────────────────────────────────────
 let currentLang='am', currentType='customer', stampDataUrl=null, signatureDataUrl=null, signaturePad;
-const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
+// ── Stamp overlay drag & resize ───────────────────────────────────────────────
+let stampX = 60, stampY = 60, stampSize = 130; // позиция и размер в px
+
+function initStampOverlay() {
+  const overlay = document.getElementById('stampOverlay');
+  const handle  = document.getElementById('stampResizeHandle');
+  const preview = document.getElementById('contractPreview');
+
+  // Drag
+  let dragging = false, startX, startY, startLeft, startTop;
+  overlay.addEventListener('pointerdown', (e) => {
+    if (e.target === handle) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startLeft = overlay.offsetLeft; startTop = overlay.offsetTop;
+    overlay.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  overlay.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    stampX = Math.max(0, startLeft + dx);
+    stampY = Math.max(0, startTop + dy);
+    overlay.style.left = stampX + 'px';
+    overlay.style.top  = stampY + 'px';
+  });
+  overlay.addEventListener('pointerup', () => { dragging = false; });
+
+  // Resize
+  let resizing = false, startRX, startRY, startSize;
+  handle.addEventListener('pointerdown', (e) => {
+    resizing = true;
+    startRX = e.clientX; startRY = e.clientY; startSize = stampSize;
+    handle.setPointerCapture(e.pointerId);
+    e.stopPropagation(); e.preventDefault();
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if (!resizing) return;
+    const d = (e.clientX - startRX + e.clientY - startRY) / 2;
+    stampSize = Math.max(60, Math.min(300, startSize + d));
+    overlay.style.width  = stampSize + 'px';
+    overlay.style.height = stampSize + 'px';
+  });
+  handle.addEventListener('pointerup', () => { resizing = false; });
+}
+
+function showStampOverlay() {
+  const overlay = document.getElementById('stampOverlay');
+  const img     = document.getElementById('stampOverlayImg');
+  if (!stampDataUrl) { overlay.style.display = 'none'; return; }
+  img.src = stampDataUrl;
+  overlay.style.display = 'block';
+  overlay.style.left   = stampX + 'px';
+  overlay.style.top    = stampY + 'px';
+  overlay.style.width  = stampSize + 'px';
+  overlay.style.height = stampSize + 'px';
+}
+
+initStampOverlay();
 
 function captureSignature(){
   if(signaturePad && !signaturePad.isEmpty()){
@@ -397,7 +455,9 @@ window.addEventListener('resize',()=>{const d=signaturePad.toData();initSignatur
 document.getElementById('clearSignature').addEventListener('click',()=>{signaturePad.clear();signatureDataUrl=null;document.getElementById('signaturePreview').style.display='none';renderContract();});
 
 document.getElementById('stampTrigger').addEventListener('click',()=>document.getElementById('stampInput').click());
-document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';renderContract();};r.readAsDataURL(f);}});
+document.getElementById('stampInput').addEventListener('change',(e)=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=(ev)=>{stampDataUrl=ev.target.result;document.getElementById('stampPreview').src=stampDataUrl;document.getElementById('stampPreview').style.display='block';showStampOverlay();renderContract();};r.readAsDataURL(f);}});
+
+const previewDiv=document.getElementById('contractPreview'), canvas=document.getElementById('signatureCanvas');
 
 function renderContract(){
   const c=document.getElementById('company').value.trim()||'[COMPANY]',
@@ -414,6 +474,10 @@ function renderContract(){
   document.getElementById('contractNumberDisplay').textContent=contractNumber;
   const fn=contracts[currentType][currentLang];
   previewDiv.innerHTML=watermark() + docFooter() + fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
+  // Перемещаем оверлей печати обратно в previewDiv (innerHTML его сбрасывает)
+  const overlay = document.getElementById('stampOverlay');
+  if (overlay && overlay.parentNode !== previewDiv) previewDiv.appendChild(overlay);
+  showStampOverlay();
 }
 
 function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
