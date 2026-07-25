@@ -489,23 +489,25 @@ function showSigOverlay() {
 initSigOverlay();
 
 function captureSignature(){
-  if(signaturePad && !signaturePad.isEmpty()){
-    signatureDataUrl=signaturePad.toDataURL('image/png');
-    document.getElementById('signaturePreview').src=signatureDataUrl;
-    document.getElementById('signaturePreview').style.display='block';
-    adjustOverlayPositions();
-    showSigOverlay();
-    renderContract();
-    setTimeout(()=>{ window.scrollTo({top: sigY - 150, behavior:'smooth'}); }, 150);
-  }
+  const dataUrl = signaturePad?.toDataURL('image/png');
+  if (!dataUrl || signaturePad?.isEmpty()) return;
+  signatureDataUrl = dataUrl;
+  document.getElementById('signaturePreview').src = signatureDataUrl;
+  document.getElementById('signaturePreview').style.display = 'block';
+  adjustOverlayPositions();
+  showSigOverlay();
+  renderContract();
+  setTimeout(()=>{ window.scrollTo({top: sigY - 150, behavior:'smooth'}); }, 150);
 }
 function initSignaturePad(){
-  canvas.width=canvas.offsetWidth||300;
-  canvas.height=canvas.offsetHeight||80;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width  = (canvas.offsetWidth  || 300) * ratio;
+  canvas.height = (canvas.offsetHeight || 80)  * ratio;
+  canvas.getContext('2d').scale(ratio, ratio);
   signaturePad=new SignaturePad(canvas,{
     backgroundColor:'rgba(255,255,255,0)',
     penColor:'rgb(10,10,10)',
-    minWidth:1,maxWidth:3,
+    minWidth:1, maxWidth:3,
     onEnd: captureSignature
   });
 }
