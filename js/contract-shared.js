@@ -3,9 +3,11 @@
 // и чтобы CSP страниц мог разрешать скрипты через 'self' без 'unsafe-inline'.
 
 function sigStamp(sig, st) {
+  // Печать отображается в отдельном draggable overlay (#stampOverlay),
+  // поэтому здесь рендерим только подпись (st игнорируется намеренно).
   var row = 'display:table;width:100%;border-collapse:separate;border-spacing:10px 0;margin-top:8px;';
   var html = '<div style="' + row + '">';
-  html += '<div style="display:table-cell;vertical-align:bottom;width:60%;">';
+  html += '<div style="display:table-cell;vertical-align:bottom;width:100%;">';
   if (sig) {
     html += '<img src="' + sig + '" alt="signature" '
           + 'style="display:block;width:auto;height:70px;max-width:220px;'
@@ -13,13 +15,6 @@ function sigStamp(sig, st) {
   }
   html += '<div style="height:1px;background:#2A5E66;width:100%;"></div>';
   html += '</div>';
-  if (st) {
-    html += '<div style="display:table-cell;vertical-align:middle;width:40%;text-align:center;">';
-    html += '<img src="' + st + '" alt="stamp" '
-          + 'style="width:140px;height:140px;object-fit:contain;'
-          + 'opacity:0.82;transform:rotate(-12deg);display:inline-block;">';
-    html += '</div>';
-  }
   html += '</div>';
   return html;
 }
