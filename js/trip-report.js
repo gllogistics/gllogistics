@@ -163,7 +163,7 @@ async function openTrip(trip) {
     wialon_mileage: full.wialon_mileage,
     wialon_fuel_used: full.wialon_fuel_used,
     wialon_fuel_rate: full.wialon_fuel_rate,
-    expenses: (full.expenses || []).map(e => ({ cat: e.category, amount: e.amount, currency: e.currency, desc: e.description })),
+    expenses: (full.expenses || []).map(e => ({ cat: e.category, amount: e.amount, currency: e.currency, desc: e.description, receipt_key: e.receipt_key })),
     total_expenses_amd: (full.expenses || []).reduce((s, e) => s + (e.amount_amd || 0), 0),
   };
 }
