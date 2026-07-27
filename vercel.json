@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/files", "destination": "/files.html" },
     { "source": "/trip-report", "destination": "/trip-report.html" },
     { "source": "/contract", "destination": "/contract.html" },
     { "source": "/rateconfirmation", "destination": "/rateconfirmation.html" },
