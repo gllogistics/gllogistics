@@ -363,32 +363,41 @@ async function sendAI() {
   if (!text) return;
   input.value = '';
 
+  const aiBody = document.getElementById('aiBody');
+
+  if (!aiTripContext) {
+    aiBody.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">⚠️ Сначала выберите рейс слева!</div>`;
+    aiBody.scrollTop = aiBody.scrollHeight;
+    return;
+  }
+
+  const hasBankDocs = aiTripContext.expenses?.some(e => e.cat === 'bank' && e.receipt_key);
+
   const body = document.getElementById('aiBody');
 
   // Добавляем сообщение пользователя
   aiMessages.push({ role: 'user', content: text });
-  body.innerHTML += `<div class="ai-msg user">${esc(text)}</div>`;
+  aiBody.innerHTML += `<div class="ai-msg user">${esc(text)}</div>`;
 
-  // Индикатор загрузки
   const loadId = 'ai-load-' + Date.now();
-  body.innerHTML += `<div class="ai-msg loading" id="${loadId}">...</div>`;
-  body.scrollTop = body.scrollHeight;
+  aiBody.innerHTML += `<div class="ai-msg loading" id="${loadId}">...</div>`;
+  aiBody.scrollTop = aiBody.scrollHeight;
 
   try {
     const r = await api('/api/trips/ai', 'POST', {
-      messages: aiMessages.slice(-10), // последние 10 сообщений
+      messages: aiMessages.slice(-10),
       tripContext: aiTripContext,
     });
 
     document.getElementById(loadId)?.remove();
     const reply = r.content || r.error || 'Нет ответа';
     aiMessages.push({ role: 'assistant', content: reply });
-    body.innerHTML += `<div class="ai-msg assistant">${esc(reply)}</div>`;
+    aiBody.innerHTML += `<div class="ai-msg assistant">${esc(reply)}</div>`;
   } catch (e) {
     document.getElementById(loadId)?.remove();
-    body.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">Ошибка: ${e.message}</div>`;
+    aiBody.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">Ошибка: ${e.message}</div>`;
   }
-  body.scrollTop = body.scrollHeight;
+  aiBody.scrollTop = aiBody.scrollHeight;
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
