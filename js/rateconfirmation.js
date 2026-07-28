@@ -6,6 +6,7 @@ document.getElementById('logoLink').href = staffUser ? 'staff-cargo.html' : '/';
 // в отличие от contract.html. Теперь при скачивании данные заявки также
 // уходят на почту компании через Formspree (тот же ящик, что и для договоров).
 const FORMSPREE_MAIN = 'https://formspree.io/f/mredrzjr';
+const WORKER_URL = 'https://gl-api.gltransam.workers.dev';
 
 // sigStamp / watermark / docFooter теперь приходят из js/contract-shared.js
 
@@ -186,33 +187,49 @@ async function makePdf() {
 
 // Отправка данных заявки в почту компании (не сам PDF — только текстовые поля,
 // чтобы офис знал, что заявка заполнена, даже если человек не переслал PDF сам).
-async function notifyOffice() {
+async function notifyAndSend(pdfBlob) {
+  const company     = fv('company','');
+  const signatory   = fv('signatory','');
+  const phone       = fv('phone','');
+  const clientEmail = (document.getElementById('clientEmail')?.value || '').trim();
+  const route       = fv('f1','') + ' → ' + fv('f2','');
+
+  // Загружаем PDF в R2
+  let pdfKey = null;
   try {
-    var body = {
-      _subject: 'GL Logistics — New Application ' + contractNumber,
-      application_number: contractNumber,
-      contract_type: currentType,
-      language: currentLang,
-      company: fv('company',''),
-      signatory: fv('signatory',''),
-      phone: fv('phone',''),
-      hayt_number: fv('haytNum',''),
-      contract_number_ref: fv('contractNum',''),
-      message: [
-        'New application №' + contractNumber,
-        'Company:   ' + fv('company',''),
-        'Signatory: ' + fv('signatory',''),
-        'Phone:     ' + fv('phone',''),
-        'Route:     ' + fv('f1','') + ' → ' + fv('f2','')
-      ].join('\n')
-    };
-    await fetch(FORMSPREE_MAIN, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+    const uploadR = await fetch(WORKER_URL + '/api/upload-contract', {
+      method: 'POST', headers: { 'Content-Type': 'application/pdf' }, body: pdfBlob,
     });
-  } catch (_) {
-    // Тихо игнорируем — PDF всё равно скачается локально, это лишь уведомление офиса
+    const uploadD = await uploadR.json();
+    pdfKey = uploadD.key || null;
+  } catch (_) {}
+
+  // Уведомление в офис
+  try {
+    await fetch(WORKER_URL + '/api/send-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: 'info@gllogistics.org',
+        subject: 'GL Logistics — New Application ' + contractNumber,
+        pdfKey, pdfName: 'Application-' + contractNumber + '.pdf',
+        html: `<h2>Новая заявка №${contractNumber}</h2><p><b>Компания:</b> ${company}</p><p><b>Контакт:</b> ${signatory} · ${phone}</p><p><b>Маршрут:</b> ${route}</p><p><b>Email клиента:</b> ${clientEmail || 'не указан'}</p>`
+      })
+    });
+  } catch (_) {}
+
+  // Письмо клиенту
+  if (clientEmail) {
+    try {
+      await fetch(WORKER_URL + '/api/send-email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: clientEmail,
+          subject: 'GL Logistics — Заявка №' + contractNumber,
+          pdfKey, pdfName: 'Application-' + contractNumber + '.pdf',
+          html: `<p>Уважаемый(ая) ${signatory},</p><p>Высылаем вам заявку №<b>${contractNumber}</b> от GL Logistics.</p><p>Заявка прикреплена к этому письму в виде PDF-файла.</p><hr><p style="color:#888;font-size:12px">GL Logistics LLC · +374 93 66 14 54 · info@gllogistics.org</p>`
+        })
+      });
+    } catch (_) {}
   }
 }
 
@@ -221,7 +238,8 @@ document.getElementById('dlBtn').addEventListener('click', async function(){
   try{
     var pdf=await makePdf();
     pdf.save('Application_'+contractNumber+'.pdf');
-    notifyOffice();
+    const pdfBlob = pdf.output('blob');
+    notifyAndSend(pdfBlob);
   }
   catch(e){alert('PDF error: '+e.message);}
   b.disabled=false; b.textContent='⬇ Ներբեռնել PDF';
