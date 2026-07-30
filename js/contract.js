@@ -602,7 +602,7 @@ function renderContract(){
         ba=document.getElementById('bankAccount').value.trim()||'________________________',
         // Номер из ручного поля
         manualNumber=document.getElementById('contractNumberInput').value.trim();
-  const contractNumber = manualNumber || generateContractNumber();
+  const contractNumber = manualNumber || fallbackContractNumber();
   document.getElementById('contractNumberDisplay').textContent=contractNumber;
   const fn=contracts[currentType][currentLang];
   previewDiv.innerHTML=watermark() + docFooter() + fn(c,t,a,s,p,d,contractNumber,signatureDataUrl,stampDataUrl,bk,ba);
@@ -629,7 +629,18 @@ function renderContract(){
   showSigOverlay();
 }
 
-function generateContractNumber(){const y=new Date().getFullYear(),p=currentType==='customer'?'GL-C':'GL-T',r=Math.floor(Math.random()*9000)+1000;return`${p}-${y}-${r}`;}
+async function generateContractNumber() {
+  try {
+    const r = await fetch(WORKER_URL + '/api/contract-number');
+    const d = await r.json();
+    return d.number || fallbackContractNumber();
+  } catch(_) { return fallbackContractNumber(); }
+}
+function fallbackContractNumber() {
+  const y = new Date().getFullYear();
+  const p = currentType === 'customer' ? 'GL-C' : 'GL-T';
+  return `${p}-${y}-${Math.floor(Math.random()*9000)+1000}`;
+}
 
 document.querySelectorAll('.type-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('active'));
@@ -680,7 +691,7 @@ document.getElementById('contractForm').addEventListener('submit', async functio
   const customerEmail  = document.getElementById('email').value.trim();
   const companyName    = document.getElementById('company').value.trim();
   const signatoryName  = document.getElementById('signatory').value.trim();
-  const contractNumber = document.getElementById('contractNumberInput').value.trim() || generateContractNumber();
+  const contractNumber = document.getElementById('contractNumberInput').value.trim() || await generateContractNumber();
   const fileName       = 'contract_' + contractNumber + '.pdf';
 
   try {
@@ -750,6 +761,40 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
     const { url: cloudinaryUrl, key: pdfKey } = await uploadPdfToR2(pdfBlob, fileName);
 
+    // Сохраняем в историю договоров
+    try {
+      await fetch(WORKER_URL + '/api/contracts-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contract_number: contractNumber,
+          contract_type: currentType,
+          language: currentLang,
+          company: companyName,
+          signatory: signatoryName,
+          customer_email: customerEmail,
+          pdf_key: pdfKey || null,
+        })
+      });
+    } catch(_) {}
+
+    // Сохраняем в историю договоров
+    try {
+      await fetch(WORKER_URL + '/api/contracts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          number: contractNumber,
+          type: currentType,
+          lang: currentLang,
+          company: companyName,
+          signatory: signatoryName,
+          customer_email: customerEmail,
+          pdf_key: pdfKey || '',
+        })
+      });
+    } catch(_) {}
+
     // Уведомление в офис GL Logistics
     try {
       await fetch(WORKER_URL + '/api/send-email', {
@@ -804,5 +849,5 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateUILabels();
-document.getElementById('contractNumberDisplay').textContent = generateContractNumber();
+generateContractNumber().then(n => { document.getElementById('contractNumberDisplay').textContent = n; });
 renderContract();
