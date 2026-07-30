@@ -265,7 +265,10 @@ async function loadData() {
       <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>`;
 
     document.getElementById('statsRowBottom').innerHTML = `
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(bankAMD).toLocaleString()}</div><div class="lbl">🏦 Счета (доступно)</div></div>
+      <div class="stat-card stat-profit" style="border:2px solid rgba(85,183,189,.4)">
+        <div class="num">֏${Math.round(bankAMD).toLocaleString()}</div>
+        <div class="lbl">🏦 Реальная касса (счёт)</div>
+      </div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
       <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
       <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>`;
