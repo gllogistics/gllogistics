@@ -80,13 +80,11 @@
     tr:nth-child(even) td { background: rgba(85,183,189,0.02); }
     tr:hover td { background: #F0F9F9; }
     .profit-positive { color: #1a6b3c; font-weight: 700; }
-
     .status-badge { padding: 3px 9px; border-radius: 6px; font-size: 0.62rem; font-weight: 700; display: inline-block; white-space: nowrap; }
     .status-loading { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
     .status-onroad { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
     .status-loaded { background: #F0FDFA; color: #0D9488; border: 1px solid #99F6E4; }
     .status-completed { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
-
     .btn-pay { background: #55B7BD; color: #0D1F23; border: none; padding: 4px 9px; border-radius: 7px; font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .btn-pay:hover { opacity: 0.8; }
     .btn-pay.paid { background: #D1FAE5; color: #065F46; }
@@ -94,11 +92,72 @@
     .btn-edit:hover { color: #55B7BD; }
     .btn-del { background: none; border: none; cursor: pointer; font-size: 1rem; color: #8fa8ab; transition: color 0.15s; }
     .btn-del:hover { color: #ef4444; }
-
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(85,183,189,0.35); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(85,183,189,0.6); }
+
+    /* ── МОБИЛЬНАЯ ВЕРСИЯ ── */
+    @media (max-width: 768px) {
+      body { padding: 0.6rem; }
+      .app-wrapper { padding: 0; }
+      .top-bar { padding: 0.5rem 0.8rem; border-radius: 12px; margin-bottom: 0.6rem; }
+      .top-bar .brand span { display: none; }
+      .nav-links { flex-wrap: wrap; gap: 3px; margin-bottom: 0.8rem; }
+      .nav-links a { padding: 6px 10px; font-size: 0.72rem; }
+      .filter-bar { flex-direction: column; gap: 0.5rem; padding: 0.7rem; }
+      .filter-bar label { display: none; }
+      .filter-bar input[type="date"],
+      .filter-bar select,
+      #searchInput { width: 100%; font-size: 0.85rem; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 0.8rem; }
+      .stat-card { padding: 10px 12px; }
+      .stat-card .val { font-size: 1rem; }
+      /* Таблица → карточки на мобиле */
+      .table-wrap { overflow: visible; background: transparent; border: none; box-shadow: none; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tbody tr {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid rgba(85,183,189,0.15);
+        margin-bottom: 0.7rem;
+        padding: 0.8rem;
+        box-shadow: 0 1px 6px rgba(30,59,66,0.06);
+      }
+      tbody tr td {
+        padding: 3px 0;
+        border: none;
+        font-size: 0.82rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #1E3B42;
+      }
+      tbody tr td::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #8fa8ab;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 90px;
+      }
+      tbody tr td:empty { display: none; }
+      /* Кнопки действий */
+      tbody tr td:last-child { justify-content: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(85,183,189,0.1); margin-top: 6px; }
+      tbody tr td:last-child::before { display: none; }
+      .btn-edit, .btn-del { font-size: 1.2rem; padding: 4px; }
+      /* Форма добавления */
+      .form-row { grid-template-columns: 1fr !important; }
+      #dealModal .modal-content { margin: 0.5rem; border-radius: 14px; max-height: 95vh; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .filter-bar > div { display: flex; gap: 6px; flex-wrap: wrap; }
+      #exportExcelBtn, #newDealBtn { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body>
