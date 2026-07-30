@@ -322,14 +322,14 @@ function renderAll() {
                      <button class="btn-pay ${c.carrier_paid?'paid':''}" onclick="togglePaid(${c.id},'carrier_paid')">📤 ${c.carrier_paid?'✓':'✗'}</button>`;
     }
     return `<tr>
-      <td>${idx+1}</td><td>${esc(c.client_name)}</td><td>${esc(c.carrier_name)}</td><td>${esc(c.product)}</td>
-      <td>${load}</td><td>${unload}</td><td>${c.load_date||'-'}</td>
-      <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-      <td>${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
-      <td>${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
-      <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
-      <td>${paymentHTML}</td>
-      <td>${esc(c.logist)}</td>
+      <td data-label="#">${idx+1}</td><td data-label="Клиент">${esc(c.client_name)}</td><td data-label="Перевозчик">${esc(c.carrier_name)}</td><td data-label="Товар">${esc(c.product)}</td>
+      <td data-label="Откуда">${load}</td><td data-label="Куда">${unload}</td><td data-label="Дата">${c.load_date||'-'}</td>
+      <td data-label="Статус"><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
+      <td data-label="Клиент ₴">${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
+      <td data-label="Перевозчик ₴">${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
+      <td data-label="Прибыль" class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
+      <td data-label="Оплата">${paymentHTML}</td>
+      <td data-label="Логист">${esc(c.logist)}</td>
       <td><button class="btn-edit" onclick="editCargo(${c.id})">✏️</button> ${isAdmin?`<button class="btn-del" onclick="deleteCargo(${c.id})">🗑️</button>`:''}</td>
     </tr>`;
   }).join('');
