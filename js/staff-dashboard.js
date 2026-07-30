@@ -235,7 +235,29 @@ async function deleteLogist(name) {
 
 async function loadData() {
   try {
-    const cargo = await api('/api/cargo');
+    const [cargo, contracts] = await Promise.all([
+      api('/api/cargo'),
+      api('/api/contracts-history').catch(() => []),
+    ]);
+
+    // История договоров
+    const cTable = document.getElementById('contractsTable');
+    if (cTable) {
+      if (!contracts.length) {
+        cTable.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:1rem">Нет договоров</td></tr>';
+      } else {
+        cTable.innerHTML = contracts.slice(0, 20).map(c => `<tr>
+          <td style="font-weight:700;color:#1E7A80">${c.contract_number||'—'}</td>
+          <td style="font-size:.75rem;color:#8fa8ab">${(c.created_at||'').substring(0,10)}</td>
+          <td>${c.company||'—'}</td>
+          <td>${c.signatory||'—'}</td>
+          <td style="font-size:.75rem">${c.customer_email||'—'}</td>
+          <td><span style="font-size:.65rem;padding:2px 7px;border-radius:5px;background:#E0F4F5;color:#1E7A80;font-weight:700">${c.contract_type==='carrier'?'Перевозчик':'Клиент'} · ${c.language||''}</span></td>
+          <td>${c.pdf_key ? `<a href="https://gl-api.gltransam.workers.dev/api/contract-pdf/${c.pdf_key}" target="_blank" style="color:#1E7A80;font-weight:700;font-size:.75rem">📄 PDF</a>` : '—'}</td>
+        </tr>`).join('');
+      }
+    }
+
     let totalProfitAMD = 0, waitingClientsAMD = 0, waitingCarriersAMD = 0, receivedAMD = 0, paidAMD = 0;
     cargo.forEach(c => {
       const clientCur = c.client_currency || c.currency || 'USD';
