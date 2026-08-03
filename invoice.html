@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://gl-api.gltransam.workers.dev; object-src 'none'; base-uri 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Invoice</title>
+<link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:100vh;padding:1.5rem}
+.top-bar{background:#fff;border-radius:16px;padding:.65rem 1.8rem;margin-bottom:1.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 0 rgba(0,0,0,.06),0 4px 16px rgba(30,59,66,.06)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1rem;text-decoration:none;color:#0D1F23}
+.brand img{height:32px}
+.nav-links{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.7);border-radius:14px;width:fit-content;border:1px solid rgba(85,183,189,.15);flex-wrap:wrap}
+.nav-links a{background:transparent;color:#5a7a80;padding:8px 14px;border-radius:11px;text-decoration:none;font-size:.78rem;font-weight:600}
+.nav-links a:hover{background:#E8F6F6;color:#1E7A80}
+.nav-links a.active{background:#55B7BD;color:#fff;font-weight:700}
+.btn-logout{background:#F5FAFA;color:#1E3B42;border:1.5px solid rgba(85,183,189,.3);border-radius:10px;padding:7px 18px;cursor:pointer;font-weight:600;font-size:.8rem}
+.layout{display:grid;grid-template-columns:1fr 380px;gap:1.4rem;align-items:start}
+
+/* ── Форма ── */
+.form-panel{background:#fff;border-radius:20px;padding:1.4rem;box-shadow:0 1px 8px rgba(30,59,66,.06);border:1px solid rgba(85,183,189,.12)}
+.form-title{font-size:.85rem;font-weight:800;color:#1E3B42;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+label{font-size:.7rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+input,select,textarea{width:100%;background:#F5FAFA;border:1.5px solid rgba(85,183,189,.2);border-radius:10px;padding:8px 12px;color:#1E3B42;font-size:.85rem;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
+.form-row{display:grid;gap:.8rem;margin-bottom:.8rem}
+.form-row.cols-2{grid-template-columns:1fr 1fr}
+.sep{border:none;border-top:1px solid rgba(85,183,189,.12);margin:1rem 0}
+
+/* Строки товаров */
+.items-table{width:100%;border-collapse:collapse;margin-bottom:.8rem}
+.items-table th{font-size:.65rem;font-weight:700;color:#8fa8ab;text-transform:uppercase;padding:6px 6px;text-align:left;border-bottom:1px solid rgba(85,183,189,.15)}
+.items-table td{padding:4px 4px}
+.items-table input{padding:6px 8px;font-size:.8rem}
+.btn-add-row{background:#F0F9F9;color:#1E7A80;border:1.5px dashed rgba(85,183,189,.4);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.75rem;font-weight:700;width:100%;margin-bottom:.8rem}
+.btn-del-row{background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;padding:2px 6px}
+.btn-primary{background:#55B7BD;color:#fff;border:none;border-radius:12px;padding:11px;cursor:pointer;font-weight:800;font-size:.88rem;width:100%;margin-top:.6rem}
+.btn-primary:hover{background:#3d9da3}
+.btn-secondary{background:#F0F9F9;color:#1E7A80;border:1.5px solid rgba(85,183,189,.3);border-radius:12px;padding:10px;cursor:pointer;font-weight:700;font-size:.85rem;width:100%;margin-top:.5rem}
+
+/* ── Превью инвойса ── */
+.preview-wrap{position:sticky;top:1.5rem}
+.invoice-preview{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.12)}
+#invoiceDoc{background:#fff;padding:32px 36px;font-family:'Arial',sans-serif;font-size:10px;color:#1a1a1a;min-height:600px}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #2A5E66}
+.inv-number{font-size:22px;font-weight:900;color:#1a1a1a;letter-spacing:-0.5px}
+.inv-company-name{font-size:11px;color:#555;font-style:italic;margin-top:2px}
+.inv-logo{text-align:right}
+.inv-logo img{height:56px;object-fit:contain}
+.inv-logo .logo-text{font-size:16px;font-weight:900;color:#2A5E66;letter-spacing:-0.5px}
+.inv-logo .logo-sub{font-size:7px;color:#888}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.inv-party-title{font-size:8px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#2A5E66;padding:3px 8px;margin-bottom:6px}
+.inv-party-row{font-size:8px;line-height:1.6;color:#333}
+.inv-party-label{font-weight:700;color:#555;display:inline-block;min-width:55px}
+.inv-details-box{border:1px solid #ddd}
+.inv-details-row{display:flex;border-bottom:1px solid #ddd;font-size:8px}
+.inv-details-row:last-child{border-bottom:none}
+.inv-details-label{background:#f5f5f5;padding:4px 8px;font-weight:700;min-width:80px;border-right:1px solid #ddd;color:#333}
+.inv-details-val{padding:4px 8px;flex:1;color:#1a1a1a}
+/* Таблица позиций */
+.inv-items{width:100%;border-collapse:collapse;margin-bottom:10px}
+.inv-items th{background:#2A5E66;color:#fff;font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:5px 8px;text-align:left}
+.inv-items th:last-child,.inv-items td:last-child{text-align:right}
+.inv-items td{padding:5px 8px;border-bottom:1px solid #eee;font-size:9px;vertical-align:top}
+.inv-items tr:last-child td{border-bottom:none}
+/* Итоги */
+.inv-totals{display:flex;justify-content:flex-end;margin-bottom:10px}
+.inv-totals-box{width:220px;border:1px solid #ddd}
+.inv-total-row{display:flex;border-bottom:1px solid #eee;font-size:8px}
+.inv-total-row:last-child{border-bottom:none;background:#f0f0f0;font-weight:900;font-size:9px}
+.inv-total-label{padding:4px 8px;flex:1;color:#555}
+.inv-total-val{padding:4px 10px;min-width:70px;text-align:right;font-weight:700}
+/* Подписи */
+.inv-sign-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:10px 0}
+.inv-sign-box{border-top:1px solid #333;padding-top:4px;font-size:7px;color:#555;text-align:center}
+/* Банк */
+.inv-notes{border:1px solid #ddd;padding:8px;font-size:7px;line-height:1.7;color:#333;margin-top:8px}
+.inv-notes b{display:block;margin-bottom:3px;font-size:7.5px}
+/* Водяной знак */
+.inv-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:60px;font-weight:900;color:rgba(42,94,102,.06);pointer-events:none;white-space:nowrap;z-index:0}
+.inv-content{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">GL Logistics</a>
+  <div class="nav-links">
+    <a href="staff-dashboard.html">📊 Главная</a>
+    <a href="staff-cargo.html">📦 Сделки</a>
+    <a href="/invoice" class="active">🧾 Инвойс</a>
+    <a href="/clients">👥 Клиенты</a>
+    <a href="/files">📁 Файлы</a>
+  </div>
+  <button class="btn-logout" id="logoutBtn">Выйти</button>
+</div>
+
+<div class="layout">
+  <!-- Форма -->
+  <div class="form-panel">
+    <div class="form-title">🧾 Создать инвойс</div>
+
+    <div class="form-row cols-2">
+      <div><label>Invoice №</label><input id="invNumber" placeholder="0433" readonly style="background:#E0F4F5;font-weight:800;color:#1E7A80"></div>
+      <div><label>Order Number</label><input id="invOrderNum" placeholder="Номер заказа"></div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label>Issue Date</label><input type="date" id="invIssueDate"></div>
+      <div><label>Due Date</label><input type="date" id="invDueDate"></div>
+    </div>
+
+    <hr class="sep">
+    <div class="form-title" style="font-size:.75rem">👤 Клиент (Customer)</div>
+
+    <div class="form-row">
+      <div><label>Название компании</label><input id="custName" placeholder="Company Name"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Адрес</label><input id="custAddress" placeholder="Address"></div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label>Телефон</label><input id="custPhone" placeholder="+1 234 567 890"></div>
+      <div><label>Email (PDF придёт сюда)</label><input type="email" id="custEmail" placeholder="client@example.com"></div>
+    </div>
+
+    <hr class="sep">
+    <div class="form-title" style="font-size:.75rem">📦 Позиции</div>
+
+    <table class="items-table">
+      <thead><tr>
+        <th style="width:45%">Description</th>
+        <th style="width:10%">QTY</th>
+        <th style="width:20%">Advance</th>
+        <th style="width:20%">Total</th>
+        <th style="width:5%"></th>
+      </tr></thead>
+      <tbody id="itemsBody">
+        <tr>
+          <td><input class="item-desc" placeholder="Описание маршрута..."></td>
+          <td><input class="item-qty" type="number" value="1" min="1"></td>
+          <td><input class="item-adv" type="number" placeholder="0" step="0.01"></td>
+          <td><input class="item-total" type="number" placeholder="0.00" step="0.01"></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn-add-row" id="addRowBtn">+ Добавить строку</button>
+
+    <div class="form-row cols-2">
+      <div><label>Валюта</label>
+        <select id="invCurrency">
+          <option value="€">EUR €</option>
+          <option value="$">USD $</option>
+          <option value="֏">AMD ֏</option>
+        </select>
+      </div>
+      <div><label>MISC</label><input id="invMisc" type="number" placeholder="0" step="0.01"></div>
+    </div>
+
+    <hr class="sep">
+    <button class="btn-primary" id="downloadBtn">⬇ Скачать PDF</button>
+    <button class="btn-secondary" id="sendBtn">📧 Отправить клиенту</button>
+  </div>
+
+  <!-- Превью -->
+  <div class="preview-wrap">
+    <div class="invoice-preview">
+      <div id="invoiceDoc">
+        <div class="inv-watermark">GL LOGISTICS</div>
+        <div class="inv-content" id="invContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER = 'https://gl-api.gltransam.workers.dev';
+
+// Auth
+const user = localStorage.getItem('gl_staff_user');
+const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
+const SESSION_MAX = 12 * 60 * 60 * 1000;
+if (!user || (Date.now() - loginTime) > SESSION_MAX) { localStorage.removeItem('gl_staff_user'); window.location.href = 'staff.html'; }
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k => localStorage.removeItem(k));
+  window.location.href = 'staff.html';
+});
+
+// Дата по умолчанию
+const today = new Date();
+const todayStr = today.toISOString().slice(0,10);
+document.getElementById('invIssueDate').value = todayStr;
+const due = new Date(today); due.setDate(due.getDate() + 14);
+document.getElementById('invDueDate').value = due.toISOString().slice(0,10);
+
+// Загружаем номер инвойса
+fetch(WORKER + '/api/invoice-number')
+  .then(r => r.json())
+  .then(d => { document.getElementById('invNumber').value = d.number || d.full || '0001'; renderInvoice(); })
+  .catch(() => { document.getElementById('invNumber').value = '0001'; renderInvoice(); });
+
+function fv(id) { return (document.getElementById(id)?.value || '').trim(); }
+function fmtMoney(n, cur) {
+  if (!n || isNaN(n)) return '';
+  return parseFloat(n).toLocaleString('en', {minimumFractionDigits:1, maximumFractionDigits:2}) + cur;
+}
+
+function getItems() {
+  return Array.from(document.querySelectorAll('#itemsBody tr')).map(row => ({
+    desc: row.querySelector('.item-desc')?.value || '',
+    qty:  row.querySelector('.item-qty')?.value || '1',
+    adv:  row.querySelector('.item-adv')?.value || '',
+    total: row.querySelector('.item-total')?.value || '',
+  })).filter(i => i.desc || i.total);
+}
+
+function renderInvoice() {
+  const num    = fv('invNumber');
+  const issue  = fv('invIssueDate');
+  const due    = fv('invDueDate');
+  const order  = fv('invOrderNum');
+  const cur    = document.getElementById('invCurrency')?.value || '€';
+  const custN  = fv('custName');
+  const custA  = fv('custAddress');
+  const custP  = fv('custPhone');
+  const custE  = fv('custEmail');
+  const misc   = parseFloat(fv('invMisc')) || 0;
+  const items  = getItems();
+
+  const subtotal = items.reduce((s,i) => s + (parseFloat(i.total)||0), 0);
+  const total = subtotal + misc;
+
+  document.getElementById('invContent').innerHTML = `
+    <div class="inv-header">
+      <div>
+        <div class="inv-number">INVOICE No ${num}</div>
+        <div class="inv-company-name">GL Logistics LLC</div>
+      </div>
+      <div class="inv-logo">
+        <img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL Logistics" onerror="this.style.display='none'">
+        <div class="logo-sub">Your supply chain partner everywhere.</div>
+      </div>
+    </div>
+
+    <div class="inv-parties">
+      <div>
+        <div class="inv-party-title">Trucking Company</div>
+        <div class="inv-party-row"><span class="inv-party-label">Name:</span> GL Logistics LLC</div>
+        <div class="inv-party-row"><span class="inv-party-label">Address:</span> 99/1 12st 18app<br>Yerevan 0041<br>Armenia</div>
+        <div class="inv-party-row"><span class="inv-party-label">Phone #:</span> +37493661454</div>
+        <div class="inv-party-row"><span class="inv-party-label">Email:</span> info@gllogistics.org</div>
+      </div>
+      <div>
+        <div class="inv-party-title">Customer</div>
+        <div class="inv-party-row"><span class="inv-party-label">Name:</span> ${custN || '_________________'}</div>
+        <div class="inv-party-row"><span class="inv-party-label">Address:</span> ${custA || '_________________'}</div>
+        <div class="inv-party-row"><span class="inv-party-label">Phone #:</span> ${custP || '_________________'}</div>
+        <div class="inv-party-row"><span class="inv-party-label">Email:</span> ${custE || '_________________'}</div>
+      </div>
+      <div>
+        <div class="inv-party-title">Details</div>
+        <div class="inv-details-box">
+          <div class="inv-details-row"><span class="inv-details-label">Issue Date</span><span class="inv-details-val">${issue}</span></div>
+          <div class="inv-details-row"><span class="inv-details-label">Due Date</span><span class="inv-details-val">${due}</span></div>
+          <div class="inv-details-row"><span class="inv-details-label">Invoice #</span><span class="inv-details-val">${num}</span></div>
+          <div class="inv-details-row"><span class="inv-details-label">Order Number</span><span class="inv-details-val">${order}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <table class="inv-items">
+      <thead><tr>
+        <th>Description</th><th>QTY</th><th>Advance</th><th>Total</th>
+      </tr></thead>
+      <tbody>
+        ${items.map(i => `<tr>
+          <td style="max-width:200px">${i.desc}</td>
+          <td style="text-align:center">${i.qty}x</td>
+          <td style="text-align:right">${i.adv ? fmtMoney(i.adv, cur) : ''}</td>
+          <td style="text-align:right;font-weight:700">${fmtMoney(i.total, cur)}</td>
+        </tr>`).join('')}
+        ${items.length === 0 ? '<tr><td colspan="4" style="color:#ccc;text-align:center;padding:12px">Добавьте позиции</td></tr>' : ''}
+      </tbody>
+    </table>
+
+    <div class="inv-totals">
+      <div class="inv-totals-box">
+        <div class="inv-total-row"><span class="inv-total-label">SUBTOTAL</span><span class="inv-total-val">${fmtMoney(subtotal, cur)}</span></div>
+        <div class="inv-total-row"><span class="inv-total-label">TAX</span><span class="inv-total-val"></span></div>
+        <div class="inv-total-row"><span class="inv-total-label">MISC.</span><span class="inv-total-val">${misc ? fmtMoney(misc, cur) : ''}</span></div>
+        <div class="inv-total-row"><span class="inv-total-label">BALANCE DUE</span><span class="inv-total-val">${fmtMoney(total, cur)}</span></div>
+      </div>
+    </div>
+
+    <div class="inv-sign-row">
+      <div class="inv-sign-box">Authorized Signature</div>
+      <div class="inv-sign-box">Client Signature</div>
+    </div>
+
+    <div class="inv-notes">
+      <b>NOTES:</b>
+      INTERMEDIARY BANK: RAIFFEISEN BANK INTERNATIONAL AG (Vienna, Austria)<br>
+      INTERMEDIARY SW IFT: RZBAATW W<br>
+      BANK BENEFICIARY : EVOCABANK CJSC (Yerevan, Armenia)<br>
+      BENEFICIARY SW IFT: PRMLAM22<br>
+      COR. ACC.N: 1-55.080.071<br>
+      BENEFICIARY : "GL LOGISTICS"<br>
+      ACCOUNT NUMBER: 1660030207071745
+    </div>`;
+}
+
+// Обновление превью при вводе
+document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', renderInvoice));
+
+// Добавить строку
+document.getElementById('addRowBtn').addEventListener('click', () => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="item-desc" placeholder="Описание..."></td>
+    <td><input class="item-qty" type="number" value="1" min="1"></td>
+    <td><input class="item-adv" type="number" placeholder="0" step="0.01"></td>
+    <td><input class="item-total" type="number" placeholder="0.00" step="0.01"></td>
+    <td><button class="btn-del-row" onclick="this.closest('tr').remove();renderInvoice()">✕</button></td>`;
+  document.getElementById('itemsBody').appendChild(tr);
+  tr.querySelectorAll('input').forEach(el => el.addEventListener('input', renderInvoice));
+});
+
+// Скачать PDF
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  btn.textContent = '⏳ Генерация...'; btn.disabled = true;
+  try {
+    const invDoc = document.getElementById('invoiceDoc');
+    const canvas = await html2canvas(invDoc, { scale: 2, useCORS: true, backgroundColor: '#fff' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const w = pdf.internal.pageSize.getWidth();
+    const h = (canvas.height / canvas.width) * w;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, w, h);
+    pdf.save('Invoice-' + fv('invNumber') + '.pdf');
+  } finally {
+    btn.textContent = '⬇ Скачать PDF'; btn.disabled = false;
+  }
+});
+
+// Отправить клиенту
+document.getElementById('sendBtn').addEventListener('click', async () => {
+  const email = fv('custEmail');
+  if (!email) { alert('Введите email клиента'); return; }
+  const btn = document.getElementById('sendBtn');
+  btn.textContent = '⏳ Отправка...'; btn.disabled = true;
+  try {
+    const invDoc = document.getElementById('invoiceDoc');
+    const canvas = await html2canvas(invDoc, { scale: 2, useCORS: true, backgroundColor: '#fff' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const w = pdf.internal.pageSize.getWidth();
+    const h = (canvas.height / canvas.width) * w;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, w, h);
+    const blob = pdf.output('blob');
+
+    // Загружаем PDF в R2
+    const uploadR = await fetch(WORKER + '/api/upload-contract', {
+      method: 'POST', headers: { 'Content-Type': 'application/pdf' }, body: blob
+    });
+    const uploadD = await uploadR.json();
+    const pdfKey = uploadD.key;
+
+    // Отправляем клиенту
+    await fetch(WORKER + '/api/send-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject: 'GL Logistics — Invoice No ' + fv('invNumber'),
+        pdfKey, pdfName: 'Invoice-' + fv('invNumber') + '.pdf',
+        html: `<p>Dear ${fv('custName') || 'Customer'},</p>
+<p>Please find attached <b>Invoice No ${fv('invNumber')}</b> from GL Logistics.</p>
+<p>Amount due: <b>${document.querySelector('.inv-total-val:last-child')?.textContent || ''}</b></p>
+<p>Due date: <b>${fv('invDueDate')}</b></p>
+<hr>
+<p style="color:#888;font-size:12px">GL Logistics LLC · +374 93 66 14 54 · info@gllogistics.org · gllogistics.org</p>`
+      })
+    });
+
+    // Уведомление в офис
+    await fetch(WORKER + '/api/send-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: 'info@gllogistics.org',
+        subject: 'GL Logistics — Invoice No ' + fv('invNumber') + ' отправлен',
+        pdfKey, pdfName: 'Invoice-' + fv('invNumber') + '.pdf',
+        html: `<h3>Инвойс №${fv('invNumber')} отправлен клиенту</h3>
+<p><b>Клиент:</b> ${fv('custName')}</p><p><b>Email:</b> ${email}</p>`
+      })
+    });
+
+    alert('✅ Инвойс отправлен на ' + email);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+  } finally {
+    btn.textContent = '📧 Отправить клиенту'; btn.disabled = false;
+  }
+});
+
+renderInvoice();
+</script>
+</body>
+</html>
