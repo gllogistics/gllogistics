@@ -366,7 +366,6 @@ function init() {
 async function exportToExcel() {
   if (!window.XLSX) { alert('SheetJS не загружен'); return; }
 
-  // Получаем отфильтрованные данные
   const start = document.getElementById('filterStart').value;
   const end   = document.getElementById('filterEnd').value;
   const fl    = document.getElementById('filterLogist').value;
@@ -378,106 +377,119 @@ async function exportToExcel() {
   if (end)   list = list.filter(c => c.load_date <= end);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   if (fp === 'client_pending')  list = list.filter(c => !c.client_paid);
-  if (fp === 'client_paid')     list = list.filter(c => c.client_paid);
+  if (fp === 'client_paid')     list = list.filter(c =>  c.client_paid);
   if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
-  if (fp === 'carrier_paid')    list = list.filter(c => c.carrier_paid);
+  if (fp === 'carrier_paid')    list = list.filter(c =>  c.carrier_paid);
   if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid);
   if (search) list = list.filter(c =>
     [c.client_name, c.carrier_name, c.product, c.logist].some(v => v && v.toLowerCase().includes(search))
   );
-
   if (!list.length) { alert('Нет данных для экспорта'); return; }
 
   const rates = exchangeRates || { AMD: 367, EUR: 418, RUB: 4.73 };
-
-  // Заголовки по шаблону
-  const headers = [
-    'Ամսաthiv',        // B: Дата клиента (load_date)
-    'Գумар',            // C: Сумма клиента
-    'Ар жу йт',         // D: Валюта клиента
-    'Փо хар жеq',       // E: Курс клиента (ЦБ)
-    'Bnдаmenea ՀՀ драm',// F: =C*E
-    'Ամсатhiv',         // G: Дата перевозчика (unload_date)
-    'Գumар',            // H: Сумма перевозчика
-    'Ар жу йт',         // I: Валюта перевозчика
-    'Փо хар жеq',       // J: Курс перевозчика
-    'Bnдаmenea ՀՀ драm',// K: =H*J
-    'Шрж harki harkman baza ՀՀ драm', // L: K-F
-    'Гumара',           // M: Комиссия (жёлтая)
-    'Вчарман амсатhива',// N: Дата оплаты
-    '5%',               // O: M*5%
-    'Арж ута',          // P: Валюта комиссии
-    'Փо хар жеq',       // Q: Курс
-    'Оч рezi шah гумара', // R: O*Q
-  ];
-
-  // Заголовки точно по шаблону: сначала перевозчик (что платим), потом клиент (что берём)
-  const sheetHeaders = [
-    'Ամсатhив',          // B: Дата перевозчика
-    'Гумар',             // C: Сумма перевозчика
-    'Арж',               // D: Валюта перевозчика
-    'Փох',               // E: Курс перевозчика (ЦБ)
-    'Bnд ՀՀ дрм',        // F: =C*E (AMD перевозчику)
-    'Ամсатhив',          // G: Дата клиента
-    'Гумар',             // H: Сумма клиента
-    'Арж',               // I: Валюта клиента
-    'Փох',               // J: Курс клиента
-    'Bnд ՀՀ дрм',        // K: =H*J (AMD от клиента)
-    'Шрж hark baza',     // L: K-F (налоговая база)
-    'Гумара',            // M: Комиссия (жёлтая)
-    'Вчар амс',          // N: Дата оплаты
-    '5%',                // O: M*5%
-    'Арж',               // P: Валюта
-    'Փох',               // Q: Курс нерезидента
-    'Оч рez',            // R: O*Q
-  ];
-
-  // Строим данные: сначала перевозчик, потом клиент
-  const rows = list.map(c => {
-    const ccur = c.client_currency || c.currency || 'USD';
-    const kcur = c.carrier_currency || c.currency || 'USD';
-    const crate = ccur === 'AMD' ? 1 : ccur === 'EUR' ? rates.EUR : ccur === 'RUB' ? rates.RUB : rates.AMD;
-    const krate = kcur === 'AMD' ? 1 : kcur === 'EUR' ? rates.EUR : kcur === 'RUB' ? rates.RUB : rates.AMD;
-    const camt = parseFloat(c.client_price) || 0;
-    const kamt = parseFloat(c.carrier_price) || 0;
-    const comm = parseFloat(c.commission) || null;
-
-    return [
-      c.unload_date || '',    // B: дата перевозчика
-      kamt,                   // C: сумма перевозчика
-      kcur,                   // D: валюта перевозчика
-      krate,                  // E: курс перевозчика
-      kamt * krate,           // F: AMD перевозчику
-      c.load_date || '',      // G: дата клиента
-      camt,                   // H: сумма клиента
-      ccur,                   // I: валюта клиента
-      crate,                  // J: курс клиента
-      camt * crate,           // K: AMD от клиента
-      (camt * crate) - (kamt * krate), // L: налоговая база (клиент - перевозчик)
-      comm !== null ? comm : 'ՉԿԱ', // M: комиссия
-      '',                     // N: дата оплаты
-      comm !== null ? comm * 0.05 : '', // O: 5%
-      comm !== null ? ccur : '',        // P: валюта
-      '',                     // Q: курс нерезидента
-      '',                     // R: O*Q
-    ];
-  });
+  const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
+  const year = new Date().getFullYear();
 
   const wb = XLSX.utils.book_new();
-  const wsData = [sheetHeaders, ...rows];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const ws = {};
+
+  // Заголовки по шаблону GL_2025_ՏারԻ.xlsx
+  // Строка 1: год
+  ws['A1'] = { v: `${year}թ.`, t: 's', s: { font: { bold: true }, alignment: { horizontal: 'center' } } };
+  // Строка 2: квартал
+  ws['A2'] = { v: '1-ին եռամсяak', t: 's', s: { font: { bold: true }, alignment: { horizontal: 'center' } } };
+  // Строка 3: группы колонок
+  ws['B3'] = { v: 'Գнвац ծаррайутюн', t: 's', s: { alignment: { horizontal: 'center' } } };
+  ws['G3'] = { v: 'Вачаррвац ծаррайутюн', t: 's', s: { alignment: { horizontal: 'center' } } };
+  ws['M3'] = { v: 'Оч рeзидент', t: 's', s: { alignment: { horizontal: 'center' } } };
+  // Строка 4: заголовки колонок
+  const hdrs4 = {
+    B:'Ամсатhив', C:'Гумар',  D:'Арж',     E:'Փох',      F:'Ənдаmenea ՀՀ дрм',
+    G:'Ամсатhив', H:'Гумар',  I:'Арж',     J:'Փох',      K:'Ənдаmenea ՀՀ дрм',
+    L:'Шрж hарки hаркман база ՀՀ дрм',
+    M:'Гумара',  N:'Вчарман амсатhива', O:'0.05', P:'Аржута', Q:'Փох', R:'Оч рeзи шах гумара'
+  };
+  Object.entries(hdrs4).forEach(([col, val]) => {
+    ws[col+'4'] = { v: val, t: 's', s: { alignment: { horizontal: 'center' }, border: {
+      top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}
+    }}};
+  });
+
+  // Данные с строки 5
+  list.forEach((d, i) => {
+    const r = i + 5;
+    const kcur = d.carrier_currency || d.currency || 'EUR';
+    const ccur = d.client_currency  || d.currency || 'AMD';
+    const krate = getRate(kcur);
+    const crate = getRate(ccur);
+    const kamt = parseFloat(d.carrier_price) || 0;
+    const camt = parseFloat(d.client_price)  || 0;
+    const comm = d.commission != null && d.commission !== '' ? parseFloat(d.commission) : null;
+
+    // Перевозчик (купленная услуга)
+    ws[`B${r}`] = { v: d.unload_date || '', t: 's' };
+    ws[`C${r}`] = { v: kamt, t: 'n', s: { alignment: { horizontal: 'center' } } };
+    ws[`D${r}`] = { v: kcur, t: 's' };
+    ws[`E${r}`] = { v: krate, t: 'n' };
+    ws[`F${r}`] = { f: `C${r}*E${r}`, t: 'n' };
+
+    // Клиент (проданная услуга)
+    ws[`G${r}`] = { v: d.load_date || '', t: 's' };
+    ws[`H${r}`] = { v: camt, t: 'n', s: { alignment: { horizontal: 'center' } } };
+    ws[`I${r}`] = { v: ccur, t: 's', s: { alignment: { horizontal: 'center' } } };
+    ws[`J${r}`] = { v: crate, t: 'n', s: { alignment: { horizontal: 'right' } } };
+    ws[`K${r}`] = { f: `H${r}*J${r}`, t: 'n' };
+
+    // Налоговая база
+    ws[`L${r}`] = { f: `K${r}-F${r}`, t: 'n' };
+
+    // Комиссия — жёлтая, bold
+    ws[`M${r}`] = {
+      v: comm !== null ? comm : 'ՉԿԱ',
+      t: comm !== null ? 'n' : 's',
+      s: {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'FFFF00' }, patternType: 'solid' },
+        alignment: { horizontal: 'center' }
+      }
+    };
+
+    // Дата оплаты
+    ws[`N${r}`] = { v: d.client_paid ? (d.payment_date || '') : '', t: 's' };
+
+    // 5%
+    if (comm !== null) {
+      ws[`O${r}`] = { f: `M${r}*5/100`, t: 'n' };
+      ws[`P${r}`] = { v: ccur, t: 's' };
+    }
+
+    // Курс нерезидента и итог
+    ws[`Q${r}`] = { v: '', t: 's' };
+    ws[`R${r}`] = { f: `O${r}*Q${r}`, t: 'n' };
+  });
+
+  // Диапазон
+  const lastRow = list.length + 4;
+  ws['!ref'] = `A1:R${lastRow}`;
 
   // Ширины колонок
   ws['!cols'] = [
-    {wch:12},{wch:10},{wch:6},{wch:10},{wch:14},
-    {wch:12},{wch:12},{wch:6},{wch:10},{wch:14},
-    {wch:16},{wch:10},{wch:12},{wch:8},{wch:6},{wch:10},{wch:12},
+    {wch:4.25},  // A
+    {wch:11.125},{wch:13},{wch:9.625},{wch:9},{wch:11.5},  // B-F
+    {wch:13},{wch:12.625},{wch:9},{wch:9},{wch:15.25},     // G-K
+    {wch:13.875},{wch:10},{wch:9.875},{wch:8},{wch:7},{wch:9},{wch:12.625}, // L-R
+  ];
+
+  // Объединение ячеек
+  ws['!merges'] = [
+    { s:{r:0,c:0}, e:{r:0,c:17} }, // A1:R1
+    { s:{r:1,c:0}, e:{r:1,c:17} }, // A2:R2
+    { s:{r:2,c:1}, e:{r:2,c:5} },  // B3:F3
+    { s:{r:2,c:6}, e:{r:2,c:10} }, // G3:K3
+    { s:{r:2,c:12}, e:{r:2,c:17} },// M3:R3
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Сделки');
-
-  // Имя файла с датой
   const today = new Date().toISOString().slice(0,10);
-  const fname = `GL_Cargo_${today}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  XLSX.writeFile(wb, `GL_${year}_${today}.xlsx`);
 }
