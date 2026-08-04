@@ -366,15 +366,15 @@ function init() {
 async function exportToExcel() {
   if (!window.XLSX) { alert('SheetJS не загружен'); return; }
 
-  const start = document.getElementById('filterStart').value;
-  const end   = document.getElementById('filterEnd').value;
-  const fl    = document.getElementById('filterLogist').value;
-  const fp    = document.getElementById('filterPayment').value;
-  const search= (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  const startF = document.getElementById('filterStart').value;
+  const endF   = document.getElementById('filterEnd').value;
+  const fl     = document.getElementById('filterLogist').value;
+  const fp     = document.getElementById('filterPayment').value;
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
   let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
-  if (start) list = list.filter(c => c.load_date >= start);
-  if (end)   list = list.filter(c => c.load_date <= end);
+  if (startF) list = list.filter(c => c.load_date >= startF);
+  if (endF)   list = list.filter(c => c.load_date <= endF);
   if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
   if (fp === 'client_pending')  list = list.filter(c => !c.client_paid);
   if (fp === 'client_paid')     list = list.filter(c =>  c.client_paid);
@@ -390,106 +390,141 @@ async function exportToExcel() {
   const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
   const year = new Date().getFullYear();
 
+  // Группируем по кварталам
+  const getQuarter = dateStr => {
+    if (!dateStr) return 1;
+    const m = parseInt((dateStr.split('-')[1] || dateStr.split('.')[1] || '1'));
+    return Math.ceil(m / 3);
+  };
+
+  const quarterNames = {
+    1: '1-ին եռամсяак', 2: '2-ин еռامсяак',
+    3: '3-ин еռامсяак', 4: '4-ин еռامсяак'
+  };
+
+  // Сортируем по дате
+  list.sort((a, b) => (a.load_date || '') > (b.load_date || '') ? 1 : -1);
+
+  // Группируем
+  const quarters = {};
+  list.forEach(d => {
+    const q = getQuarter(d.load_date || d.unload_date);
+    if (!quarters[q]) quarters[q] = [];
+    quarters[q].push(d);
+  });
+
   const wb = XLSX.utils.book_new();
   const ws = {};
 
-  // Заголовки по шаблону GL_2025_ՏারԻ.xlsx
   // Строка 1: год
-  ws['A1'] = { v: `${year}թ.`, t: 's', s: { font: { bold: true }, alignment: { horizontal: 'center' } } };
-  // Строка 2: квартал
-  ws['A2'] = { v: '1-ին եռամсяak', t: 's', s: { font: { bold: true }, alignment: { horizontal: 'center' } } };
+  ws['A1'] = { v: `${year}թ.`, t: 's', s: { font:{bold:true}, alignment:{horizontal:'center'} } };
+  
   // Строка 3: группы колонок
-  ws['B3'] = { v: 'Գнвац ծаррайутюн', t: 's', s: { alignment: { horizontal: 'center' } } };
-  ws['G3'] = { v: 'Вачаррвац ծаррайутюн', t: 's', s: { alignment: { horizontal: 'center' } } };
-  ws['M3'] = { v: 'Оч рeзидент', t: 's', s: { alignment: { horizontal: 'center' } } };
-  // Строка 4: заголовки колонок
-  const hdrs4 = {
-    B:'Ամсатhив', C:'Гумар',  D:'Арж',     E:'Փох',      F:'Ənдаmenea ՀՀ дрм',
-    G:'Ամсатhив', H:'Гумар',  I:'Арж',     J:'Փох',      K:'Ənдаmenea ՀՀ дрм',
+  ws['B3'] = { v: 'Գнвац ծаррайутюн', t: 's', s: { alignment:{horizontal:'center'} } };
+  ws['G3'] = { v: 'Вачаррвац ծаррайутюн', t: 's', s: { alignment:{horizontal:'center'} } };
+  ws['M3'] = { v: 'Оч рeзидент', t: 's', s: { alignment:{horizontal:'center'} } };
+
+  // Строка 4: заголовки
+  const hdrs = {
+    B:'Ամсатhив', C:'Гумар', D:'Арж', E:'Փох', F:'Ənдаmenea ՀՀ дрм',
+    G:'Ամсатhив', H:'Гумар', I:'Арж', J:'Փох', K:'Ənдаmenea ՀՀ дрм',
     L:'Шрж hарки hаркман база ՀՀ дрм',
-    M:'Гумара',  N:'Вчарман амсатhива', O:'0.05', P:'Аржута', Q:'Փох', R:'Оч рeзи шах гумара'
+    M:'Гумара', N:'Вчарман амсатhива', O:'0.05', P:'Аржута', Q:'Փох', R:'Оч рeзи шах гумара'
   };
-  Object.entries(hdrs4).forEach(([col, val]) => {
-    ws[col+'4'] = { v: val, t: 's', s: { alignment: { horizontal: 'center' }, border: {
-      top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}
-    }}};
+  const border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+  Object.entries(hdrs).forEach(([col, val]) => {
+    ws[col+'4'] = { v: val, t: 's', s: { alignment:{horizontal:'center'}, border } };
   });
 
-  // Данные с строки 5
-  list.forEach((d, i) => {
-    const r = i + 5;
-    const kcur = d.carrier_currency || d.currency || 'EUR';
-    const ccur = d.client_currency  || d.currency || 'AMD';
-    const krate = getRate(kcur);
-    const crate = getRate(ccur);
-    const kamt = parseFloat(d.carrier_price) || 0;
-    const camt = parseFloat(d.client_price)  || 0;
-    const comm = d.commission != null && d.commission !== '' ? parseFloat(d.commission) : null;
+  const yellow = { fgColor:{rgb:'FFFF00'}, patternType:'solid' };
+  const totalFill = { fgColor:{rgb:'D9D9D9'}, patternType:'solid' };
 
-    // Перевозчик (купленная услуга)
-    ws[`B${r}`] = { v: d.unload_date || '', t: 's' };
-    ws[`C${r}`] = { v: kamt, t: 'n', s: { alignment: { horizontal: 'center' } } };
-    ws[`D${r}`] = { v: kcur, t: 's' };
-    ws[`E${r}`] = { v: krate, t: 'n' };
-    ws[`F${r}`] = { f: `C${r}*E${r}`, t: 'n' };
+  let curRow = 5;
 
-    // Клиент (проданная услуга)
-    ws[`G${r}`] = { v: d.load_date || '', t: 's' };
-    ws[`H${r}`] = { v: camt, t: 'n', s: { alignment: { horizontal: 'center' } } };
-    ws[`I${r}`] = { v: ccur, t: 's', s: { alignment: { horizontal: 'center' } } };
-    ws[`J${r}`] = { v: crate, t: 'n', s: { alignment: { horizontal: 'right' } } };
-    ws[`K${r}`] = { f: `H${r}*J${r}`, t: 'n' };
+  // Заполняем по кварталам
+  [1,2,3,4].forEach(q => {
+    const rows = quarters[q];
+    if (!rows || !rows.length) return;
 
-    // Налоговая база
-    ws[`L${r}`] = { f: `K${r}-F${r}`, t: 'n' };
+    // Строка: название квартала
+    ws[`A${curRow}`] = { v: `${year}թ. ${quarterNames[q]}`, t: 's',
+      s: { font:{bold:true}, alignment:{horizontal:'left'} } };
+    curRow++;
 
-    // Комиссия — жёлтая, bold
-    ws[`M${r}`] = {
-      v: comm !== null ? comm : 'ՉԿԱ',
-      t: comm !== null ? 'n' : 's',
-      s: {
-        font: { bold: true },
-        fill: { fgColor: { rgb: 'FFFF00' }, patternType: 'solid' },
-        alignment: { horizontal: 'center' }
+    const dataStart = curRow;
+
+    // Данные квартала
+    rows.forEach(d => {
+      const r = curRow;
+      const kcur = d.carrier_currency || d.currency || 'EUR';
+      const ccur = d.client_currency  || d.currency || 'AMD';
+      const kamt = parseFloat(d.carrier_price) || 0;
+      const camt = parseFloat(d.client_price)  || 0;
+      const comm = d.commission != null && d.commission !== '' ? parseFloat(d.commission) : null;
+
+      ws[`B${r}`] = { v: d.unload_date || '', t: 's' };
+      ws[`C${r}`] = { v: kamt, t: 'n', s:{alignment:{horizontal:'center'}} };
+      ws[`D${r}`] = { v: kcur, t: 's' };
+      ws[`E${r}`] = { v: getRate(kcur), t: 'n' };
+      ws[`F${r}`] = { f: `C${r}*E${r}`, t: 'n' };
+
+      ws[`G${r}`] = { v: d.load_date || '', t: 's' };
+      ws[`H${r}`] = { v: camt, t: 'n', s:{alignment:{horizontal:'center'}} };
+      ws[`I${r}`] = { v: ccur, t: 's', s:{alignment:{horizontal:'center'}} };
+      ws[`J${r}`] = { v: getRate(ccur), t: 'n', s:{alignment:{horizontal:'right'}} };
+      ws[`K${r}`] = { f: `H${r}*J${r}`, t: 'n' };
+      ws[`L${r}`] = { f: `K${r}-F${r}`, t: 'n' };
+
+      ws[`M${r}`] = {
+        v: comm !== null ? comm : 'ՉԿԱ',
+        t: comm !== null ? 'n' : 's',
+        s: { font:{bold:true}, fill:yellow, alignment:{horizontal:'center'} }
+      };
+      ws[`N${r}`] = { v: d.client_paid ? (d.payment_date || '') : '', t: 's' };
+      if (comm !== null) {
+        ws[`O${r}`] = { f: `M${r}*5/100`, t: 'n' };
+        ws[`P${r}`] = { v: ccur, t: 's' };
       }
-    };
+      ws[`Q${r}`] = { v: '', t: 's' };
+      ws[`R${r}`] = { f: `O${r}*Q${r}`, t: 'n' };
 
-    // Дата оплаты
-    ws[`N${r}`] = { v: d.client_paid ? (d.payment_date || '') : '', t: 's' };
+      curRow++;
+    });
 
-    // 5%
-    if (comm !== null) {
-      ws[`O${r}`] = { f: `M${r}*5/100`, t: 'n' };
-      ws[`P${r}`] = { v: ccur, t: 's' };
-    }
-
-    // Курс нерезидента и итог
-    ws[`Q${r}`] = { v: '', t: 's' };
-    ws[`R${r}`] = { f: `O${r}*Q${r}`, t: 'n' };
+    // Строка итогов квартала
+    const tr = curRow;
+    const qLabel = `Ənдаmenea ${year}թ. ${quarterNames[q]}`;
+    ws[`A${tr}`] = { v: qLabel, t: 's',
+      s: { font:{bold:true}, fill:totalFill, alignment:{horizontal:'left'} } };
+    
+    // Суммы по колонкам с формулами SUM
+    ['C','F','H','K','L','M','O','R'].forEach(col => {
+      ws[`${col}${tr}`] = { f: `SUM(${col}${dataStart}:${col}${curRow-1})`, t: 'n',
+        s: { font:{bold:true}, fill:totalFill } };
+    });
+    curRow += 2; // пустая строка между кварталами
   });
 
   // Диапазон
-  const lastRow = list.length + 4;
-  ws['!ref'] = `A1:R${lastRow}`;
+  ws['!ref'] = `A1:R${curRow}`;
 
-  // Ширины колонок
-  ws['!cols'] = [
-    {wch:4.25},  // A
-    {wch:11.125},{wch:13},{wch:9.625},{wch:9},{wch:11.5},  // B-F
-    {wch:13},{wch:12.625},{wch:9},{wch:9},{wch:15.25},     // G-K
-    {wch:13.875},{wch:10},{wch:9.875},{wch:8},{wch:7},{wch:9},{wch:12.625}, // L-R
-  ];
-
-  // Объединение ячеек
+  // Объединение ячеек строк 1, 3
   ws['!merges'] = [
-    { s:{r:0,c:0}, e:{r:0,c:17} }, // A1:R1
-    { s:{r:1,c:0}, e:{r:1,c:17} }, // A2:R2
-    { s:{r:2,c:1}, e:{r:2,c:5} },  // B3:F3
-    { s:{r:2,c:6}, e:{r:2,c:10} }, // G3:K3
-    { s:{r:2,c:12}, e:{r:2,c:17} },// M3:R3
+    { s:{r:0,c:0}, e:{r:0,c:17} },
+    { s:{r:2,c:1}, e:{r:2,c:5} },
+    { s:{r:2,c:6}, e:{r:2,c:10} },
+    { s:{r:2,c:12}, e:{r:2,c:17} },
   ];
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Сделки');
+  // Ширины
+  ws['!cols'] = [
+    {wch:22},    // A — название квартала
+    {wch:11.125},{wch:13},{wch:9.625},{wch:9},{wch:11.5},
+    {wch:13},{wch:12.625},{wch:9},{wch:9},{wch:15.25},
+    {wch:13.875},{wch:10},{wch:9.875},{wch:8},{wch:7},{wch:9},{wch:12.625},
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, `${year}`);
   const today = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `GL_${year}_${today}.xlsx`);
 }
