@@ -180,10 +180,9 @@ const d2=new Date(t); d2.setDate(d2.getDate()+14);
 document.getElementById('fDue').value=d2.toISOString().slice(0,10);
 
 // Номер инвойса
-fetch(W+'/api/invoice-number').then(r=>r.json()).then(d=>{
-  document.getElementById('fNum').value=d.number||d.full||'0434';
-  render();
-}).catch(()=>{ document.getElementById('fNum').value='0434'; render(); });
+// Номер загружается только при скачивании/отправке
+document.getElementById('fNum').value='— авто —';
+render();
 
 const $=id=>document.getElementById(id);
 const fv=id=>($( id)?.value||'').trim();
@@ -283,6 +282,24 @@ document.getElementById('addRow').addEventListener('click',()=>{
   $('itemsList').appendChild(div);
 });
 
+async function getNextNumber() {
+  if (fv('fNum') === '— авто —' || fv('fNum') === '') {
+    try {
+      const r = await fetch(W+'/api/invoice-number');
+      const d = await r.json();
+      const num = d.number || d.full || '0001';
+      document.getElementById('fNum').value = num;
+      render();
+      return num;
+    } catch(_) {
+      const num = '0001';
+      document.getElementById('fNum').value = num;
+      return num;
+    }
+  }
+  return fv('fNum');
+}
+
 async function makePdf(){
   const doc=$('invDoc');
   const canvas=await html2canvas(doc,{scale:2,useCORS:true,backgroundColor:'#fff'});
@@ -296,7 +313,7 @@ async function makePdf(){
 
 $('btnDl').onclick=async()=>{
   const b=$('btnDl'); b.disabled=true; b.textContent='⏳...';
-  try{ const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); }
+  try{ await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); }
   finally{ b.disabled=false; b.textContent='⬇ Скачать PDF'; }
 };
 
@@ -305,6 +322,7 @@ $('btnSend').onclick=async()=>{
   if(!email){alert('Введите email клиента');return;}
   const b=$('btnSend'); b.disabled=true; b.textContent='⏳ Отправка...';
   try{
+    await getNextNumber();
     const pdf=await makePdf();
     const blob=pdf.output('blob');
     const up=await fetch(W+'/api/upload-contract',{method:'POST',headers:{'Content-Type':'application/pdf'},body:blob});
