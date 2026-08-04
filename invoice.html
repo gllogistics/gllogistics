@@ -21,10 +21,10 @@ body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:
 .nav-links a.active{background:#55B7BD;color:#fff}
 .btn-logout{background:#F5FAFA;color:#1E3B42;border:1.5px solid rgba(85,183,189,.3);border-radius:9px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:.78rem}
 
-.layout{display:grid;grid-template-columns:1fr 420px;gap:1.2rem;align-items:start}
+.layout{display:flex;flex-direction:column;gap:1.2rem}
 
 /* ФОРМА */
-.form-panel{background:#fff;border-radius:18px;padding:1.2rem;box-shadow:0 1px 8px rgba(30,59,66,.06);border:1px solid rgba(85,183,189,.12)}
+.form-panel{background:#fff;border-radius:18px;padding:1.2rem;box-shadow:0 1px 8px rgba(30,59,66,.06);border:1px solid rgba(85,183,189,.12);display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .form-section{font-size:.72rem;font-weight:800;color:#1E3B42;text-transform:uppercase;letter-spacing:.5px;margin:.8rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid rgba(85,183,189,.12)}
 label{font-size:.68rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px}
 input,select,textarea{width:100%;background:#F5FAFA;border:1.5px solid rgba(85,183,189,.2);border-radius:9px;padding:7px 10px;color:#1E3B42;font-size:.82rem;outline:none;font-family:inherit}
@@ -46,8 +46,8 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
 .btn-send{background:#F0F9F9;color:#1E7A80;border:1.5px solid rgba(85,183,189,.3);border-radius:11px;padding:9px;cursor:pointer;font-weight:700;font-size:.82rem;width:100%;margin-top:.4rem}
 
 /* ИНВОЙС ПРЕВЬЮ */
-.preview-wrap{position:sticky;top:1rem}
-#invDoc{background:#fff;padding:36px 40px;font-family:'Arial',Helvetica,sans-serif;font-size:9.5px;color:#1a1a1a;width:100%;min-height:700px;position:relative}
+.preview-wrap{width:100%}
+#invDoc{background:#fff;padding:36px 40px;font-family:'Arial',Helvetica,sans-serif;font-size:9.5px;color:#1a1a1a;width:794px;min-height:1020px;position:relative;margin:0 auto;box-shadow:0 2px 20px rgba(0,0,0,.15)}
 
 /* Заголовок */
 .inv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #333}
