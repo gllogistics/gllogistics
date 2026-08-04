@@ -171,10 +171,15 @@ async function openTrip(trip) {
 function renderTripStats(trip) {
   const expenses = trip.expenses || [];
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
-  const advanceAMD = expenses.filter(e=>e.category==='advance').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const salaryAMD  = expenses.filter(e=>e.category==='salary').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const revenueAMD = trip.client_price_amd || 0;
-  const profitAMD  = revenueAMD - totalAMD;
+  const expensesOnlyAMD = expenses.filter(e=>!['advance','salary'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  
+  // Аванс и зарплата берём из полей рейса (не из expenses)
+  const rates = { EUR: exchangeRates?.EUR || 418, AMD: 1, USD: exchangeRates?.AMD || 367 };
+  const advanceAMD = (trip.advance_amount || 0) * (rates[trip.advance_currency] || 1);
+  const salaryAMD  = (trip.salary_amount  || 0) * (rates[trip.salary_currency]  || 1);
+  const revenueAMD = trip.client_price_amd || (trip.client_price || 0) * (rates[trip.client_currency] || 418);
+  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD;
+  const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
 
@@ -185,9 +190,9 @@ function renderTripStats(trip) {
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
     <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}</div><div class="lbl">💰 Доход рейса</div></div>
-    <div class="stat orange"><div class="val">֏${fmt(advanceAMD)}</div><div class="lbl">💵 Аванс</div></div>
-    <div class="stat orange"><div class="val">֏${fmt(salaryAMD)}</div><div class="lbl">👷 Зарплата</div></div>
-    <div class="stat yellow"><div class="val">֏${fmt(totalAMD)}</div><div class="lbl">Расходы итого</div></div>
+    <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
+    <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
+    <div class="stat yellow"><div class="val">֏${fmt(expensesOnlyAMD)}</div><div class="lbl">Расходы (чеки)</div></div>
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
 
