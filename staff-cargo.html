@@ -198,7 +198,15 @@
     <input type="hidden" id="editId">
     <div class="form-row">
       <div><label>Клиент *</label><input type="text" id="fClient" list="clientList"><datalist id="clientList"></datalist></div>
-      <div><label>Перевозчик *</label><input type="text" id="fCarrier" list="carrierList"><datalist id="carrierList"></datalist></div>
+      <div>
+        <label>Перевозчик *</label>
+        <input type="text" id="fCarrier" list="carrierList"><datalist id="carrierList"></datalist>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button type="button" id="btnCarrierAM" onclick="setCarrierType('AM')" style="flex:1;padding:5px;border-radius:8px;border:1.5px solid #55B7BD;background:#55B7BD;color:#fff;font-size:.75rem;font-weight:700;cursor:pointer">🇦🇲 Армянский</button>
+          <button type="button" id="btnCarrierFR" onclick="setCarrierType('FR')" style="flex:1;padding:5px;border-radius:8px;border:1.5px solid rgba(85,183,189,.3);background:#F5FAFA;color:#5a7a80;font-size:.75rem;font-weight:700;cursor:pointer">🌍 Иностранный</button>
+        </div>
+        <input type="hidden" id="fCarrierType" value="AM">
+      </div>
       <div><label>Товар *</label><input type="text" id="fProduct"></div>
       <div><label>Город загрузки</label><input type="text" id="fCityLoad" placeholder="Москва"></div>
     </div>
