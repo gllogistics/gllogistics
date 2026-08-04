@@ -351,21 +351,37 @@ document.getElementById('addRow').addEventListener('click',()=>{
 });
 
 async function getNextNumber() {
-  if (fv('fNum') === '— авто —' || fv('fNum') === '') {
-    try {
-      const r = await fetch(W+'/api/invoice-number');
-      const d = await r.json();
-      const num = d.number || d.full || '0001';
-      document.getElementById('fNum').value = num;
-      render();
-      return num;
-    } catch(_) {
-      const num = '0001';
-      document.getElementById('fNum').value = num;
-      return num;
-    }
+  try {
+    // Получаем реальный следующий номер (с инкрементом)
+    const r = await fetch(W+'/api/invoice-number');
+    const d = await r.json();
+    const num = d.number || d.full || '0001';
+    document.getElementById('fNum').value = num;
+    render();
+    // После получения — показываем следующий (peek) для нового инвойса
+    setTimeout(async () => {
+      try {
+        const pr = await fetch(W+'/api/invoice-number/peek');
+        const pd = await pr.json();
+        // Не меняем текущий номер — он уже зафиксирован
+      } catch(_) {}
+    }, 500);
+    return num;
+  } catch(_) {
+    const num = '0001';
+    document.getElementById('fNum').value = num;
+    return num;
   }
-  return fv('fNum');
+}
+
+// После скачивания/отправки — обновляем номер на следующий
+async function refreshInvoiceNumber() {
+  try {
+    const r = await fetch(W+'/api/invoice-number/peek');
+    const d = await r.json();
+    document.getElementById('fNum').value = d.number || '';
+    render();
+  } catch(_) {}
 }
 
 async function makePdf(){
@@ -381,7 +397,7 @@ async function makePdf(){
 
 $('btnDl').onclick=async()=>{
   const b=$('btnDl'); b.disabled=true; b.textContent='⏳...';
-  try{ await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); }
+  try{ await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); await refreshInvoiceNumber(); }
   finally{ b.disabled=false; b.textContent='⬇ Скачать PDF'; }
 };
 
@@ -408,7 +424,7 @@ $('btnSend').onclick=async()=>{
       pdfKey:ud.key, pdfName:'Invoice-'+fv('fNum')+'.pdf',
       html:`<p>Инвойс №${fv('fNum')} отправлен.<br>Клиент: ${fv('cName')}<br>Email: ${email}<br>Сумма: ${bal.toLocaleString('en',{minimumFractionDigits:2})}${cur}</p>`
     })});
-    alert('✅ Инвойс отправлен на '+email);
+    alert('✅ Инвойс отправлен на '+email); await refreshInvoiceNumber();
   }catch(e){alert('Ошибка: '+e.message);}
   finally{b.disabled=false;b.textContent='📧 Отправить клиенту';}
 };
