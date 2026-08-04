@@ -179,6 +179,12 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       <div><label>Плановый расход (л/100км)</label><input type="number" id="fFuelRate" placeholder="30" value="30"></div>
     </div>
     <div class="form-row cols-2">
+      <div><label>💵 Цена рейса (доход)</label><input type="number" id="fClientPrice" placeholder="0" step="0.01"></div>
+      <div><label>Валюта дохода</label>
+        <select id="fClientCurrency"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
+      </div>
+    </div>
+    <div class="form-row cols-2">
       <div><label>💵 Аванс водителю (наличные)</label><input type="number" id="fAdvance" placeholder="0" step="0.01"></div>
       <div><label>Валюта аванса</label>
         <select id="fAdvanceCur"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option></select>
