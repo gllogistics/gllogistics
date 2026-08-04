@@ -178,10 +178,11 @@ function renderTripStats(trip) {
   const USD_RATE = window._usdRate || 367;
   const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? EUR_RATE : cur === 'USD' ? USD_RATE : EUR_RATE;
 
+  const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenueAMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD;
+  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
@@ -266,6 +267,8 @@ function openTripModal(trip = null) {
   document.getElementById('fClientCurrency').value = trip?.client_currency || 'EUR';
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
+  document.getElementById('fFuelCost').value = trip?.fuel_cost || '';
+  document.getElementById('fFuelCostCur').value = trip?.fuel_cost_currency || 'EUR';
   document.getElementById('fAdvance').value = trip?.advance_amount || '';
   document.getElementById('fAdvanceCur').value = trip?.advance_currency || 'AMD';
   document.getElementById('fSalary').value = trip?.salary_amount || '';
@@ -291,6 +294,8 @@ async function saveTrip() {
     fuel_rate_plan: parseFloat(document.getElementById('fFuelRate').value) || 30,
     notes: document.getElementById('fNotes').value,
     status: 'open',
+    fuel_cost: parseFloat(document.getElementById('fFuelCost').value) || 0,
+    fuel_cost_currency: document.getElementById('fFuelCostCur').value,
     advance_amount: parseFloat(document.getElementById('fAdvance').value) || 0,
     advance_currency: document.getElementById('fAdvanceCur').value,
     salary_amount: parseFloat(document.getElementById('fSalary').value) || 0,
