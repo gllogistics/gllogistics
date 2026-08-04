@@ -465,6 +465,13 @@ async function exportToExcel() {
   );
   if (!list.length) { alert('Нет данных для экспорта'); return; }
 
+  // Загружаем собственные рейсы (зелёные строки)
+  let tripsList = [];
+  try {
+    const tripsResp = await api('/api/trips');
+    tripsList = (tripsResp || []).filter(t => t.client_price > 0);
+  } catch(_) {}
+
   const rates = exchangeRates || { AMD: 367, EUR: 418, RUB: 4.73 };
   const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
   const year = new Date().getFullYear();
@@ -532,6 +539,7 @@ async function exportToExcel() {
 
     const dataStart = row;
 
+    // Обычные сделки
     rows.forEach(d => {
       const r = row;
       const kcur = d.carrier_currency || d.currency || 'EUR';
@@ -593,6 +601,65 @@ async function exportToExcel() {
       };
     });
     row += 2; // пустая строка
+
+    // Собственные рейсы этого квартала (зелёные строки)
+    const qTrips = tripsList.filter(t => getQ(t.date_start || t.date_end) === q && t.client_price > 0);
+    if (qTrips.length > 0) {
+      // Заголовок
+      ws[`A${row}`] = { v: `Собственный автопарк — ${year} г. ${qNames[q]}`, t: 's',
+        s: { font: { bold: true, color: { rgb: '1E6B1E' } }, alignment: { horizontal: 'left' } } };
+      row++;
+
+      const greenFill = { fgColor: { rgb: 'C6EFCE' }, patternType: 'solid' };
+      const greenFont = { color: { rgb: '1E6B1E' } };
+      const tripDataStart = row;
+
+      qTrips.forEach(t => {
+        const r = row;
+        const ccur = t.client_currency || 'EUR';
+        const camt = parseFloat(t.client_price) || 0;
+
+        // B-F пустые (нет расхода на перевозчика)
+        ws[`B${r}`] = { v: '-', t: 's', s: { fill: greenFill, font: greenFont, alignment: center } };
+        ws[`C${r}`] = { v: '-', t: 's', s: { fill: greenFill, font: greenFont, alignment: center } };
+        ws[`D${r}`] = { v: '-', t: 's', s: { fill: greenFill, font: greenFont } };
+        ws[`E${r}`] = { v: '-', t: 's', s: { fill: greenFill, font: greenFont } };
+        ws[`F${r}`] = { v: 0, t: 'n', s: { fill: greenFill, font: greenFont } };
+
+        // G-K — доход от клиента
+        ws[`G${r}`] = { v: t.date_start || '', t: 's', s: { fill: greenFill, font: greenFont } };
+        ws[`H${r}`] = { v: camt, t: 'n', s: { fill: greenFill, font: greenFont, alignment: center } };
+        ws[`I${r}`] = { v: ccur, t: 's', s: { fill: greenFill, font: greenFont, alignment: center } };
+        ws[`J${r}`] = { v: getRate(ccur), t: 'n', s: { fill: greenFill, font: greenFont, alignment: right } };
+        ws[`K${r}`] = { f: `H${r}*J${r}`, t: 'n', s: { fill: greenFill, font: greenFont } };
+
+        // L — налоговая база = K (F=0)
+        ws[`L${r}`] = { f: `K${r}-F${r}`, t: 'n', s: { fill: greenFill, font: greenFont } };
+
+        // M — ՉԿԱ жёлтая
+        ws[`M${r}`] = { v: 'ՉԿԱ', t: 's',
+          s: { font: { bold: true }, fill: yellowFill, alignment: center } };
+
+        // N — маршрут
+        ws[`N${r}`] = { v: `${t.route_from||''} → ${t.route_to||''}`, t: 's',
+          s: { fill: greenFill, font: greenFont } };
+
+        ['O','P','Q','R'].forEach(col => {
+          ws[`${col}${r}`] = { v: '', t: 's', s: { fill: greenFill } };
+        });
+
+        row++;
+      });
+
+      // Итого по собственным рейсам
+      ws[`A${row}`] = { v: `Итого автопарк — ${year} г. ${qNames[q]}`, t: 's',
+        s: { font: { bold: true, color: { rgb: '1E6B1E' } }, fill: greenFill } };
+      ['H','K','L'].forEach(col => {
+        ws[`${col}${row}`] = { f: `SUM(${col}${tripDataStart}:${col}${row-1})`, t: 'n',
+          s: { font: { bold: true }, fill: greenFill } };
+      });
+      row += 2;
+    }
   });
 
   // ── Диапазон и стили листа ──
