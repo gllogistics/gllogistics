@@ -11,7 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:100vh;padding:1rem}
+body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1E3B42;min-height:100vh;padding:1rem}
 .top-bar{background:#fff;border-radius:16px;padding:.6rem 1.4rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 0 rgba(0,0,0,.06),0 4px 16px rgba(30,59,66,.06)}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem;text-decoration:none;color:#0D1F23}
 .brand img{height:28px}
@@ -24,10 +24,10 @@ body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:
 .layout{display:flex;flex-direction:column;gap:1.2rem}
 
 /* ФОРМА */
-.form-panel{background:#fff;border-radius:18px;padding:1.2rem;box-shadow:0 1px 8px rgba(30,59,66,.06);border:1px solid rgba(85,183,189,.12);display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-panel{background:#fff;border-radius:18px;padding:1.2rem;box-shadow:0 2px 12px rgba(30,59,66,.08);border:1.5px solid rgba(85,183,189,.2);display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .form-section{font-size:.72rem;font-weight:800;color:#1E3B42;text-transform:uppercase;letter-spacing:.5px;margin:.8rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid rgba(85,183,189,.12)}
 label{font-size:.68rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px}
-input,select,textarea{width:100%;background:#F5FAFA;border:1.5px solid rgba(85,183,189,.2);border-radius:9px;padding:7px 10px;color:#1E3B42;font-size:.82rem;outline:none;font-family:inherit}
+input,select,textarea{width:100%;background:#F0F9F9;border:1.5px solid rgba(85,183,189,.25);border-radius:9px;padding:8px 12px;color:#1E3B42;font-size:.83rem;outline:none;font-family:inherit;transition:.15s}
 input:focus,select:focus{border-color:#55B7BD;background:#fff}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem}
@@ -154,7 +154,16 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
       <div><label>MISC</label><input id="fMisc" type="number" placeholder="0" step="0.01"></div>
     </div>
 
-    <button class="btn-dl" id="btnDl">⬇ Скачать PDF</button>
+    <div style="grid-column:1/-1;margin-bottom:.4rem">
+  <label style="font-size:.68rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">🏦 Банковские реквизиты</label>
+  <select id="fBankSel" style="width:100%;background:#F0F9F9;border:1.5px solid rgba(85,183,189,.25);border-radius:9px;padding:8px 12px;color:#1E3B42;font-size:.83rem;outline:none;font-family:inherit">
+    <option value="eur_raiffeisen">EUR — Raiffeisen Bank International (Vienna)</option>
+    <option value="eur_delubac">EUR — Banque Delubac &amp; CIE (Paris)</option>
+    <option value="usd">USD — Raiffeisen Bank International (Vienna)</option>
+    <option value="rub">RUB — Оридж­ин Банк (Москва)</option>
+  </select>
+</div>
+<button class="btn-dl" id="btnDl">⬇ Скачать PDF</button>
     <button class="btn-send" id="btnSend">📧 Отправить клиенту</button>
   </div>
 
@@ -169,6 +178,50 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
 
 <script>
 const W = 'https://gl-api.gltransam.workers.dev';
+
+const BANK_DETAILS = {
+  eur_raiffeisen: `INTERMEDIARY BANK: RAIFFEISEN BANK INTERNATIONAL AG (Vienna, Austria)
+INTERMEDIARY SWIFT: RZBAATW W
+BANK BENEFICIARY: EVOCABANK OJSC (Yerevan, Armenia)
+BENEFICIARY SWIFT: PRMLAM22
+COR. ACC.N: 1-55.080.071
+BENEFICIARY: "GL LOGISTICS"
+ACCOUNT NUMBER: 1660030207071745
+ATTENTION: Please always indicate the purpose of payment/POP/.`,
+
+  eur_delubac: `INTERMEDIARY BANK: BANQUE DELUBAC & CIE (Paris, France)
+INTERMEDIARY SWIFT: DELUFR22LCH
+BANK BENEFICIARY: EVOCABANK OJSC (Yerevan, Armenia)
+BENEFICIARY SWIFT: PRMLAM22
+COR. ACC.N: FR761287900001111840620012 5
+BENEFICIARY: "GL LOGISTICS"
+ACCOUNT NUMBER: 1660030207071745
+ATTENTION: Please always indicate the purpose of payment/POP/.`,
+
+  usd: `INTERMEDIARY BANK: RAIFFEISEN BANK INTERNATIONAL AG (Vienna, Austria)
+INTERMEDIARY SWIFT: RZBAATW W
+BANK BENEFICIARY: EVOCABANK OJSC (Yerevan, Armenia)
+BENEFICIARY SWIFT: PRMLAM22
+COR. ACC.N: 070-55.080.071
+BENEFICIARY: "GL LOGISTICS"
+ACCOUNT NUMBER: 1660030207561601
+ATTENTION: Please always indicate the purpose of payment/POP/.`,
+
+  rub: `БАНК КОРРЕСПОНДЕНТ: ООО «Оридж­ин Банк» (Российская Федерация)
+БИК: 044525340
+ИНН: 7750005387
+К/С: 30101810000000000340
+Адрес: 125047, г. Москва, ул. Гашека, д. 6
+SWIFT: LICGRUMM
+БАНК ПОЛУЧАТЕЛЬ: ОАО ЭВОКАБАНК
+SWIFT: PRMLAM22
+Р/С: 30111810000000000002
+Адрес: Армения, 0010, г. Ереван, ул. Анрапетутян 44/2
+ИНН: 00001182
+ПОЛУЧАТЕЛЬ: "GL LOGISTICS"
+НОМЕР СЧЕТА: 1660030207071958
+Внимание: Просим обязательно указывать назначение платежа`
+};
 const user = localStorage.getItem('gl_staff_user');
 if (!user || (Date.now()-parseInt(localStorage.getItem('gl_staff_login_time')||0))>43200000) { localStorage.removeItem('gl_staff_user'); location.href='staff.html'; }
 document.getElementById('logoutBtn').onclick=()=>{ ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k=>localStorage.removeItem(k)); location.href='staff.html'; };
@@ -262,18 +315,13 @@ function render(){
 
     <div class="inv-notes">
       <span class="inv-notes-title">NOTES:</span>
-      INTERMEDIARY BANK: RAIFFEISEN BANK INTERNATIONAL AG (Vienna, Austria)<br>
-      INTERMEDIARY SW IFT: RZBAATW W<br>
-      BANK BENEFICIARY : EVOCABANK CJSC (Yerevan, Armenia)<br>
-      BENEFICIARY SW IFT: PRMLAM22<br>
-      COR. ACC.N: 1-55.080.071<br>
-      BENEFICIARY : "GL LOGISTICS"<br>
-      ACCOUNT NUMBER: 1660030207071745
+      ${(BANK_DETAILS[document.getElementById('fBankSel')?.value||'eur_raiffeisen']||'').replace(/\n/g,'<br>')}
     </div>`;
 }
 
 // Live update
 document.addEventListener('input', render);
+document.getElementById('fBankSel')?.addEventListener('change', render);
 document.getElementById('addRow').addEventListener('click',()=>{
   const div=document.createElement('div');
   div.className='item-row';
