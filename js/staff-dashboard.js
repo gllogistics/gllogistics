@@ -235,9 +235,10 @@ async function deleteLogist(name) {
 
 async function loadData() {
   try {
-    const [cargo, contracts] = await Promise.all([
+    const [cargo, contracts, tripsFinance] = await Promise.all([
       api('/api/cargo'),
       api('/api/contracts-history').catch(() => []),
+      api('/api/trips/finance').catch(() => ({})),
     ]);
 
     // История договоров
@@ -286,6 +287,10 @@ async function loadData() {
       <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
       <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>`;
 
+    const tripRevAMD = Math.round(tripsFinance.total_revenue_amd || 0);
+    const tripExpAMD = Math.round((tripsFinance.total_expenses_amd || 0) + (tripsFinance.total_advance_amd || 0) + (tripsFinance.total_salary_amd || 0));
+    const tripProfitAMD = tripRevAMD - tripExpAMD;
+
     document.getElementById('statsRowBottom').innerHTML = `
       <div class="stat-card stat-profit" style="border:2px solid rgba(85,183,189,.4)">
         <div class="num">֏${Math.round(bankAMD).toLocaleString()}</div>
@@ -293,7 +298,12 @@ async function loadData() {
       </div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
       <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>`;
+      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+      ${tripRevAMD > 0 ? `
+      <div class="stat-card stat-profit" style="border:1px solid rgba(85,183,189,.2)"><div class="num">֏${tripRevAMD.toLocaleString()}</div><div class="lbl">🚛 Доход рейсов</div></div>
+      <div class="stat-card"><div class="num">֏${tripExpAMD.toLocaleString()}</div><div class="lbl">🚛 Расходы рейсов</div></div>
+      <div class="stat-card ${tripProfitAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${tripProfitAMD.toLocaleString()}</div><div class="lbl">🚛 Прибыль рейсов</div></div>
+      ` : ''}`;
 
     renderFinanceSummary(Math.round(receivedAMD), Math.round(paidAMD), Math.round(totalProfitAMD), Math.round(waitingClientsAMD), Math.round(waitingCarriersAMD));
 
