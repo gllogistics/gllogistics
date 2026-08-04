@@ -126,6 +126,7 @@ function toggleForm(show = true, reset = true) {
       currentSegments = [];
       document.getElementById('segmentsList').innerHTML = '';
       document.getElementById('segmentsBlock').style.display = 'none';
+      if (window.setCarrierType) window.setCarrierType('AM');
       document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'flex' : 'none';
       ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('fStatus').value = 'loading';
@@ -171,7 +172,8 @@ async function saveCargo() {
       logist: logistToSave, client_name: cn, carrier_name: crn,
       currency: 'MIX', client_currency: clientCur, carrier_currency: carrierCur,
       client_paid: isAdmin ? document.getElementById('fClientPaid').checked : false,
-      carrier_paid: isAdmin ? document.getElementById('fCarrierPaid').checked : false
+      carrier_paid: isAdmin ? document.getElementById('fCarrierPaid').checked : false,
+      carrier_type: document.getElementById('fCarrierType').value || 'AM'
     };
     if (!cargo.product) return alert('Введите товар');
     if (editId) await updateCargo(editId, cargo);
@@ -210,6 +212,8 @@ async function editCargo(id) {
     document.getElementById('fClientPaid').checked = c.client_paid || false;
     document.getElementById('fCarrierPaid').checked = c.carrier_paid || false;
   }
+  // Тип перевозчика
+  if (window.setCarrierType) window.setCarrierType(c.carrier_type || 'AM');
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   toggleForm(true, false);
   // Загружаем сегменты
@@ -355,6 +359,20 @@ function init() {
   document.getElementById('logoutBtn').addEventListener('click', doLogout);
   document.getElementById('newDealBtn').addEventListener('click', () => toggleForm());
   document.getElementById('cancelBtn').addEventListener('click', () => toggleForm(false));
+
+  // Переключатель типа перевозчика
+  window.setCarrierType = function(type) {
+    document.getElementById('fCarrierType').value = type;
+    const btnAM = document.getElementById('btnCarrierAM');
+    const btnFR = document.getElementById('btnCarrierFR');
+    if (type === 'AM') {
+      btnAM.style.background = '#55B7BD'; btnAM.style.color = '#fff'; btnAM.style.borderColor = '#55B7BD';
+      btnFR.style.background = '#F5FAFA'; btnFR.style.color = '#5a7a80'; btnFR.style.borderColor = 'rgba(85,183,189,.3)';
+    } else {
+      btnFR.style.background = '#55B7BD'; btnFR.style.color = '#fff'; btnFR.style.borderColor = '#55B7BD';
+      btnAM.style.background = '#F5FAFA'; btnAM.style.color = '#5a7a80'; btnAM.style.borderColor = 'rgba(85,183,189,.3)';
+    }
+  };
   document.getElementById('saveBtn').addEventListener('click', saveCargo);
 
   // ── Сегменты (доп перевозчики) ──
@@ -483,6 +501,7 @@ async function exportToExcel() {
     carrier_date:     d.unload_date || '',
     carrier_price:    parseFloat(d.carrier_price) || 0,
     carrier_currency: d.carrier_currency || d.currency || 'EUR',
+    carrier_type:     d.carrier_type || 'AM',
     client_date:      d.load_date || '',
     client_price:     parseFloat(d.client_price) || 0,
     client_currency:  d.client_currency || d.currency || 'AMD',
