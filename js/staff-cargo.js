@@ -461,6 +461,8 @@ function init() {
 
 // ── Экспорт в Excel по шаблону ────────────────────────────────────────────────
 async function exportToExcel() {
+  if (!window.XLSX) { alert('SheetJS не загружен'); return; }
+
   const startF = document.getElementById('filterStart').value;
   const endF   = document.getElementById('filterEnd').value;
   const fl     = document.getElementById('filterLogist').value;
@@ -482,74 +484,170 @@ async function exportToExcel() {
   if (!list.length) { alert('Нет данных для экспорта'); return; }
 
   const rates = exchangeRates || { AMD: 367, EUR: 418, RUB: 4.73 };
+  const gr = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
   const year = new Date().getFullYear();
 
-  // Загружаем рейсы собственного автопарка
-  let tripsList = [];
+  // Рейсы собственного автопарка
+  let trips = [];
   try {
     const tr = await api('/api/trips');
-    tripsList = (tr || []).filter(t => t.client_price > 0).map(t => ({
-      date: t.date_start || '',
-      price: t.client_price || 0,
-      currency: t.client_currency || 'EUR',
-      route: `${t.route_from||''} → ${t.route_to||''}`
+    trips = (tr || []).filter(t => t.client_price > 0).map(t => ({
+      date: t.date_start || '', price: t.client_price || 0,
+      currency: t.client_currency || 'EUR', route: `${t.route_from||''} → ${t.route_to||''}`
     }));
   } catch(_) {}
 
-  // Формируем данные для отправки
-  const data = list.map(d => ({
-    carrier_date:     d.unload_date || '',
-    carrier_price:    parseFloat(d.carrier_price) || 0,
-    carrier_currency: d.carrier_currency || d.currency || 'EUR',
-    carrier_type:     d.carrier_type || 'AM',
-    client_date:      d.load_date || '',
-    client_price:     parseFloat(d.client_price) || 0,
-    client_currency:  d.client_currency || d.currency || 'AMD',
-    commission:       d.commission,
-    paid_date:        d.client_paid ? (d.payment_date || '') : '',
-  }));
+  // Группировка по кварталам
+  const getQ = d => {
+    if (!d) return 1;
+    try { const m = parseInt((d.includes('-') ? d.split('-')[1] : d.split('.')[1]) || '1'); return Math.ceil(m/3); }
+    catch(_) { return 1; }
+  };
+  const qNames = {1:'I квартал', 2:'II квартал', 3:'III квартал', 4:'IV квартал'};
 
-  // Пробуем локальный Python сервер
-  try {
-    const resp = await fetch('http://localhost:8766/generate-excel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data, trips: tripsList, rates, year }),
-      signal: AbortSignal.timeout(5000)
+  list.sort((a,b) => (a.load_date||'') > (b.load_date||'') ? 1 : -1);
+  const qs = {1:[],2:[],3:[],4:[]};
+  list.forEach(d => qs[getQ(d.load_date||d.unload_date)].push(d));
+  const tqs = {1:[],2:[],3:[],4:[]};
+  trips.forEach(t => tqs[getQ(t.date)].push(t));
+
+  // Стили
+  const bdr = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+  const btm = { bottom:{style:'thin'} };
+  const ttm = { top:{style:'thin'}, bottom:{style:'thin'} };
+  const yellowFill = { fgColor:{rgb:'FFFF00'}, patternType:'solid' };
+  const greenFill  = { fgColor:{rgb:'C6EFCE'}, patternType:'solid' };
+  const grayFill   = { fgColor:{rgb:'D9D9D9'}, patternType:'solid' };
+
+  const fBold   = { bold:true, sz:11 };
+  const fNorm   = { sz:11 };
+  const fRedB   = { bold:true, sz:11, color:{rgb:'FF0000'} };
+  const fH      = { bold:true, sz:14 };
+  const fGreen  = { sz:11, color:{rgb:'1E6B1E'} };
+
+  const aC = { horizontal:'center', vertical:'center', wrapText:true };
+  const aL = { horizontal:'left',   vertical:'center' };
+  const aR = { horizontal:'right',  vertical:'center' };
+
+  const ws = {};
+
+  const sc = (addr, val, formula, font, fill, border, align) => {
+    const cell = formula ? {f: formula, t:'n'} : {v: val, t: (typeof val === 'number' ? 'n' : 's')};
+    cell.s = {};
+    if (font)   cell.s.font   = font;
+    if (fill)   cell.s.fill   = fill;
+    if (border) cell.s.border = border;
+    if (align)  cell.s.alignment = align;
+    ws[addr] = cell;
+  };
+
+  const dc = (addr, val, formula, align, font, fill) =>
+    sc(addr, val, formula, font||fNorm, fill, bdr, align||aL);
+
+  // ── Строка 1: год ──
+  sc('A1', `${year}թ. `, null, fH, null, btm, aC);
+
+  // ── Строка 3: группы колонок ──
+  sc('B3', 'Купленная услуга (перевозчик)', null, fNorm, null, bdr, aC);
+  sc('G3', 'Проданная услуга (клиент)',     null, fNorm, null, bdr, aC);
+  sc('M3', 'Нерезидент',                   null, fNorm, null, bdr, aC);
+
+  // ── Строка 4: заголовки ──
+  const h4 = {
+    B:'Дата', C:'Сумма', D:'Валюта', E:'Курс ЦБ', F:'Итого AMD',
+    G:'Дата', H:'Сумма', I:'Валюта', J:'Курс ЦБ', K:'Итого AMD',
+    L:'Налоговая база AMD',
+    M:'Комиссия', N:'Дата оплаты', O:'5%', P:'Валюта', Q:'Курс ЦБ', R:'Сумма нерезидента'
+  };
+  Object.entries(h4).forEach(([col,val]) => sc(`${col}4`, val, null, fBold, null, bdr, aC));
+
+  let row = 5;
+
+  [1,2,3,4].forEach(q => {
+    const rq = qs[q]; const tq = tqs[q];
+    if (!rq.length && !tq.length) return;
+
+    // Заголовок квартала
+    sc(`A${row}`, `${year}թ. ${qNames[q]}`, null, fBold, null, ttm, aC);
+    row++; const ds = row;
+
+    // Данные сделок
+    rq.forEach(d => {
+      const r = row;
+      const kcur = d.carrier_currency || d.currency || 'EUR';
+      const ccur = d.client_currency  || d.currency || 'AMD';
+      const kamt = parseFloat(d.carrier_price)||0;
+      const camt = parseFloat(d.client_price)||0;
+      const comm = (d.commission!=null&&d.commission!=='') ? parseFloat(d.commission) : null;
+
+      dc(`B${r}`, d.unload_date||'');
+      dc(`C${r}`, kamt, null, aC);
+      dc(`D${r}`, kcur);
+      dc(`E${r}`, gr(kcur));
+      dc(`F${r}`, null, `C${r}*E${r}`);
+      dc(`G${r}`, d.load_date||'');
+      dc(`H${r}`, camt, null, aC);
+      dc(`I${r}`, ccur, null, aC);
+      dc(`J${r}`, gr(ccur), null, aR);
+      dc(`K${r}`, null, `H${r}*J${r}`);
+      dc(`L${r}`, null, `K${r}-F${r}`);
+
+      // M — комиссия, жёлтая, красный жирный
+      sc(`M${r}`, comm!==null?comm:'ՉԿԱ', null, fRedB, yellowFill, bdr, aC);
+
+      dc(`N${r}`, d.client_paid?(d.payment_date||''):'');
+      if (comm!==null) {
+        dc(`O${r}`, null, `M${r}*5/100`);
+        dc(`P${r}`, ccur);
+      } else {
+        dc(`O${r}`, ''); dc(`P${r}`, '');
+      }
+      dc(`Q${r}`, '');
+      dc(`R${r}`, null, `O${r}*Q${r}`);
+      row++;
     });
-    if (resp.ok) {
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`;
-      a.click();
-      URL.revokeObjectURL(url);
-      return;
-    }
-  } catch(_) {
-    console.log('Локальный сервер недоступен, используем SheetJS');
-  }
 
-  // Fallback — SheetJS (базовый экспорт)
-  if (!window.XLSX) { alert('SheetJS не загружен'); return; }
+    // Зелёные строки — собственные рейсы
+    tq.forEach(t => {
+      const r = row;
+      const ccur = t.currency||'EUR';
+      ['B','C','D','E','F'].forEach(col => sc(`${col}${r}`, '-', null, fGreen, greenFill, bdr, aC));
+      sc(`G${r}`, t.date||'',        null, fGreen, greenFill, bdr, aL);
+      sc(`H${r}`, t.price||0,        null, fGreen, greenFill, bdr, aC);
+      sc(`I${r}`, ccur,              null, fGreen, greenFill, bdr, aC);
+      sc(`J${r}`, gr(ccur),          null, fGreen, greenFill, bdr, aR);
+      sc(`K${r}`, null, `H${r}*J${r}`,    fGreen, greenFill, bdr);
+      sc(`L${r}`, null, `K${r}-F${r}`,    fGreen, greenFill, bdr);
+      sc(`M${r}`, 'ՉԿԱ',            null, fRedB,  yellowFill, bdr, aC);
+      sc(`N${r}`, t.route||'',       null, fGreen, greenFill, bdr);
+      ['O','P','Q','R'].forEach(col => sc(`${col}${r}`, '', null, fGreen, greenFill, bdr));
+      row++;
+    });
+
+    // Итого квартала
+    const tr = row;
+    sc(`A${tr}`, `Итого ${year}թ. ${qNames[q]}`, null, fBold, null, ttm, aC);
+    sc(`L${tr}`, null, `SUM(L${ds}:L${tr-1})`, fBold, null, ttm, aC);
+    row++;
+  });
+
+  ws['!ref'] = `A1:R${row}`;
+
+  ws['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:17}},  // A1:R1
+    {s:{r:2,c:1}, e:{r:2,c:5}},   // B3:F3
+    {s:{r:2,c:6}, e:{r:2,c:10}},  // G3:K3
+    {s:{r:2,c:12},e:{r:2,c:17}},  // M3:R3
+  ];
+
+  ws['!cols'] = [
+    {wch:24},
+    {wch:11},{wch:13},{wch:8},{wch:9},{wch:13},
+    {wch:11},{wch:13},{wch:8},{wch:9},{wch:15},
+    {wch:16},{wch:11},{wch:11},{wch:8},{wch:8},{wch:9},{wch:13},
+  ];
+
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
-    ['Дата (перевозчик)','Сумма','Валюта','Курс','Итого AMD','Дата (клиент)','Сумма','Валюта','Курс','Итого AMD','Налоговая база','Комиссия','Дата оплаты','5%','Валюта','Курс','Нерезидент'],
-    ...data.map(d => {
-      const gr = cur => cur==='AMD'?1:cur==='EUR'?rates.EUR:cur==='RUB'?rates.RUB:rates.AMD;
-      const kamt = d.carrier_price, camt = d.client_price;
-      const krate = gr(d.carrier_currency), crate = gr(d.client_currency);
-      const comm = d.commission != null && d.commission !== '' ? parseFloat(d.commission) : null;
-      return [
-        d.carrier_date, kamt, d.carrier_currency, krate, kamt*krate,
-        d.client_date, camt, d.client_currency, crate, camt*crate,
-        (camt*crate)-(kamt*krate),
-        comm !== null ? comm : 'Нет', d.paid_date,
-        comm !== null ? comm*0.05 : '', comm !== null ? d.client_currency : '', '', ''
-      ];
-    })
-  ]);
   XLSX.utils.book_append_sheet(wb, ws, String(year));
   XLSX.writeFile(wb, `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
