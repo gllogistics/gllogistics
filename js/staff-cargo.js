@@ -123,6 +123,9 @@ function toggleForm(show = true, reset = true) {
       document.getElementById('fCarrierCurrency').value = 'USD';
       document.getElementById('formTitle').textContent = 'Новая сделка';
       document.getElementById('editId').value = '';
+      currentSegments = [];
+      document.getElementById('segmentsList').innerHTML = '';
+      document.getElementById('segmentsBlock').style.display = 'none';
       document.getElementById('paymentCheckboxes').style.display = isAdmin ? 'flex' : 'none';
       ['fClient','fCarrier','fProduct','fCityLoad','fCountryLoad','fCityUnload','fCountryUnload','fLoadDate','fUnloadDate','fClientPrice','fCarrierPrice','fCommission'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('fStatus').value = 'loading';
@@ -172,7 +175,8 @@ async function saveCargo() {
     };
     if (!cargo.product) return alert('Введите товар');
     if (editId) await updateCargo(editId, cargo);
-    else await addCargo(cargo);
+    else { const newCargo = await addCargo(cargo); if (newCargo?.id) await saveSegments(newCargo.id); }
+    if (editId) await saveSegments(editId);
     await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
@@ -208,6 +212,11 @@ async function editCargo(id) {
   }
   document.getElementById('formTitle').textContent = 'Редактировать сделку';
   toggleForm(true, false);
+  // Загружаем сегменты
+  currentSegments = [];
+  document.getElementById('segmentsList').innerHTML = '';
+  document.getElementById('segmentsBlock').style.display = 'none';
+  loadSegments(c.id);
 }
 
 async function deleteCargo(id) {
@@ -347,6 +356,76 @@ function init() {
   document.getElementById('newDealBtn').addEventListener('click', () => toggleForm());
   document.getElementById('cancelBtn').addEventListener('click', () => toggleForm(false));
   document.getElementById('saveBtn').addEventListener('click', saveCargo);
+
+  // ── Сегменты (доп перевозчики) ──
+  let currentSegments = []; // локальные сегменты в форме
+
+  document.getElementById('toggleSegmentsBtn').addEventListener('click', () => {
+    const block = document.getElementById('segmentsBlock');
+    const isVisible = block.style.display !== 'none';
+    block.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible && currentSegments.length === 0) addSegmentRow();
+  });
+
+  document.getElementById('addSegmentBtn').addEventListener('click', addSegmentRow);
+
+  function addSegmentRow(seg = {}) {
+    const div = document.createElement('div');
+    div.className = 'segment-row';
+    div.style.cssText = 'background:#F5FAFA;border:1px solid rgba(85,183,189,.2);border-radius:10px;padding:8px;margin-bottom:6px;display:grid;grid-template-columns:1fr 1fr 80px 80px auto;gap:6px;align-items:center';
+    div.innerHTML = `
+      <input placeholder="Перевозчик" class="seg-carrier" value="${esc(seg.carrier_name||'')}" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;padding:6px 10px;font-size:.8rem;outline:none">
+      <div style="display:flex;gap:4px">
+        <input placeholder="Маршрут от" class="seg-from" value="${esc(seg.city_from||'')}" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;padding:6px 8px;font-size:.78rem;outline:none;flex:1">
+        <input placeholder="до" class="seg-to" value="${esc(seg.city_to||'')}" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;padding:6px 8px;font-size:.78rem;outline:none;flex:1">
+      </div>
+      <input type="number" placeholder="Цена" class="seg-price" value="${seg.carrier_price||''}" step="0.01" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;padding:6px 8px;font-size:.8rem;outline:none">
+      <select class="seg-cur" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;padding:6px 6px;font-size:.78rem;outline:none">
+        <option value="EUR" ${seg.carrier_currency==='EUR'?'selected':''}>EUR</option>
+        <option value="AMD" ${seg.carrier_currency==='AMD'?'selected':''}>AMD</option>
+        <option value="USD" ${seg.carrier_currency==='USD'?'selected':''}>USD</option>
+      </select>
+      <button onclick="this.closest('.segment-row').remove()" style="background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.8rem">✕</button>`;
+    div.dataset.segId = seg.id || '';
+    document.getElementById('segmentsList').appendChild(div);
+  }
+
+  function getSegmentsFromForm() {
+    return Array.from(document.querySelectorAll('.segment-row')).map(row => ({
+      id: row.dataset.segId || null,
+      carrier_name: row.querySelector('.seg-carrier').value,
+      city_from: row.querySelector('.seg-from').value,
+      city_to: row.querySelector('.seg-to').value,
+      carrier_price: parseFloat(row.querySelector('.seg-price').value) || 0,
+      carrier_currency: row.querySelector('.seg-cur').value,
+    })).filter(s => s.carrier_name);
+  }
+
+  async function loadSegments(cargoId) {
+    try {
+      const segs = await api('/api/cargo/' + cargoId + '/segments');
+      document.getElementById('segmentsList').innerHTML = '';
+      currentSegments = segs;
+      if (segs.length > 0) {
+        document.getElementById('segmentsBlock').style.display = 'block';
+        segs.forEach(s => addSegmentRow(s));
+      } else {
+        document.getElementById('segmentsBlock').style.display = 'none';
+      }
+    } catch(_) {}
+  }
+
+  async function saveSegments(cargoId) {
+    const segs = getSegmentsFromForm();
+    if (!segs.length) return;
+    // Удаляем старые и создаём новые
+    for (const s of currentSegments) {
+      await api('/api/cargo/segments/' + s.id, 'DELETE').catch(()=>{});
+    }
+    for (const s of segs) {
+      await api('/api/cargo/' + cargoId + '/segments', 'POST', s);
+    }
+  }
   document.getElementById('resetFilterBtn').addEventListener('click', clearFilter);
   document.getElementById('filterStart').addEventListener('change', renderAll);
   document.getElementById('filterEnd').addEventListener('change', renderAll);
