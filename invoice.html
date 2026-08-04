@@ -54,7 +54,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
 .inv-title{font-size:26px;font-weight:900;color:#1a1a1a;letter-spacing:-0.5px;line-height:1}
 .inv-subtitle{font-size:10px;font-style:italic;color:#666;margin-top:3px}
 .inv-logo-wrap{text-align:right}
-.inv-logo-wrap img{height:64px;width:auto;object-fit:contain}
+.inv-logo-wrap img{height:68px;width:auto;object-fit:contain;display:block;margin-left:auto}
 .inv-logo-name{font-size:18px;font-weight:900;color:#1a1a1a;letter-spacing:-0.3px;margin-top:2px}
 .inv-logo-sub{font-size:7px;color:#888;letter-spacing:.3px}
 
@@ -161,7 +161,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
   <!-- ПРЕВЬЮ -->
   <div class="preview-wrap">
     <div id="invDoc">
-      <div class="inv-wm">GL LOGISTICS</div>
+      <img src="images/gl_logo_icon.png" style="position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);width:350px;height:auto;opacity:0.07;pointer-events:none;z-index:0">
       <div class="inv-body" id="invBody"></div>
     </div>
   </div>
@@ -205,11 +205,12 @@ function render(){
         <div class="inv-title">INVOICE No ${num}</div>
         <div class="inv-subtitle">GL Logistics LLC</div>
       </div>
-      <div class="inv-logo-wrap">
-        <img src="images/GL_LOGISTICs_line_-09.jpg.png" onerror="this.style.display='none'">
-        <div class="inv-logo-name">GL Logistics</div>
-        <div class="inv-logo-sub">Your supply chain partner everywhere.</div>
-      </div>
+    <!-- Логотип справа -->
+    <div class="inv-logo-wrap">
+      <img src="images/gl_logo_icon.png" style="height:68px;width:auto;object-fit:contain;display:block;margin-left:auto">
+      <div class="inv-logo-name">GL Logistics</div>
+      <div class="inv-logo-sub">Your supply chain partner everywhere.</div>
+    </div>
     </div>
 
     <div class="inv-cols">
@@ -256,7 +257,7 @@ function render(){
     </div>
 
     <div class="inv-sigs">
-      <div class="inv-stamp-area" style="min-height:60px"></div>
+      <div class="inv-stamp-area" style="min-height:60px"><img src="images/gl_stamp.png" style="height:95px;width:auto;opacity:0.92"></div>
       <div></div>
       <div class="inv-sig"><div class="inv-sig-line">Authorized Signature</div></div>
     </div>
