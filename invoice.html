@@ -182,7 +182,6 @@ document.getElementById('fDue').value=d2.toISOString().slice(0,10);
 // Номер инвойса
 // Номер загружается только при скачивании/отправке
 document.getElementById('fNum').value='— авто —';
-render();
 
 const $=id=>document.getElementById(id);
 const fv=id=>($( id)?.value||'').trim();
