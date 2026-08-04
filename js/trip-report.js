@@ -172,12 +172,15 @@ function renderTripStats(trip) {
   const expenses = trip.expenses || [];
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
   const expensesOnlyAMD = expenses.filter(e=>!['advance','salary'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
-  
-  // Аванс и зарплата берём из полей рейса (не из expenses)
-  const rates = { EUR: exchangeRates?.EUR || 418, AMD: 1, USD: exchangeRates?.AMD || 367 };
-  const advanceAMD = (trip.advance_amount || 0) * (rates[trip.advance_currency] || 1);
-  const salaryAMD  = (trip.salary_amount  || 0) * (rates[trip.salary_currency]  || 1);
-  const revenueAMD = trip.client_price_amd || (trip.client_price || 0) * (rates[trip.client_currency] || 418);
+
+  // Курсы из глобального объекта или дефолт
+  const EUR_RATE = window._eurRate || 418;
+  const USD_RATE = window._usdRate || 367;
+  const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? EUR_RATE : cur === 'USD' ? USD_RATE : EUR_RATE;
+
+  const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
+  const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
+  const revenueAMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD;
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -484,6 +487,12 @@ document.getElementById('aiSendBtn').addEventListener('click', sendAI);
 document.getElementById('aiInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
 });
+
+// Загружаем курсы валют
+fetch(WORKER + '/api/rates').then(r=>r.json()).then(d=>{
+  window._eurRate = d.EUR || 418;
+  window._usdRate = d.AMD || 367;
+}).catch(()=>{ window._eurRate = 418; window._usdRate = 367; });
 
 // Wialon логин в фоне
 wialonLogin().then(ok => console.log('Wialon:', ok ? 'connected' : 'failed'));
