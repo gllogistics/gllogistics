@@ -173,6 +173,8 @@ function renderTripStats(trip) {
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
   const advanceAMD = expenses.filter(e=>e.category==='advance').reduce((s,e)=>s+(e.amount_amd||0),0);
   const salaryAMD  = expenses.filter(e=>e.category==='salary').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const revenueAMD = trip.client_price_amd || 0;
+  const profitAMD  = revenueAMD - totalAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
 
@@ -180,12 +182,13 @@ function renderTripStats(trip) {
     <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
     <div class="stat ${trip.wialon_fuel_rate > trip.fuel_rate_plan ? 'red' : 'green'}">
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
-    <div class="stat"><div class="val">${fmt(trip.fuel_rate_plan)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход план</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}</div><div class="lbl">💰 Доход рейса</div></div>
     <div class="stat orange"><div class="val">֏${fmt(advanceAMD)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">֏${fmt(salaryAMD)}</div><div class="lbl">👷 Зарплата</div></div>
-    <div class="stat yellow"><div class="val">֏${fmt(totalAMD)}</div><div class="lbl">Итого расходы</div></div>
+    <div class="stat yellow"><div class="val">֏${fmt(totalAMD)}</div><div class="lbl">Расходы итого</div></div>
+    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
 
   // Wialon блок
@@ -251,6 +254,8 @@ function openTripModal(trip = null) {
   document.getElementById('fTo').value = trip?.route_to || '';
   document.getElementById('fDateStart').value = trip?.date_start || '';
   document.getElementById('fDateEnd').value = trip?.date_end || '';
+  document.getElementById('fClientPrice').value = trip?.client_price || '';
+  document.getElementById('fClientCurrency').value = trip?.client_currency || 'EUR';
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
   document.getElementById('fAdvance').value = trip?.advance_amount || '';
@@ -266,6 +271,8 @@ async function saveTrip() {
   const truck = truckSel.value;
   const wialon_unit_id = WIALON_UNITS[truck];
   const body = {
+    client_price: parseFloat(document.getElementById('fClientPrice').value) || 0,
+    client_currency: document.getElementById('fClientCurrency').value,
     truck, wialon_unit_id,
     cargo_id: document.getElementById('fCargoId').value || null,
     route_from: document.getElementById('fFrom').value,
