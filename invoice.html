@@ -233,8 +233,14 @@ const d2=new Date(t); d2.setDate(d2.getDate()+14);
 document.getElementById('fDue').value=d2.toISOString().slice(0,10);
 
 // Номер инвойса
-// Номер загружается только при скачивании/отправке
-document.getElementById('fNum').value='— авто —';
+// Показываем следующий номер сразу (без инкремента)
+fetch(W+'/api/invoice-number/peek').then(r=>r.json()).then(d=>{
+  if(document.getElementById('fNum').value===''){
+    document.getElementById('fNum').value=d.number||'0434';
+    render();
+  }
+}).catch(()=>{ document.getElementById('fNum').value='0434'; render(); });
+document.getElementById('fNum').value='';
 
 const $=id=>document.getElementById(id);
 const fv=id=>($( id)?.value||'').trim();
