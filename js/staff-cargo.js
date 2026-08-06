@@ -461,7 +461,15 @@ function init() {
 
 // ── Экспорт в Excel по шаблону ────────────────────────────────────────────────
 async function exportToExcel() {
-  if (!window.XLSX) { alert('SheetJS не загружен'); return; }
+  // Загружаем ExcelJS если не загружен
+  if (!window.ExcelJS) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
 
   const startF = document.getElementById('filterStart').value;
   const endF   = document.getElementById('filterEnd').value;
@@ -487,79 +495,88 @@ async function exportToExcel() {
   const gr = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
   const year = new Date().getFullYear();
 
-  // Рейсы собственного автопарка
+  // Рейсы
   let trips = [];
   try {
     const tr = await api('/api/trips');
-    trips = (tr || []).filter(t => t.client_price > 0).map(t => ({
-      date: t.date_start || '', price: t.client_price || 0,
-      currency: t.client_currency || 'EUR', route: `${t.route_from||''} → ${t.route_to||''}`
+    trips = (tr||[]).filter(t => t.client_price > 0).map(t => ({
+      date: t.date_start||'', price: t.client_price||0,
+      currency: t.client_currency||'EUR', route: `${t.route_from||''} → ${t.route_to||''}`
     }));
   } catch(_) {}
 
-  // Группировка по кварталам
   const getQ = d => {
     if (!d) return 1;
-    try { const m = parseInt((d.includes('-') ? d.split('-')[1] : d.split('.')[1]) || '1'); return Math.ceil(m/3); }
+    try { const m = parseInt((d.includes('-')?d.split('-')[1]:d.split('.')[1])||'1'); return Math.ceil(m/3); }
     catch(_) { return 1; }
   };
-  const qNames = {1:'I квартал', 2:'II квартал', 3:'III квартал', 4:'IV квартал'};
-
+  const qNames = {1:'I квартал',2:'II квартал',3:'III квартал',4:'IV квартал'};
   list.sort((a,b) => (a.load_date||'') > (b.load_date||'') ? 1 : -1);
   const qs = {1:[],2:[],3:[],4:[]};
   list.forEach(d => qs[getQ(d.load_date||d.unload_date)].push(d));
   const tqs = {1:[],2:[],3:[],4:[]};
   trips.forEach(t => tqs[getQ(t.date)].push(t));
 
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(String(year));
+
+  // Ширины колонок
+  ws.columns = [
+    {width:24},{width:11},{width:13},{width:8},{width:9},{width:13},
+    {width:11},{width:13},{width:8},{width:9},{width:15},
+    {width:16},{width:11},{width:11},{width:8},{width:8},{width:9},{width:13}
+  ];
+
   // Стили
-  const bdr = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-  const btm = { bottom:{style:'thin'} };
-  const ttm = { top:{style:'thin'}, bottom:{style:'thin'} };
-  const yellowFill = { fgColor:{rgb:'FFFF00'}, patternType:'solid' };
-  const greenFill  = { fgColor:{rgb:'C6EFCE'}, patternType:'solid' };
-  const grayFill   = { fgColor:{rgb:'D9D9D9'}, patternType:'solid' };
+  const font = {name:'Sylfaen',size:11};
+  const fontB = {name:'Sylfaen',size:11,bold:true};
+  const fontRB = {name:'Sylfaen',size:11,bold:true,color:{argb:'FFFF0000'}};
+  const fontH = {name:'Sylfaen',size:14,bold:true};
+  const fontG = {name:'Sylfaen',size:11,color:{argb:'FF1E6B1E'}};
 
-  const fBold   = { bold:true, sz:11 };
-  const fNorm   = { sz:11 };
-  const fRedB   = { bold:true, sz:11, color:{rgb:'FF0000'} };
-  const fH      = { bold:true, sz:14 };
-  const fGreen  = { sz:11, color:{rgb:'1E6B1E'} };
+  const fillY = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
+  const fillG = {type:'pattern',pattern:'solid',fgColor:{argb:'FFC6EFCE'}};
 
-  const aC = { horizontal:'center', vertical:'center', wrapText:true };
-  const aL = { horizontal:'left',   vertical:'center' };
-  const aR = { horizontal:'right',  vertical:'center' };
+  const bdr = {
+    top:{style:'thin'},bottom:{style:'thin'},
+    left:{style:'thin'},right:{style:'thin'}
+  };
+  const bdrTB = {top:{style:'thin'},bottom:{style:'thin'}};
 
-  const ws = {};
+  const alC = {horizontal:'center',vertical:'middle',wrapText:true};
+  const alL = {horizontal:'left',vertical:'middle'};
+  const alR = {horizontal:'right',vertical:'middle'};
 
-  const sc = (addr, val, formula, font, fill, border, align) => {
-    const cell = formula ? {f: formula, t:'n'} : {v: val, t: (typeof val === 'number' ? 'n' : 's')};
-    cell.s = {};
-    if (font)   cell.s.font   = font;
-    if (fill)   cell.s.fill   = fill;
-    if (border) cell.s.border = border;
-    if (align)  cell.s.alignment = align;
-    ws[addr] = cell;
+  const sc = (row, col, val, opts={}) => {
+    const cell = ws.getCell(row, col);
+    if (typeof val === 'string' && val.startsWith('=')) cell.value = {formula: val.slice(1)};
+    else cell.value = val;
+    if (opts.font)      cell.font      = opts.font;
+    if (opts.fill)      cell.fill      = opts.fill;
+    if (opts.border)    cell.border    = opts.border;
+    if (opts.alignment) cell.alignment = opts.alignment;
+    return cell;
   };
 
-  const dc = (addr, val, formula, align, font, fill) =>
-    sc(addr, val, formula, font||fNorm, fill, bdr, align||aL);
+  const dc = (row, col, val, opts={}) => sc(row, col, val, {font, border:bdr, alignment:alL, ...opts});
 
-  // ── Строка 1: год ──
-  sc('A1', `${year}թ. `, null, fH, null, btm, aC);
+  // Строка 1 — год
+  ws.mergeCells(1,1,1,18);
+  sc(1,1,`${year}թ. `,{font:fontH,alignment:alC,border:{bottom:{style:'thin'}}});
 
-  // ── Строка 3: группы колонок ──
-  sc('B3', 'Купленная услуга (перевозчик)', null, fNorm, null, bdr, aC);
-  sc('G3', 'Проданная услуга (клиент)',     null, fNorm, null, bdr, aC);
-  sc('M3', 'Нерезидент',                   null, fNorm, null, bdr, aC);
+  // Строка 3 — группы
+  ws.mergeCells(3,2,3,6);
+  sc(3,2,'Купленная услуга',{font,border:bdr,alignment:alC});
+  ws.mergeCells(3,7,3,11);
+  sc(3,7,'Проданная услуга',{font,border:bdr,alignment:alC});
+  ws.mergeCells(3,13,3,18);
+  sc(3,13,'Нерезидент',{font,border:bdr,alignment:alC});
 
-  // ── Строка 4: заголовки ──
-  const h4 = {
-    B:'Дата', C:'Сумма', D:'Валюта', E:'Курс ЦБ', F:'Итого AMD',
-    G:'Дата', H:'Сумма', I:'Валюта', J:'Курс ЦБ', K:'Итого AMD',
-    L:'Налоговая база AMD',
-    M:'Комиссия', N:'Дата оплаты', O:'5%', P:'Валюта', Q:'Курс ЦБ', R:'Сумма нерезидента'
-  };
-  Object.entries(h4).forEach(([col,val]) => sc(`${col}4`, val, null, fBold, null, bdr, aC));
+  // Строка 4 — заголовки
+  const h4=['',  'Дата','Сумма','Валюта','Курс ЦБ','Итого AMD',
+               'Дата','Сумма','Валюта','Курс ЦБ','Итого AMD',
+               'Налоговая база AMD','Комиссия','Дата оплаты','5%','Валюта','Курс ЦБ','Сумма нерезидента'];
+  h4.forEach((v,i) => { if(i>0) sc(4,i,v,{font:fontB,border:bdr,alignment:alC}); });
 
   let row = 5;
 
@@ -568,86 +585,73 @@ async function exportToExcel() {
     if (!rq.length && !tq.length) return;
 
     // Заголовок квартала
-    sc(`A${row}`, `${year}թ. ${qNames[q]}`, null, fBold, null, ttm, aC);
+    ws.mergeCells(row,1,row,18);
+    sc(row,1,`${year}թ. ${qNames[q]}`,{font:fontB,border:bdrTB,alignment:alC});
+    ws.getRow(row).height = 18;
     row++; const ds = row;
 
-    // Данные сделок
     rq.forEach(d => {
       const r = row;
-      const kcur = d.carrier_currency || d.currency || 'EUR';
-      const ccur = d.client_currency  || d.currency || 'AMD';
+      const kcur = d.carrier_currency||d.currency||'EUR';
+      const ccur = d.client_currency||d.currency||'AMD';
       const kamt = parseFloat(d.carrier_price)||0;
       const camt = parseFloat(d.client_price)||0;
       const comm = (d.commission!=null&&d.commission!=='') ? parseFloat(d.commission) : null;
 
-      dc(`B${r}`, d.unload_date||'');
-      dc(`C${r}`, kamt, null, aC);
-      dc(`D${r}`, kcur);
-      dc(`E${r}`, gr(kcur));
-      dc(`F${r}`, null, `C${r}*E${r}`);
-      dc(`G${r}`, d.load_date||'');
-      dc(`H${r}`, camt, null, aC);
-      dc(`I${r}`, ccur, null, aC);
-      dc(`J${r}`, gr(ccur), null, aR);
-      dc(`K${r}`, null, `H${r}*J${r}`);
-      dc(`L${r}`, null, `K${r}-F${r}`);
-
-      // M — комиссия, жёлтая, красный жирный
-      sc(`M${r}`, comm!==null?comm:'ՉԿԱ', null, fRedB, yellowFill, bdr, aC);
-
-      dc(`N${r}`, d.client_paid?(d.payment_date||''):'');
+      dc(r,2,d.unload_date||'');
+      dc(r,3,kamt,{alignment:alC});
+      dc(r,4,kcur);
+      dc(r,5,gr(kcur));
+      dc(r,6,`=C${r}*E${r}`);
+      dc(r,7,d.load_date||'');
+      dc(r,8,camt,{alignment:alC});
+      dc(r,9,ccur,{alignment:alC});
+      dc(r,10,gr(ccur),{alignment:alR});
+      dc(r,11,`=H${r}*J${r}`);
+      dc(r,12,`=K${r}-F${r}`);
+      sc(r,13,comm!==null?comm:'ՉԿԱ',{font:fontRB,fill:fillY,border:bdr,alignment:alC});
+      dc(r,14,d.client_paid?(d.payment_date||''):'');
       if (comm!==null) {
-        dc(`O${r}`, null, `M${r}*5/100`);
-        dc(`P${r}`, ccur);
+        dc(r,15,`=M${r}*5/100`);
+        dc(r,16,ccur);
       } else {
-        dc(`O${r}`, ''); dc(`P${r}`, '');
+        dc(r,15,''); dc(r,16,'');
       }
-      dc(`Q${r}`, '');
-      dc(`R${r}`, null, `O${r}*Q${r}`);
+      dc(r,17,'');
+      dc(r,18,`=O${r}*Q${r}`);
       row++;
     });
 
-    // Зелёные строки — собственные рейсы
     tq.forEach(t => {
       const r = row;
       const ccur = t.currency||'EUR';
-      ['B','C','D','E','F'].forEach(col => sc(`${col}${r}`, '-', null, fGreen, greenFill, bdr, aC));
-      sc(`G${r}`, t.date||'',        null, fGreen, greenFill, bdr, aL);
-      sc(`H${r}`, t.price||0,        null, fGreen, greenFill, bdr, aC);
-      sc(`I${r}`, ccur,              null, fGreen, greenFill, bdr, aC);
-      sc(`J${r}`, gr(ccur),          null, fGreen, greenFill, bdr, aR);
-      sc(`K${r}`, null, `H${r}*J${r}`,    fGreen, greenFill, bdr);
-      sc(`L${r}`, null, `K${r}-F${r}`,    fGreen, greenFill, bdr);
-      sc(`M${r}`, 'ՉԿԱ',            null, fRedB,  yellowFill, bdr, aC);
-      sc(`N${r}`, t.route||'',       null, fGreen, greenFill, bdr);
-      ['O','P','Q','R'].forEach(col => sc(`${col}${r}`, '', null, fGreen, greenFill, bdr));
+      [2,3,4,5,6].forEach(c => sc(r,c,'-',{font:fontG,fill:fillG,border:bdr,alignment:alC}));
+      sc(r,7,t.date||'',{font:fontG,fill:fillG,border:bdr,alignment:alL});
+      sc(r,8,parseFloat(t.price)||0,{font:fontG,fill:fillG,border:bdr,alignment:alC});
+      sc(r,9,ccur,{font:fontG,fill:fillG,border:bdr,alignment:alC});
+      sc(r,10,gr(ccur),{font:fontG,fill:fillG,border:bdr,alignment:alR});
+      sc(r,11,`=H${r}*J${r}`,{font:fontG,fill:fillG,border:bdr});
+      sc(r,12,`=K${r}-F${r}`,{font:fontG,fill:fillG,border:bdr});
+      sc(r,13,'ՉԿԱ',{font:fontRB,fill:fillY,border:bdr,alignment:alC});
+      sc(r,14,t.route||'',{font:fontG,fill:fillG,border:bdr});
+      [15,16,17,18].forEach(c => sc(r,c,'',{font:fontG,fill:fillG,border:bdr}));
       row++;
     });
 
     // Итого квартала
-    const tr = row;
-    sc(`A${tr}`, `Итого ${year}թ. ${qNames[q]}`, null, fBold, null, ttm, aC);
-    sc(`L${tr}`, null, `SUM(L${ds}:L${tr-1})`, fBold, null, ttm, aC);
+    ws.mergeCells(row,1,row,11);
+    sc(row,1,`Ընдаmenea ${year}թ. ${qNames[q]}`,{font:fontB,border:bdrTB,alignment:alC});
+    sc(row,12,`=SUM(L${ds}:L${row-1})`,{font:fontB,border:bdrTB,alignment:alC});
     row++;
   });
 
-  ws['!ref'] = `A1:R${row}`;
-
-  ws['!merges'] = [
-    {s:{r:0,c:0}, e:{r:0,c:17}},  // A1:R1
-    {s:{r:2,c:1}, e:{r:2,c:5}},   // B3:F3
-    {s:{r:2,c:6}, e:{r:2,c:10}},  // G3:K3
-    {s:{r:2,c:12},e:{r:2,c:17}},  // M3:R3
-  ];
-
-  ws['!cols'] = [
-    {wch:24},
-    {wch:11},{wch:13},{wch:8},{wch:9},{wch:13},
-    {wch:11},{wch:13},{wch:8},{wch:9},{wch:15},
-    {wch:16},{wch:11},{wch:11},{wch:8},{wch:8},{wch:9},{wch:13},
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, String(year));
-  XLSX.writeFile(wb, `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  // Скачиваем
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
