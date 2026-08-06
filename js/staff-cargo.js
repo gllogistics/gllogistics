@@ -177,8 +177,8 @@ async function saveCargo() {
     };
     if (!cargo.product) return alert('Введите товар');
     if (editId) await updateCargo(editId, cargo);
-    else { const newCargo = await addCargo(cargo); if (newCargo?.id) await saveSegments(newCargo.id); }
-    if (editId) await saveSegments(editId);
+    else { const newCargo = await addCargo(cargo); if (newCargo?.id) await (window.saveSegments||saveSegments)(newCargo.id).catch(()=>{}); }
+    if (editId) await (window.saveSegments||saveSegments)(editId).catch(()=>{});
     await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
@@ -436,7 +436,6 @@ function init() {
   async function saveSegments(cargoId) {
     const segs = getSegmentsFromForm();
     if (!segs.length) return;
-    // Удаляем старые и создаём новые
     for (const s of currentSegments) {
       await api('/api/cargo/segments/' + s.id, 'DELETE').catch(()=>{});
     }
@@ -444,6 +443,7 @@ function init() {
       await api('/api/cargo/' + cargoId + '/segments', 'POST', s);
     }
   }
+  window.saveSegments = saveSegments;
   document.getElementById('resetFilterBtn').addEventListener('click', clearFilter);
   document.getElementById('filterStart').addEventListener('change', renderAll);
   document.getElementById('filterEnd').addEventListener('change', renderAll);
