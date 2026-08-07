@@ -234,6 +234,14 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 <div class="modal" id="expenseModal">
   <div class="modal-box">
     <div class="modal-title">Добавить расход</div>
+    <div style="background:#F0F9F9;border-radius:12px;padding:.8rem;margin-bottom:.8rem;border:1.5px dashed rgba(85,183,189,.4)">
+      <label style="font-size:.72rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">📎 Загрузить скан / фото чека</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="file" id="eScanFile" accept="image/*,application/pdf" style="flex:1;padding:6px;background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;font-size:.78rem">
+        <button type="button" id="btnScanReceipt" style="background:#55B7BD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">🤖 Распознать</button>
+      </div>
+      <div id="scanStatus" style="font-size:.72rem;color:#8fa8ab;margin-top:4px"></div>
+    </div>
     <div class="form-row cols-2">
       <div><label>Категория</label>
         <select id="eCat">
@@ -251,7 +259,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div class="form-row cols-2">
       <div><label>Сумма</label><input type="number" id="eAmount" placeholder="0" step="0.01"></div>
       <div><label>Валюта</label>
-        <select id="eCurrency"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option></select>
+        <select id="eCurrency"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option><option value="USD">USD $</option><option value="GEL">GEL ₾</option><option value="TRY">TRY ₺</option><option value="RUB">RUB ₽</option></select>
       </div>
     </div>
     <div class="form-row">
@@ -259,7 +267,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     </div>
     <div class="form-row">
       <div>
-        <label>Чек (скан/фото)</label>
+        <label>Чек (для сохранения)</label>
         <input type="file" id="eReceipt" accept="image/*,application/pdf" style="padding:6px">
         <p style="font-size:.68rem;color:#8fa8ab;margin-top:4px">JPG, PNG или PDF</p>
       </div>
