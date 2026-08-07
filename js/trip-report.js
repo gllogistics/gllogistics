@@ -519,7 +519,7 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
     const isPdf = file.type === 'application/pdf';
 
     // Запрос к Claude API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch(WORKER + '/api/scan-receipt', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
