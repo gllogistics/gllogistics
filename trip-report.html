@@ -184,6 +184,24 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
         <select id="fClientCurrency"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
       </div>
     </div>
+
+    <!-- Круговой рейс -->
+    <div style="margin:.6rem 0 .4rem">
+      <button type="button" id="toggleRoundtrip" style="background:none;border:none;color:#55B7BD;font-size:.75rem;cursor:pointer;font-weight:600;padding:2px 0">🔄 Добавить обратный рейс (туда-обратно)</button>
+    </div>
+    <div id="roundtripBlock" style="display:none;background:#F0F9F9;border-radius:12px;padding:.8rem;border:1.5px solid rgba(85,183,189,.2);margin-bottom:.6rem">
+      <div style="font-size:.72rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem">🔄 Обратное плечо</div>
+      <div class="form-row cols-2">
+        <div><label>Откуда (обратно)</label><input type="text" id="fRoute2From" placeholder="Париж"></div>
+        <div><label>Куда (обратно)</label><input type="text" id="fRoute2To" placeholder="Ереван"></div>
+      </div>
+      <div class="form-row cols-2">
+        <div><label>💵 Цена обратного рейса</label><input type="number" id="fClient2Price" placeholder="0" step="0.01"></div>
+        <div><label>Валюта</label>
+          <select id="fClient2Currency"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
+        </div>
+      </div>
+    </div>
     <div class="form-row cols-2">
       <div><label>⛽ Дизель (расходы)</label><input type="number" id="fFuelCost" placeholder="0" step="0.01"></div>
       <div><label>Валюта дизеля</label>
