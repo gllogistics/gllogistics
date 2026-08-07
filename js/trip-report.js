@@ -554,15 +554,34 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
     });
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
 
-    // Парсим JSON из ответа
+    // Проверяем ошибки от Claude
+    if (data.type === 'error') {
+      throw new Error(data.error?.message || 'Ошибка Claude API');
+    }
+
+    const text = data.content?.[0]?.text || '';
+    if (!text) throw new Error('Claude не вернул ответ');
+
+    // Парсим JSON из ответа — ищем {} в тексте
     let parsed;
     try {
-      const clean = text.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(clean);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('JSON не найден');
+      parsed = JSON.parse(match[0]);
     } catch(_) {
-      throw new Error('Не удалось распознать документ');
+      // Если не JSON — пробуем извлечь данные из текста
+      const amountMatch = text.match(/(\d+[.,]?\d*)\s*(EUR|AMD|USD|GEL|TRY|RUB)?/i);
+      if (amountMatch) {
+        parsed = {
+          amount: parseFloat(amountMatch[1].replace(',','.')),
+          currency: amountMatch[2] || 'AMD',
+          date: null, category: 'other',
+          description: text.slice(0, 100)
+        };
+      } else {
+        throw new Error('Не удалось распознать документ');
+      }
     }
 
     // Заполняем поля формы
