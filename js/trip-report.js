@@ -493,6 +493,102 @@ document.getElementById('cancelTripModal').addEventListener('click', () => docum
 document.getElementById('editTripBtn').addEventListener('click', () => currentTrip && openTripModal(currentTrip));
 document.getElementById('wialonSyncBtn').addEventListener('click', syncWialon);
 document.getElementById('deleteTripBtn').addEventListener('click', deleteTrip);
+
+// ── Распознавание скана чека через Claude ──────────────────────────────────
+document.getElementById('btnScanReceipt')?.addEventListener('click', async () => {
+  const file = document.getElementById('eScanFile').files[0];
+  if (!file) { alert('Выберите файл'); return; }
+
+  const btn = document.getElementById('btnScanReceipt');
+  const status = document.getElementById('scanStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Распознаю...';
+  status.textContent = 'Claude читает документ...';
+  status.style.color = '#55B7BD';
+
+  try {
+    // Конвертируем файл в base64
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(',')[1]);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    const mediaType = file.type || 'image/jpeg';
+    const isPdf = file.type === 'application/pdf';
+
+    // Запрос к Claude API
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            isPdf ? {
+              type: 'document',
+              source: { type: 'base64', media_type: 'application/pdf', data: base64 }
+            } : {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            {
+              type: 'text',
+              text: `Это чек или счёт за расход. Извлеки данные и верни ТОЛЬКО JSON без markdown:
+{
+  "amount": число (только цифры, без валюты),
+  "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
+  "date": "YYYY-MM-DD",
+  "category": "fuel" или "toll" или "parking" или "other",
+  "description": "краткое описание на русском (название места, тип расхода)"
+}
+Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, other=всё остальное.
+Если не можешь определить поле — используй null.`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+
+    // Парсим JSON из ответа
+    let parsed;
+    try {
+      const clean = text.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(_) {
+      throw new Error('Не удалось распознать документ');
+    }
+
+    // Заполняем поля формы
+    if (parsed.amount) document.getElementById('eAmount').value = parsed.amount;
+    if (parsed.currency) document.getElementById('eCurrency').value = parsed.currency;
+    if (parsed.date) document.getElementById('eDate').value = parsed.date;
+    if (parsed.category) document.getElementById('eCat').value = parsed.category;
+    if (parsed.description) document.getElementById('eDesc').value = parsed.description;
+
+    // Копируем файл в поле чека
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('eReceipt').files = dt.files;
+
+    status.textContent = '✅ Распознано! Проверьте и сохраните.';
+    status.style.color = '#1a6b3c';
+
+  } catch(e) {
+    status.textContent = '❌ Ошибка: ' + e.message;
+    status.style.color = '#C62828';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 Распознать';
+  }
+});
+
 document.getElementById('addExpenseBtn').addEventListener('click', () => {
   document.getElementById('eDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('expenseModal').classList.add('open');
