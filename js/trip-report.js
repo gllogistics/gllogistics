@@ -181,7 +181,9 @@ function renderTripStats(trip) {
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
-  const revenueAMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
+  const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
+  const revenue2AMD = trip.is_roundtrip ? ((trip.client2_price || 0) * getRate(trip.client2_currency || 'EUR')) : 0;
+  const revenueAMD = revenue1AMD + revenue2AMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -193,7 +195,7 @@ function renderTripStats(trip) {
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}</div><div class="lbl">💰 Доход рейса</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${trip.is_roundtrip&&trip.client2_price?' + '+fmt(trip.client2_price)+(trip.client2_currency==='AMD'?'֏':'€'):''}</div><div class="lbl">💰 Доход ${trip.is_roundtrip?'(туда+обратно)':'рейса'}</div></div>
     <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
     <div class="stat yellow"><div class="val">֏${fmt(expensesOnlyAMD)}</div><div class="lbl">Расходы (чеки)</div></div>
@@ -265,6 +267,18 @@ function openTripModal(trip = null) {
   document.getElementById('fDateEnd').value = trip?.date_end || '';
   document.getElementById('fClientPrice').value = trip?.client_price || '';
   document.getElementById('fClientCurrency').value = trip?.client_currency || 'EUR';
+  // Круговой рейс
+  if (trip?.is_roundtrip) {
+    document.getElementById('roundtripBlock').style.display = 'block';
+    document.getElementById('toggleRoundtrip').textContent = '❌ Убрать обратный рейс';
+    document.getElementById('fRoute2From').value = trip?.route2_from || '';
+    document.getElementById('fRoute2To').value = trip?.route2_to || '';
+    document.getElementById('fClient2Price').value = trip?.client2_price || '';
+    document.getElementById('fClient2Currency').value = trip?.client2_currency || 'EUR';
+  } else {
+    document.getElementById('roundtripBlock').style.display = 'none';
+    document.getElementById('toggleRoundtrip').textContent = '🔄 Добавить обратный рейс (туда-обратно)';
+  }
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
   document.getElementById('fFuelCost').value = trip?.fuel_cost || '';
@@ -284,6 +298,11 @@ async function saveTrip() {
   const body = {
     client_price: parseFloat(document.getElementById('fClientPrice').value) || 0,
     client_currency: document.getElementById('fClientCurrency').value,
+    is_roundtrip: document.getElementById('roundtripBlock').style.display !== 'none' ? 1 : 0,
+    route2_from: document.getElementById('fRoute2From').value || '',
+    route2_to: document.getElementById('fRoute2To').value || '',
+    client2_price: parseFloat(document.getElementById('fClient2Price').value) || 0,
+    client2_currency: document.getElementById('fClient2Currency').value,
     truck, wialon_unit_id,
     cargo_id: document.getElementById('fCargoId').value || null,
     route_from: document.getElementById('fFrom').value,
@@ -491,6 +510,15 @@ document.getElementById('aiToggle').addEventListener('click', () => {
 document.getElementById('aiSendBtn').addEventListener('click', sendAI);
 document.getElementById('aiInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
+});
+
+// Переключатель кругового рейса
+document.getElementById('toggleRoundtrip')?.addEventListener('click', () => {
+  const block = document.getElementById('roundtripBlock');
+  const btn = document.getElementById('toggleRoundtrip');
+  const isOpen = block.style.display !== 'none';
+  block.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '🔄 Добавить обратный рейс (туда-обратно)' : '❌ Убрать обратный рейс';
 });
 
 // Загружаем курсы валют
