@@ -107,8 +107,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
-const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
+const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -179,8 +179,6 @@ async function openTrip(trip) {
 function renderTripStats(trip) {
   const expenses = trip.expenses || [];
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
-  const expensesOnlyAMD = expenses.filter(e=>!['advance','salary'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
-
   // Курсы из глобального объекта или дефолт
   const EUR_RATE = window._eurRate || 418;
   const USD_RATE = window._usdRate || 367;
@@ -193,6 +191,7 @@ function renderTripStats(trip) {
   // Доход от промежуточных сегментов (уже загруженных)
   const segmentsRevenueAMD = (tripSegments||[]).reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
+  const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -201,7 +200,8 @@ function renderTripStats(trip) {
   const fuelExpAMD    = expenses.filter(e=>e.category==='fuel').reduce((s,e)=>s+(e.amount_amd||0),0);
   const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
   const parkingExpAMD = expenses.filter(e=>e.category==='parking').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
 
   document.getElementById('tripStats').innerHTML = `
     <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
@@ -215,6 +215,7 @@ function renderTripStats(trip) {
     ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">⛽ Топливо</div></div>`:''}
     ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">🛣 Платные дороги</div></div>`:''}
     ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">🅿️ Стоянка</div></div>`:''}
+    ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
