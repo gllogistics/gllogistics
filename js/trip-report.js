@@ -182,8 +182,9 @@ function renderTripStats(trip) {
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  const revenue2AMD = trip.is_roundtrip ? ((trip.client2_price || 0) * getRate(trip.client2_currency || 'EUR')) : 0;
-  const revenueAMD = revenue1AMD + revenue2AMD;
+  // Доход от промежуточных сегментов (уже загруженных)
+  const segmentsRevenueAMD = (tripSegments||[]).reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
+  const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -195,7 +196,7 @@ function renderTripStats(trip) {
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${trip.is_roundtrip&&trip.client2_price?' + '+fmt(trip.client2_price)+(trip.client2_currency==='AMD'?'֏':'€'):''}</div><div class="lbl">💰 Доход ${trip.is_roundtrip?'(туда+обратно)':'рейса'}</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segmentsRevenueAMD>0?' + ֏'+fmt(segmentsRevenueAMD):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
     <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
     <div class="stat yellow"><div class="val">֏${fmt(expensesOnlyAMD)}</div><div class="lbl">Расходы (чеки)</div></div>
@@ -267,18 +268,11 @@ function openTripModal(trip = null) {
   document.getElementById('fDateEnd').value = trip?.date_end || '';
   document.getElementById('fClientPrice').value = trip?.client_price || '';
   document.getElementById('fClientCurrency').value = trip?.client_currency || 'EUR';
-  // Круговой рейс
-  if (trip?.is_roundtrip) {
-    document.getElementById('roundtripBlock').style.display = 'block';
-    document.getElementById('toggleRoundtrip').textContent = '❌ Убрать обратный рейс';
-    document.getElementById('fRoute2From').value = trip?.route2_from || '';
-    document.getElementById('fRoute2To').value = trip?.route2_to || '';
-    document.getElementById('fClient2Price').value = trip?.client2_price || '';
-    document.getElementById('fClient2Currency').value = trip?.client2_currency || 'EUR';
-  } else {
-    document.getElementById('roundtripBlock').style.display = 'none';
-    document.getElementById('toggleRoundtrip').textContent = '🔄 Добавить обратный рейс (туда-обратно)';
-  }
+  // Загружаем промежуточные сегменты
+  currentTripId = trip.id;
+  document.getElementById('segmentsContainer').innerHTML = '';
+  tripSegments = [];
+  loadTripSegments(trip.id);
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
   document.getElementById('fFuelCost').value = trip?.fuel_cost || '';
@@ -298,11 +292,9 @@ async function saveTrip() {
   const body = {
     client_price: parseFloat(document.getElementById('fClientPrice').value) || 0,
     client_currency: document.getElementById('fClientCurrency').value,
-    is_roundtrip: document.getElementById('roundtripBlock').style.display !== 'none' ? 1 : 0,
-    route2_from: document.getElementById('fRoute2From').value || '',
-    route2_to: document.getElementById('fRoute2To').value || '',
-    client2_price: parseFloat(document.getElementById('fClient2Price').value) || 0,
-    client2_currency: document.getElementById('fClient2Currency').value,
+    is_roundtrip: 0,
+    route2_from: '', route2_to: '',
+    client2_price: 0, client2_currency: 'EUR',
     truck, wialon_unit_id,
     cargo_id: document.getElementById('fCargoId').value || null,
     route_from: document.getElementById('fFrom').value,
@@ -627,14 +619,81 @@ document.getElementById('aiInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
 });
 
-// Переключатель кругового рейса
-document.getElementById('toggleRoundtrip')?.addEventListener('click', () => {
-  const block = document.getElementById('roundtripBlock');
-  const btn = document.getElementById('toggleRoundtrip');
-  const isOpen = block.style.display !== 'none';
-  block.style.display = isOpen ? 'none' : 'block';
-  btn.textContent = isOpen ? '🔄 Добавить обратный рейс (туда-обратно)' : '❌ Убрать обратный рейс';
-});
+// ── Промежуточные плечи рейса ──────────────────────────────────────────────
+let tripSegments = []; // сегменты из БД
+let currentTripId = null;
+
+function addSegmentRow(seg = {}) {
+  const container = document.getElementById('segmentsContainer');
+  const div = document.createElement('div');
+  div.className = 'segment-trip-row';
+  div.dataset.segId = seg.id || '';
+  div.style.cssText = 'background:#F0F9F9;border:1.5px solid rgba(85,183,189,.2);border-radius:12px;padding:.8rem;margin-bottom:.6rem;position:relative';
+  div.innerHTML = `
+    <div style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">
+      🔀 Промежуточный рейс ${container.children.length + 1}
+    </div>
+    <div class="form-row cols-2" style="margin-bottom:.5rem">
+      <div><label>Клиент</label><input class="seg-client" placeholder="Название клиента" value="${esc(seg.client_name||'')}"></div>
+      <div style="display:flex;gap:6px">
+        <div style="flex:1"><label>Цена</label><input type="number" class="seg-price" placeholder="0" step="0.01" value="${seg.client_price||''}"></div>
+        <div><label>Валюта</label>
+          <select class="seg-currency">
+            <option value="EUR" ${(seg.client_currency||'EUR')==='EUR'?'selected':''}>EUR</option>
+            <option value="AMD" ${seg.client_currency==='AMD'?'selected':''}>AMD</option>
+            <option value="USD" ${seg.client_currency==='USD'?'selected':''}>USD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label>Откуда</label><input class="seg-from" placeholder="Город отправления" value="${esc(seg.route_from||'')}"></div>
+      <div><label>Куда</label><input class="seg-to" placeholder="Город назначения" value="${esc(seg.route_to||'')}"></div>
+    </div>
+    <button type="button" onclick="removeSegmentRow(this)" style="position:absolute;top:8px;right:8px;background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem">✕</button>`;
+  container.appendChild(div);
+}
+
+window.removeSegmentRow = function(btn) {
+  btn.closest('.segment-trip-row').remove();
+  // Обновляем номера
+  document.querySelectorAll('.segment-trip-row').forEach((row, i) => {
+    row.querySelector('div').textContent = `🔀 Промежуточный рейс ${i+1}`;
+  });
+};
+
+document.getElementById('addSegmentBtn')?.addEventListener('click', () => addSegmentRow());
+
+async function loadTripSegments(tripId) {
+  try {
+    const segs = await api('/api/trips/' + tripId + '/segments');
+    document.getElementById('segmentsContainer').innerHTML = '';
+    tripSegments = segs || [];
+    segs.forEach(s => addSegmentRow(s));
+  } catch(_) {}
+}
+
+async function saveTripSegments(tripId) {
+  const rows = document.querySelectorAll('.segment-trip-row');
+  // Удаляем старые
+  for (const s of tripSegments) {
+    await api('/api/trips/segments/' + s.id, 'DELETE').catch(()=>{});
+  }
+  // Создаём новые
+  for (const row of rows) {
+    const seg = {
+      route_from:      row.querySelector('.seg-from').value,
+      route_to:        row.querySelector('.seg-to').value,
+      client_name:     row.querySelector('.seg-client').value,
+      client_price:    parseFloat(row.querySelector('.seg-price').value) || 0,
+      client_currency: row.querySelector('.seg-currency').value,
+    };
+    if (seg.route_from || seg.client_name || seg.client_price) {
+      await api('/api/trips/' + tripId + '/segments', 'POST', seg);
+    }
+  }
+  tripSegments = [];
+}
 
 // Загружаем курсы валют
 fetch(WORKER + '/api/rates').then(r=>r.json()).then(d=>{
