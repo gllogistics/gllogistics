@@ -647,80 +647,76 @@ document.getElementById('aiInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
 });
 
-// ── Промежуточные плечи рейса ──────────────────────────────────────────────
-let tripSegments = []; // сегменты из БД
+// ── Промежуточные плечи рейса (фиксированные: промежуточный + обратный) ────
+let tripSegments = [];
 let currentTripId = null;
 
-function addSegmentRow(seg = {}) {
-  const container = document.getElementById('segmentsContainer');
-  const div = document.createElement('div');
-  div.className = 'segment-trip-row';
-  div.dataset.segId = seg.id || '';
-  div.style.cssText = 'background:#F0F9F9;border:1.5px solid rgba(85,183,189,.2);border-radius:12px;padding:.8rem;margin-bottom:.6rem;position:relative';
-  div.innerHTML = `
-    <div style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">
-      🔀 Промежуточный рейс ${container.children.length + 1}
-    </div>
-    <div class="form-row cols-2" style="margin-bottom:.5rem">
-      <div><label>Клиент</label><input class="seg-client" placeholder="Название клиента" value="${esc(seg.client_name||'')}"></div>
-      <div style="display:flex;gap:6px">
-        <div style="flex:1"><label>Цена</label><input type="number" class="seg-price" placeholder="0" step="0.01" value="${seg.client_price||''}"></div>
-        <div><label>Валюта</label>
-          <select class="seg-currency">
-            <option value="EUR" ${(seg.client_currency||'EUR')==='EUR'?'selected':''}>EUR</option>
-            <option value="AMD" ${seg.client_currency==='AMD'?'selected':''}>AMD</option>
-            <option value="USD" ${seg.client_currency==='USD'?'selected':''}>USD</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="form-row cols-2">
-      <div><label>Откуда</label><input class="seg-from" placeholder="Город отправления" value="${esc(seg.route_from||'')}"></div>
-      <div><label>Куда</label><input class="seg-to" placeholder="Город назначения" value="${esc(seg.route_to||'')}"></div>
-    </div>
-    <button type="button" onclick="removeSegmentRow(this)" style="position:absolute;top:8px;right:8px;background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem">✕</button>`;
-  container.appendChild(div);
+// Переключатели блоков
+document.getElementById('toggleSeg1')?.addEventListener('click', () => {
+  const b = document.getElementById('seg1Block');
+  const isOpen = b.style.display !== 'none';
+  b.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('toggleSeg1').textContent = isOpen ? '🔀 + Промежуточный рейс' : '🔀 − Промежуточный рейс';
+  if (isOpen) { document.getElementById('fSeg1Client').value=''; document.getElementById('fSeg1Price').value=''; document.getElementById('fSeg1From').value=''; document.getElementById('fSeg1To').value=''; }
+});
+document.getElementById('toggleSeg2')?.addEventListener('click', () => {
+  const b = document.getElementById('seg2Block');
+  const isOpen = b.style.display !== 'none';
+  b.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('toggleSeg2').textContent = isOpen ? '🔄 + Обратный рейс' : '🔄 − Обратный рейс';
+  if (isOpen) { document.getElementById('fSeg2Client').value=''; document.getElementById('fSeg2Price').value=''; document.getElementById('fSeg2From').value=''; document.getElementById('fSeg2To').value=''; }
+});
+
+function getSegFromForm(n) {
+  const price = parseFloat(document.getElementById(`fSeg${n}Price`).value) || 0;
+  const from  = document.getElementById(`fSeg${n}From`).value.trim();
+  const to    = document.getElementById(`fSeg${n}To`).value.trim();
+  const client= document.getElementById(`fSeg${n}Client`).value.trim();
+  const cur   = document.getElementById(`fSeg${n}Currency`).value;
+  const open  = document.getElementById(`seg${n}Block`).style.display !== 'none';
+  if (!open || (!price && !from && !to && !client)) return null;
+  return { segment_num: n, route_from: from, route_to: to, client_name: client, client_price: price, client_currency: cur };
 }
 
-window.removeSegmentRow = function(btn) {
-  btn.closest('.segment-trip-row').remove();
-  // Обновляем номера
-  document.querySelectorAll('.segment-trip-row').forEach((row, i) => {
-    row.querySelector('div').textContent = `🔀 Промежуточный рейс ${i+1}`;
-  });
-};
+function fillSegForm(n, seg) {
+  if (!seg) return;
+  document.getElementById(`seg${n}Block`).style.display = 'block';
+  document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 − Промежуточный рейс' : '🔄 − Обратный рейс';
+  document.getElementById(`fSeg${n}Client`).value   = seg.client_name || '';
+  document.getElementById(`fSeg${n}Price`).value    = seg.client_price || '';
+  document.getElementById(`fSeg${n}Currency`).value = seg.client_currency || 'EUR';
+  document.getElementById(`fSeg${n}From`).value     = seg.route_from || '';
+  document.getElementById(`fSeg${n}To`).value       = seg.route_to || '';
+}
 
-document.getElementById('addSegmentBtn')?.addEventListener('click', () => addSegmentRow());
+function resetSegForms() {
+  [1,2].forEach(n => {
+    document.getElementById(`seg${n}Block`).style.display = 'none';
+    document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 + Промежуточный рейс' : '🔄 + Обратный рейс';
+    ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg${n}${f}`); if(el) el.value=''; });
+  });
+}
 
 async function loadTripSegments(tripId) {
   try {
-    const segs = await api('/api/trips/' + tripId + '/segments');
-    document.getElementById('segmentsContainer').innerHTML = '';
-    tripSegments = segs || [];
-    segs.forEach(s => addSegmentRow(s));
-  } catch(_) {}
+    const segs = await api('/api/trips/' + tripId + '/segments') || [];
+    tripSegments = segs;
+    resetSegForms();
+    segs.forEach(s => fillSegForm(s.segment_num <= 1 ? 1 : 2, s));
+  } catch(_) { tripSegments = []; }
 }
 
 async function saveTripSegments(tripId) {
-  const rows = document.querySelectorAll('.segment-trip-row');
-  // Удаляем старые
+  // Удаляем старые сегменты
   for (const s of tripSegments) {
     await api('/api/trips/segments/' + s.id, 'DELETE').catch(()=>{});
   }
-  // Создаём новые
-  for (const row of rows) {
-    const seg = {
-      route_from:      row.querySelector('.seg-from').value,
-      route_to:        row.querySelector('.seg-to').value,
-      client_name:     row.querySelector('.seg-client').value,
-      client_price:    parseFloat(row.querySelector('.seg-price').value) || 0,
-      client_currency: row.querySelector('.seg-currency').value,
-    };
-    if (seg.route_from || seg.client_name || seg.client_price) {
-      await api('/api/trips/' + tripId + '/segments', 'POST', seg);
-    }
-  }
   tripSegments = [];
+  // Сохраняем новые
+  for (const n of [1, 2]) {
+    const seg = getSegFromForm(n);
+    if (seg) await api('/api/trips/' + tripId + '/segments', 'POST', seg);
+  }
 }
 
 // Загружаем курсы валют
