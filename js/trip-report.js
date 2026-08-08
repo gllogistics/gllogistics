@@ -651,10 +651,21 @@ let tripSegments = [];
 let currentTripId = null;
 
 // Переключатели блоков
-window.closeSeg = function(n) {
+window.closeSeg = async function(n) {
   document.getElementById(`seg${n}Block`).style.display = 'none';
   document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 + Промежуточный рейс' : '🔄 + Обратный рейс';
   ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg${n}${f}`); if(el) el.value=''; });
+  // Удаляем из БД если есть сохранённый сегмент
+  const seg = tripSegments.find(s => s.segment_num === n);
+  if (seg?.id) {
+    await api('/api/trips/segments/' + seg.id, 'DELETE').catch(()=>{});
+    tripSegments = tripSegments.filter(s => s.segment_num !== n);
+    // Обновляем заголовок
+    if (currentTrip) {
+      const segRoute = tripSegments.length ? ' → ' + tripSegments.map(s=>s.route_to).filter(Boolean).join(' → ') : '';
+      document.getElementById('detailTitle').textContent = `🚛 ${currentTrip.truck}: ${currentTrip.route_from} → ${currentTrip.route_to}${segRoute}`;
+    }
+  }
 };
 
 document.getElementById('toggleSeg1')?.addEventListener('click', () => {
