@@ -651,6 +651,12 @@ let tripSegments = [];
 let currentTripId = null;
 
 // Переключатели блоков
+window.closeSeg = function(n) {
+  document.getElementById(`seg${n}Block`).style.display = 'none';
+  document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 + Промежуточный рейс' : '🔄 + Обратный рейс';
+  ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg${n}${f}`); if(el) el.value=''; });
+};
+
 document.getElementById('toggleSeg1')?.addEventListener('click', () => {
   const b = document.getElementById('seg1Block');
   const isOpen = b.style.display !== 'none';
