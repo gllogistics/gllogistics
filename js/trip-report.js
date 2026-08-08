@@ -286,10 +286,10 @@ function openTripModal(trip = null) {
   document.getElementById('fClientPrice').value = trip?.client_price || '';
   document.getElementById('fClientCurrency').value = trip?.client_currency || 'EUR';
   // Загружаем промежуточные сегменты
-  currentTripId = trip.id;
-  document.getElementById('segmentsContainer').innerHTML = '';
+  currentTripId = trip?.id || null;
   tripSegments = [];
-  loadTripSegments(trip.id);
+  resetSegForms();
+  if (trip?.id) loadTripSegments(trip.id);
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
   document.getElementById('fFuelCost').value = trip?.fuel_cost || '';
