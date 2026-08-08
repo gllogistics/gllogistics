@@ -651,20 +651,29 @@ let tripSegments = [];
 let currentTripId = null;
 
 // Переключатели блоков
+// Переключение типа сегмента (промежуточный ↔ обратный)
+window.toggleSegType = function() {
+  const cur = parseInt(document.getElementById('fSeg1Type').value);
+  const next = cur === 1 ? 2 : 1;
+  document.getElementById('fSeg1Type').value = next;
+  document.getElementById('seg1Label').textContent = next === 1 ? '🔀 Промежуточный рейс' : '🔄 Обратный рейс';
+  document.getElementById('segTypeBtn').textContent = next === 1 ? '→ Сделать обратным' : '→ Сделать промежуточным';
+  document.getElementById('seg1Block').style.backgroundColor = next === 2 ? '#F0F5FA' : '#F0F9F9';
+};
+
 window.closeSeg = async function(n) {
-  document.getElementById(`seg${n}Block`).style.display = 'none';
-  document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 + Промежуточный рейс' : '🔄 + Обратный рейс';
-  ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg${n}${f}`); if(el) el.value=''; });
-  // Удаляем из БД если есть сохранённый сегмент
-  const seg = tripSegments.find(s => s.segment_num === n);
-  if (seg?.id) {
+  document.getElementById('seg1Block').style.display = 'none';
+  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
+  document.getElementById('fSeg1Type').value = '1';
+  document.getElementById('seg1Label').textContent = '🔀 Промежуточный рейс';
+  ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg1${f}`); if(el) el.value=''; });
+  // Удаляем все сегменты из БД
+  for (const seg of tripSegments) {
     await api('/api/trips/segments/' + seg.id, 'DELETE').catch(()=>{});
-    tripSegments = tripSegments.filter(s => s.segment_num !== n);
-    // Обновляем заголовок
-    if (currentTrip) {
-      const segRoute = tripSegments.length ? ' → ' + tripSegments.map(s=>s.route_to).filter(Boolean).join(' → ') : '';
-      document.getElementById('detailTitle').textContent = `🚛 ${currentTrip.truck}: ${currentTrip.route_from} → ${currentTrip.route_to}${segRoute}`;
-    }
+  }
+  tripSegments = [];
+  if (currentTrip) {
+    document.getElementById('detailTitle').textContent = `🚛 ${currentTrip.truck}: ${currentTrip.route_from} → ${currentTrip.route_to}`;
   }
 };
 
@@ -672,45 +681,43 @@ document.getElementById('toggleSeg1')?.addEventListener('click', () => {
   const b = document.getElementById('seg1Block');
   const isOpen = b.style.display !== 'none';
   b.style.display = isOpen ? 'none' : 'block';
-  document.getElementById('toggleSeg1').textContent = isOpen ? '🔀 + Промежуточный рейс' : '🔀 − Промежуточный рейс';
-  if (isOpen) { document.getElementById('fSeg1Client').value=''; document.getElementById('fSeg1Price').value=''; document.getElementById('fSeg1From').value=''; document.getElementById('fSeg1To').value=''; }
-});
-document.getElementById('toggleSeg2')?.addEventListener('click', () => {
-  const b = document.getElementById('seg2Block');
-  const isOpen = b.style.display !== 'none';
-  b.style.display = isOpen ? 'none' : 'block';
-  document.getElementById('toggleSeg2').textContent = isOpen ? '🔄 + Обратный рейс' : '🔄 − Обратный рейс';
-  if (isOpen) { document.getElementById('fSeg2Client').value=''; document.getElementById('fSeg2Price').value=''; document.getElementById('fSeg2From').value=''; document.getElementById('fSeg2To').value=''; }
+  document.getElementById('toggleSeg1').textContent = isOpen ? '🔀 + Промежуточный / Обратный рейс' : '🔀 − Промежуточный / Обратный рейс';
+  if (isOpen) { ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg1${f}`); if(el) el.value=''; }); }
 });
 
 function getSegFromForm(n) {
-  const price = parseFloat(document.getElementById(`fSeg${n}Price`).value) || 0;
-  const from  = document.getElementById(`fSeg${n}From`).value.trim();
-  const to    = document.getElementById(`fSeg${n}To`).value.trim();
-  const client= document.getElementById(`fSeg${n}Client`).value.trim();
-  const cur   = document.getElementById(`fSeg${n}Currency`).value;
-  const open  = document.getElementById(`seg${n}Block`).style.display !== 'none';
+  const price = parseFloat(document.getElementById('fSeg1Price').value) || 0;
+  const from  = document.getElementById('fSeg1From').value.trim();
+  const to    = document.getElementById('fSeg1To').value.trim();
+  const client= document.getElementById('fSeg1Client').value.trim();
+  const cur   = document.getElementById('fSeg1Currency').value;
+  const open  = document.getElementById('seg1Block').style.display !== 'none';
+  const segNum = parseInt(document.getElementById('fSeg1Type')?.value || '1');
   if (!open || (!price && !from && !to && !client)) return null;
-  return { segment_num: n, route_from: from, route_to: to, client_name: client, client_price: price, client_currency: cur };
+  return { segment_num: segNum, route_from: from, route_to: to, client_name: client, client_price: price, client_currency: cur };
 }
 
 function fillSegForm(n, seg) {
   if (!seg) return;
-  document.getElementById(`seg${n}Block`).style.display = 'block';
-  document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 − Промежуточный рейс' : '🔄 − Обратный рейс';
-  document.getElementById(`fSeg${n}Client`).value   = seg.client_name || '';
-  document.getElementById(`fSeg${n}Price`).value    = seg.client_price || '';
-  document.getElementById(`fSeg${n}Currency`).value = seg.client_currency || 'EUR';
-  document.getElementById(`fSeg${n}From`).value     = seg.route_from || '';
-  document.getElementById(`fSeg${n}To`).value       = seg.route_to || '';
+  const segNum = seg.segment_num || 1;
+  document.getElementById('seg1Block').style.display = 'block';
+  document.getElementById('toggleSeg1').textContent = '🔀 − Промежуточный / Обратный рейс';
+  document.getElementById('fSeg1Type').value = segNum;
+  document.getElementById('seg1Label').textContent = segNum === 2 ? '🔄 Обратный рейс' : '🔀 Промежуточный рейс';
+  document.getElementById('segTypeBtn').textContent = segNum === 2 ? '→ Сделать промежуточным' : '→ Сделать обратным';
+  document.getElementById('seg1Client').value   = seg.client_name || '';
+  document.getElementById('fSeg1Price').value    = seg.client_price || '';
+  document.getElementById('fSeg1Currency').value = seg.client_currency || 'EUR';
+  document.getElementById('fSeg1From').value     = seg.route_from || '';
+  document.getElementById('fSeg1To').value       = seg.route_to || '';
 }
 
 function resetSegForms() {
-  [1,2].forEach(n => {
-    document.getElementById(`seg${n}Block`).style.display = 'none';
-    document.getElementById(`toggleSeg${n}`).textContent = n===1 ? '🔀 + Промежуточный рейс' : '🔄 + Обратный рейс';
-    ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg${n}${f}`); if(el) el.value=''; });
-  });
+  document.getElementById('seg1Block').style.display = 'none';
+  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
+  document.getElementById('fSeg1Type').value = '1';
+  document.getElementById('seg1Label').textContent = '🔀 Промежуточный рейс';
+  ['Client','Price','From','To'].forEach(f => { const el=document.getElementById(`fSeg1${f}`); if(el) el.value=''; });
 }
 
 async function loadTripSegments(tripId) {
@@ -728,11 +735,9 @@ async function saveTripSegments(tripId) {
     await api('/api/trips/segments/' + s.id, 'DELETE').catch(()=>{});
   }
   tripSegments = [];
-  // Сохраняем новые
-  for (const n of [1, 2]) {
-    const seg = getSegFromForm(n);
-    if (seg) await api('/api/trips/' + tripId + '/segments', 'POST', seg);
-  }
+  // Сохраняем один сегмент
+  const seg = getSegFromForm(1);
+  if (seg) await api('/api/trips/' + tripId + '/segments', 'POST', seg);
 }
 
 // Загружаем курсы валют
