@@ -95,6 +95,18 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 .section-sep{border:none;border-top:1px solid rgba(85,183,189,.15);margin:.8rem 0}
 @media(max-width:960px){.two-col{grid-template-columns:1fr}.form-row.cols-2,.form-row.cols-3{grid-template-columns:1fr}.ai-panel{width:calc(100vw - 3rem)}}
 </style>
+<style>
+.dropzone{border:2px dashed rgba(85,183,189,.4);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:.2s;background:#F5FAFA;position:relative}
+.dropzone:hover,.dropzone.drag-over{border-color:#55B7BD;background:#E8F6F6}
+.dropzone.drag-over{border-style:solid}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dropzone-label{font-size:.78rem;color:#8fa8ab;pointer-events:none}
+.dropzone-label .dz-icon{font-size:1.5rem;display:block;margin-bottom:4px}
+.dropzone-label strong{color:#1E7A80}
+.dropzone-files{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dropzone-chip{background:#E0F4F5;color:#1E3B42;border-radius:6px;padding:3px 8px;font-size:.72rem;display:flex;align-items:center;gap:4px}
+.dropzone-chip button{background:none;border:none;cursor:pointer;color:#C62828;font-size:.8rem;padding:0;line-height:1}
+</style>
 </head>
 <body>
 <div class="top-bar">
@@ -225,7 +237,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div style="background:#F0F9F9;border-radius:12px;padding:.8rem;margin-bottom:.8rem;border:1.5px dashed rgba(85,183,189,.4)">
       <label style="font-size:.72rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">📎 Загрузить скан / фото чека</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <input type="file" id="eScanFile" accept="image/*,application/pdf" style="flex:1;padding:6px;background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:8px;font-size:.78rem">
+        <div id="eScanDropzone" data-dropzone data-multiple="false" data-accept="image/*,application/pdf" data-label="Перетащите скан или нажмите"></div>
         <button type="button" id="btnScanReceipt" style="background:#55B7BD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">🤖 Распознать</button>
       </div>
       <div id="scanStatus" style="font-size:.72rem;color:#8fa8ab;margin-top:4px"></div>
@@ -256,8 +268,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div class="form-row">
       <div>
         <label>Чек (для сохранения)</label>
-        <input type="file" id="eReceipt" accept="image/*,application/pdf" style="padding:6px">
-        <p style="font-size:.68rem;color:#8fa8ab;margin-top:4px">JPG, PNG или PDF</p>
+        <div id="eReceiptDropzone" data-dropzone data-multiple="true" data-accept="image/*,application/pdf" data-label="Перетащите чеки или нажмите — можно несколько"></div>
       </div>
     </div>
     <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.8rem">
@@ -284,5 +295,6 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 </div>
 
 <script src="js/trip-report.js"></script>
+<script src="js/dropzone.js"></script>
 </body>
 </html>
