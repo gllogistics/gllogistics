@@ -153,7 +153,10 @@ async function openTrip(trip) {
   } catch(_) { tripSegments = []; }
 
   document.getElementById('tripDetail').style.display = 'block';
-  document.getElementById('detailTitle').textContent = `🚛 ${trip.truck}: ${trip.route_from} → ${trip.route_to}`;
+  const segRoute = tripSegments.length
+    ? ' → ' + tripSegments.map(s => s.route_to).filter(Boolean).join(' → ')
+    : '';
+  document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
   renderTripStats(full);
   renderExpenses(full.expenses || []);
