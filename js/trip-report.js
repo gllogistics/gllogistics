@@ -147,6 +147,11 @@ async function openTrip(trip) {
   const full = await api('/api/trips/' + trip.id);
   currentTrip = full;
 
+  // Загружаем промежуточные сегменты
+  try {
+    tripSegments = await api('/api/trips/' + trip.id + '/segments') || [];
+  } catch(_) { tripSegments = []; }
+
   document.getElementById('tripDetail').style.display = 'block';
   document.getElementById('detailTitle').textContent = `🚛 ${trip.truck}: ${trip.route_from} → ${trip.route_to}`;
 
@@ -315,8 +320,10 @@ async function saveTrip() {
   if (editingTripId) {
     const existing = trips.find(t => t.id === editingTripId);
     await api('/api/trips/' + editingTripId, 'PUT', { ...existing, ...body });
+    await saveTripSegments(editingTripId);
   } else {
-    await api('/api/trips', 'POST', body);
+    const result = await api('/api/trips', 'POST', body);
+    if (result?.id) { currentTripId = result.id; await saveTripSegments(result.id); }
   }
   document.getElementById('tripModal').classList.remove('open');
   await loadTrips();
