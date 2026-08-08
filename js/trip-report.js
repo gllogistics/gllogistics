@@ -201,7 +201,7 @@ function renderTripStats(trip) {
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segmentsRevenueAMD>0?' + ֏'+fmt(segmentsRevenueAMD):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${(tripSegments||[]).length>0?' + '+(tripSegments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
     <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
     <div class="stat yellow"><div class="val">֏${fmt(expensesOnlyAMD)}</div><div class="lbl">Расходы (чеки)</div></div>
