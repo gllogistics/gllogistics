@@ -375,7 +375,7 @@ async function addExpense() {
   document.getElementById('expenseModal').classList.remove('open');
   document.getElementById('eAmount').value = '';
   document.getElementById('eDesc').value = '';
-  document.getElementById('eReceipt').value = '';
+  document.getElementById('eReceiptDropzone')?.reset?.();
   await openTrip({ id: currentTrip.id });
   await loadTrips();
 }
@@ -488,7 +488,8 @@ document.getElementById('deleteTripBtn').addEventListener('click', deleteTrip);
 
 // ── Распознавание скана чека через Claude ──────────────────────────────────
 document.getElementById('btnScanReceipt')?.addEventListener('click', async () => {
-  const file = document.getElementById('eScanFile').files[0];
+  const scanDZ = document.getElementById('eScanDropzone');
+  const file = scanDZ?.getFiles?.()[0] || document.getElementById('eScanFile')?.files?.[0];
   if (!file) { alert('Выберите файл'); return; }
 
   const btn = document.getElementById('btnScanReceipt');
@@ -583,10 +584,13 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
     if (parsed.category) document.getElementById('eCat').value = parsed.category;
     if (parsed.description) document.getElementById('eDesc').value = parsed.description;
 
-    // Копируем файл в поле чека
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    document.getElementById('eReceipt').files = dt.files;
+    // Копируем файл в dropzone чека
+    const receiptDZ = document.getElementById('eReceiptDropzone');
+    if (receiptDZ?.getFiles && !receiptDZ.getFiles().find(f => f.name === file.name)) {
+      receiptDZ.getFiles().push(file);
+      receiptDZ.querySelector('.dropzone-files').innerHTML += `
+        <div class="dropzone-chip">🖼 ${file.name}</div>`;
+    }
 
     status.textContent = '✅ Распознано! Проверьте и сохраните.';
     status.style.color = '#1a6b3c';
