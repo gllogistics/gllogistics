@@ -121,7 +121,7 @@ function renderTripsList() {
       <div class="trip-header">
         <div>
           <div class="trip-truck">🚛 ${esc(t.truck)}</div>
-          <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}</div>
+          <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s => s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
           <div class="trip-dates">${t.date_start || ''} — ${t.date_end || ''}</div>
         </div>
         <div style="text-align:right">
@@ -444,6 +444,12 @@ async function sendAI() {
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function loadTrips() {
   trips = await api('/api/trips');
+  // Загружаем сегменты для всех рейсов
+  await Promise.all(trips.map(async t => {
+    try {
+      t._segments = await api('/api/trips/' + t.id + '/segments') || [];
+    } catch(_) { t._segments = []; }
+  }));
   renderTripsList();
 }
 
