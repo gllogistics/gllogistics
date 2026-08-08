@@ -222,29 +222,6 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       </div>
     </div>
 
-    <!-- Обратный рейс -->
-    <div style="margin:.3rem 0">
-      <button type="button" id="toggleSeg2" style="background:none;border:none;color:#55B7BD;font-size:.75rem;cursor:pointer;font-weight:600;padding:2px 0">🔄 + Обратный рейс</button>
-    </div>
-    <div id="seg2Block" style="display:none;background:#F0F9F9;border-radius:12px;padding:.8rem;border:1.5px solid rgba(85,183,189,.2);margin-bottom:.5rem;position:relative">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
-        <div style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px">🔄 Обратный рейс</div>
-        <button type="button" onclick="closeSeg(2)" style="background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.75rem">✕ Убрать</button>
-      </div>
-      <div class="form-row cols-2">
-        <div><label>Клиент</label><input type="text" id="fSeg2Client" placeholder="Клиент"></div>
-        <div style="display:flex;gap:6px">
-          <div style="flex:1"><label>Цена</label><input type="number" id="fSeg2Price" placeholder="0" step="0.01"></div>
-          <div><label>Валюта</label>
-            <select id="fSeg2Currency"><option value="EUR">EUR</option><option value="AMD">AMD</option><option value="USD">USD</option></select>
-          </div>
-        </div>
-      </div>
-      <div class="form-row cols-2">
-        <div><label>Откуда</label><input type="text" id="fSeg2From" placeholder="Откуда"></div>
-        <div><label>Куда</label><input type="text" id="fSeg2To" placeholder="Куда"></div>
-      </div>
-    </div>
     <div id="segmentsContainer" style="display:none"></div>
     <div class="form-row cols-2">
       <div><label>⛽ Дизель (расходы)</label><input type="number" id="fFuelCost" placeholder="0" step="0.01"></div>
