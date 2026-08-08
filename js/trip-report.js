@@ -184,11 +184,16 @@ function renderTripStats(trip) {
   const USD_RATE = window._usdRate || 367;
   const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? EUR_RATE : cur === 'USD' ? USD_RATE : EUR_RATE;
 
+  const fuelExpAMD    = expenses.filter(e=>e.category==='fuel').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const parkingExpAMD = expenses.filter(e=>e.category==='parking').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  // Доход от промежуточных сегментов (уже загруженных)
   const segmentsRevenueAMD = (tripSegments||[]).reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
@@ -196,13 +201,6 @@ function renderTripStats(trip) {
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
-
-  const fuelExpAMD    = expenses.filter(e=>e.category==='fuel').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const parkingExpAMD = expenses.filter(e=>e.category==='parking').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
-
   document.getElementById('tripStats').innerHTML = `
     <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
     <div class="stat ${trip.wialon_fuel_rate > trip.fuel_rate_plan ? 'red' : 'green'}">
