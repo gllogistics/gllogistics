@@ -201,7 +201,7 @@ function renderTripStats(trip, segs) {
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
-  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
+  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD; // fuelCostAMD убран — топливо учитывается через чеки
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
