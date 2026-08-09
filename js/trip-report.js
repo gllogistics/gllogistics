@@ -366,15 +366,17 @@ async function syncWialon() {
 
 async function addExpense() {
   if (!currentTrip) return;
-  const file = document.getElementById('eReceipt').files[0];
+  const receiptDZ = document.getElementById('eReceiptDropzone');
+  const receiptFiles = receiptDZ?.getFiles?.() || [];
+  const receiptFile = receiptFiles[0] || null;
   let receipt_key = null;
 
   // Загружаем чек если есть
-  if (file) {
+  if (receiptFile) {
     const uploadR = await fetch(WORKER + '/api/trips/upload-receipt', {
       method: 'POST',
-      headers: { 'Content-Type': file.type || 'image/jpeg' },
-      body: file,
+      headers: { 'Content-Type': receiptFile.type || 'image/jpeg' },
+      body: receiptFile,
     });
     const uploadD = await uploadR.json();
     receipt_key = uploadD.key;
