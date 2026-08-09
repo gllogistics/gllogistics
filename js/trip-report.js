@@ -149,8 +149,10 @@ async function openTrip(trip) {
 
   // Загружаем промежуточные сегменты
   try {
-    tripSegments = await api('/api/trips/' + trip.id + '/segments') || [];
-  } catch(_) { tripSegments = []; }
+    const loadedSegs = await api('/api/trips/' + trip.id + '/segments') || [];
+    tripSegments = loadedSegs;
+    console.log('Loaded segments:', tripSegments.length, tripSegments);
+  } catch(e) { console.error('Segments error:', e); tripSegments = []; }
 
   document.getElementById('tripDetail').style.display = 'block';
   const segRoute = tripSegments.length
@@ -158,7 +160,8 @@ async function openTrip(trip) {
     : '';
   document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
-  renderTripStats(full, tripSegments); // вызывается ПОСЛЕ tripSegments
+  const segsSnapshot = [...tripSegments]; // снимок до любых изменений
+  renderTripStats(full, segsSnapshot);
   renderExpenses(full.expenses || []);
 
   // Обновляем контекст для AI
