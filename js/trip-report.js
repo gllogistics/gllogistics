@@ -158,7 +158,7 @@ async function openTrip(trip) {
     : '';
   document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
-  renderTripStats(full);
+  renderTripStats(full, tripSegments); // вызывается ПОСЛЕ tripSegments
   renderExpenses(full.expenses || []);
 
   // Обновляем контекст для AI
@@ -176,7 +176,8 @@ async function openTrip(trip) {
   };
 }
 
-function renderTripStats(trip) {
+function renderTripStats(trip, segs) {
+  const segments = segs || tripSegments || [];
   const expenses = trip.expenses || [];
   const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
   // Курсы из глобального объекта или дефолт
@@ -194,7 +195,7 @@ function renderTripStats(trip) {
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  const segmentsRevenueAMD = (tripSegments||[]).reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
+  const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD + fuelCostAMD;
@@ -207,7 +208,7 @@ function renderTripStats(trip) {
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${(tripSegments||[]).length>0?' + '+(tripSegments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
     <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
     ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">⛽ Топливо</div></div>`:''}
