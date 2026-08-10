@@ -237,7 +237,17 @@ const WORKER = 'https://gl-api.gltransam.workers.dev';
 const SESSION_MAX = 12 * 60 * 60 * 1000;
 const user = localStorage.getItem('gl_staff_user');
 const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
-if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX) { localStorage.removeItem('gl_staff_user'); window.location.href = '/staff.html'; }
+// Проверяем сессию — если нет, редирект на логин
+function checkSession() {
+  const u = localStorage.getItem('gl_staff_user');
+  const t = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
+  if (!u || !t || (Date.now() - t) > SESSION_MAX) {
+    window.location.replace('/staff.html');
+    return false;
+  }
+  return true;
+}
+if (!checkSession()) throw new Error('Not authenticated');
 
 const catLabel = {rent:'🏢 Аренда', salary:'👷 Зарплаты', service:'⚙️ Сервисы', tax:'📋 Налоги', fuel:'⛽ Топливо', other:'📦 Прочее'};
 const catClass = {rent:'cat-rent', salary:'cat-salary', service:'cat-service', tax:'cat-tax', fuel:'cat-fuel', other:'cat-other'};
