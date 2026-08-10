@@ -335,7 +335,6 @@
   /* Убираем белые края — blend mode multiply на белом фоне */
   .partner-card:has(.partner-logo[alt="Matrix"]) .partner-logo,
   .partner-card:has(.partner-logo[alt="Sisar"]) .partner-logo,
-  .partner-card:has(.partner-logo[alt="ZCMC"]) .partner-logo {
     mix-blend-mode: multiply;
   }
   /* Matrix — убираем padding, логотип на весь овал */
@@ -343,7 +342,6 @@
     padding: 0;
     background: #f0f4f8;
   }
-  /* Sisar и ZCMC — белый фон чтобы multiply работал */
   .partner-card:has(.partner-logo[alt="CMEC"]) .partner-logo { max-width: 100%; }
 
   /* Ararat — на весь овал, логотип уже овальный */
@@ -356,17 +354,18 @@
     max-height: none; max-width: none;
     object-fit: contain;
   }
-  /* ZCMC — серый фон */
-  .partner-card:has(.partner-logo[alt="ZCMC"]) {
     background: #e8e8ea !important;
     padding: 8px 12px;
   }
-  .partner-card:has(.partner-logo[alt="ZCMC"]) .partner-logo {
     max-height: 75px !important;
     max-width: 92% !important;
     width: auto !important; height: auto !important;
     object-fit: contain !important;
   }
+
+  .partner-card:has(.partner-logo[alt="ZCMC"]) { background: #e8e8ea; padding: 8px 14px; }
+  .partner-logo[alt="ZCMC"] { max-height: 75px; max-width: 90%; object-fit: contain; }
+
 </style>
 </head>
 <body class="lang-loading">
@@ -498,7 +497,6 @@
     <div class="partner-card reveal d1"><img class="partner-logo" src="images/Ararat.jfif" alt="Ararat Group"></div>
     <div class="partner-card reveal d2"><img class="partner-logo" src="images/Valan_Group.png" alt="Valan"></div>
     <div class="partner-card reveal"><img class="partner-logo" src="images/Exterior_Group.png" alt="Exterior"></div>
-    <div class="partner-card reveal d1"><img class="partner-logo" src="images/ZCMC.png" alt="ZCMC"></div>
     <div class="partner-card reveal d2"><img class="partner-logo" src="images/promgroup.png" alt="Prom Group"></div>
     <div class="partner-card reveal"><img class="partner-logo" src="images/rockberry.png" alt="Rock Berry"></div>
   </div>
