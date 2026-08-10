@@ -332,6 +332,24 @@
   .partner-card:has(.partner-logo[alt="Sisar"]) { padding: 0; }
 
   .partner-card:has(.partner-logo[alt="ZCMC"]) { padding: 0; }
+
+  /* Убираем белые края — blend mode multiply на белом фоне */
+  .partner-card:has(.partner-logo[alt="Matrix"]) .partner-logo,
+  .partner-card:has(.partner-logo[alt="Sisar"]) .partner-logo,
+  .partner-card:has(.partner-logo[alt="ZCMC"]) .partner-logo {
+    mix-blend-mode: multiply;
+  }
+  /* Matrix — убираем padding, логотип на весь овал */
+  .partner-card:has(.partner-logo[alt="Matrix"]) {
+    padding: 0;
+    background: #f0f4f8;
+  }
+  /* Sisar и ZCMC — белый фон чтобы multiply работал */
+  .partner-card:has(.partner-logo[alt="Sisar"]),
+  .partner-card:has(.partner-logo[alt="ZCMC"]) {
+    background: #ffffff;
+    padding: 0;
+  }
 </style>
 </head>
 <body class="lang-loading">
