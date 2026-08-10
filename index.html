@@ -306,7 +306,7 @@
 
   /* Индивидуальные размеры логотипов */
   .partner-logo[alt="Honeyst"]     { max-height: 80px; max-width: 95%; }
-  .partner-logo[alt="CMEC"]        { max-height: 80px; max-width: 98%; }
+  .partner-logo[alt="CMEC"]        { max-height: 100px; max-width: 98%; }
   .partner-logo[alt="Citadeli"]    { max-height: 38px; max-width: 94%; }
   .partner-logo[alt="Matrix"]      { max-height: 130px; max-width: 100%; }
   .partner-logo[alt="Sisar"]       { max-height: 88px; max-width: 100%; }
@@ -350,6 +350,12 @@
   .partner-card:has(.partner-logo[alt="ZCMC"]) {
     background: #e8e8e8;
   }
+
+  .partner-card:has(.partner-logo[alt="Ararat Group"]) { padding: 0; }
+  .partner-card:has(.partner-logo[alt="Ararat Group"]) .partner-logo {
+    width: 100%; height: 100%; max-height: none; max-width: none; object-fit: cover;
+  }
+  .partner-card:has(.partner-logo[alt="CMEC"]) .partner-logo { max-width: 100%; }
 </style>
 </head>
 <body class="lang-loading">
