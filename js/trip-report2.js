@@ -161,6 +161,17 @@ async function openTrip(trip) {
   document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
   const segsSnapshot = [...tripSegments]; // снимок до любых изменений
+  // Обновляем кнопку закрытия
+  const closeBtn = document.getElementById('closeTripBtn');
+  if (closeBtn) {
+    if (full.status === 'closed') {
+      closeBtn.textContent = '🔓 Открыть рейс';
+      closeBtn.style.background = '#5a5a5a';
+    } else {
+      closeBtn.textContent = '✅ Закрыть рейс';
+      closeBtn.style.background = '#1E7A80';
+    }
+  }
   renderTripStats(full, segsSnapshot);
   renderExpenses(full.expenses || []);
 
@@ -779,4 +790,24 @@ fetch(WORKER + '/api/rates').then(r=>r.json()).then(d=>{
 wialonLogin().then(ok => console.log('Wialon:', ok ? 'connected' : 'failed'));
 
 // Загрузка данных
+
+// Закрытие рейса
+document.getElementById('closeTripBtn')?.addEventListener('click', async () => {
+  if (!currentTrip) return;
+  const btn = document.getElementById('closeTripBtn');
+  if (currentTrip.status === 'closed') {
+    if (!confirm('Открыть рейс снова?')) return;
+    await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'open' });
+    btn.textContent = '✅ Закрыть рейс';
+    btn.style.background = '#1E7A80';
+  } else {
+    if (!confirm('Закрыть рейс? Все данные будут зафиксированы.')) return;
+    await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'closed' });
+    btn.textContent = '🔓 Открыть рейс';
+    btn.style.background = '#5a5a5a';
+  }
+  await loadTrips();
+  await openTrip({ id: currentTrip.id });
+});
+
 Promise.all([loadTrips(), loadCargo()]);
