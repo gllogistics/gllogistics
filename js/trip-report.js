@@ -294,8 +294,6 @@ function openTripModal(trip = null) {
   if (trip?.id) loadTripSegments(trip.id);
   document.getElementById('fFuelStart').value = trip?.fuel_start_liters || '';
   document.getElementById('fFuelRate').value = trip?.fuel_rate_plan || 30;
-  document.getElementById('fFuelCost').value = trip?.fuel_cost || '';
-  document.getElementById('fFuelCostCur').value = trip?.fuel_cost_currency || 'EUR';
   document.getElementById('fAdvance').value = trip?.advance_amount || '';
   document.getElementById('fAdvanceCur').value = trip?.advance_currency || 'AMD';
   document.getElementById('fSalary').value = trip?.salary_amount || '';
@@ -324,8 +322,8 @@ async function saveTrip() {
     fuel_rate_plan: parseFloat(document.getElementById('fFuelRate').value) || 30,
     notes: document.getElementById('fNotes').value,
     status: 'open',
-    fuel_cost: parseFloat(document.getElementById('fFuelCost').value) || 0,
-    fuel_cost_currency: document.getElementById('fFuelCostCur').value,
+    fuel_cost: 0,
+    fuel_cost_currency: 'EUR',
     advance_amount: parseFloat(document.getElementById('fAdvance').value) || 0,
     advance_currency: document.getElementById('fAdvanceCur').value,
     salary_amount: parseFloat(document.getElementById('fSalary').value) || 0,
