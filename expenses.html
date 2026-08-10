@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Расходы компании</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#55B7BD">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#0f1e22;color:#c8dfe3;min-height:100vh}
+  .header{background:#132028;border-bottom:1px solid rgba(85,183,189,.15);padding:.8rem 1.4rem;display:flex;align-items:center;gap:1rem}
+  .header h1{font-size:1rem;font-weight:700;color:#55B7BD}
+  .nav-links{display:flex;gap:.5rem;margin-left:auto}
+  .nav-links a{color:#8fa8ab;font-size:.78rem;text-decoration:none;padding:5px 10px;border-radius:8px;transition:.2s}
+  .nav-links a:hover{background:rgba(85,183,189,.1);color:#55B7BD}
+  .container{max-width:1100px;margin:0 auto;padding:1.2rem}
+  
+  /* Stats */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.8rem;margin-bottom:1.2rem}
+  .stat-card{background:#132028;border-radius:14px;padding:1rem;border:1px solid rgba(85,183,189,.1)}
+  .stat-val{font-size:1.3rem;font-weight:800;color:#55B7BD}
+  .stat-lbl{font-size:.7rem;color:#8fa8ab;margin-top:2px;text-transform:uppercase}
+
+  /* Toolbar */
+  .toolbar{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+  .toolbar select,.toolbar input{background:#132028;border:1.5px solid rgba(85,183,189,.2);border-radius:10px;padding:8px 12px;color:#c8dfe3;font-size:.8rem;outline:none}
+  .toolbar select:focus,.toolbar input:focus{border-color:#55B7BD}
+  .btn{padding:8px 16px;border-radius:10px;border:none;cursor:pointer;font-size:.8rem;font-weight:600;transition:.2s}
+  .btn-primary{background:#55B7BD;color:#0f1e22}
+  .btn-primary:hover{background:#3d9ea4}
+  .btn-danger{background:#C62828;color:#fff}
+  .btn-ghost{background:rgba(85,183,189,.1);color:#55B7BD}
+
+  /* Table */
+  .table-wrap{background:#132028;border-radius:16px;overflow:hidden;border:1px solid rgba(85,183,189,.1)}
+  table{width:100%;border-collapse:collapse}
+  th{padding:.7rem 1rem;font-size:.7rem;font-weight:700;color:#8fa8ab;text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid rgba(85,183,189,.1)}
+  td{padding:.7rem 1rem;font-size:.8rem;border-bottom:1px solid rgba(85,183,189,.05)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(85,183,189,.04)}
+  .cat-badge{padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:600}
+  .cat-rent{background:#E3F2FD;color:#1565C0}
+  .cat-salary{background:#FFF3E0;color:#E65100}
+  .cat-service{background:#F3E5F5;color:#6A1B9A}
+  .cat-tax{background:#FCE4EC;color:#C62828}
+  .cat-fuel{background:#E8F5E9;color:#2E7D32}
+  .cat-other{background:#F5F5F5;color:#424242}
+
+  /* Modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+  .modal.open{display:flex}
+  .modal-box{background:#132028;border-radius:20px;padding:1.5rem;width:100%;max-width:480px;border:1px solid rgba(85,183,189,.2)}
+  .modal-title{font-size:1rem;font-weight:700;color:#55B7BD;margin-bottom:1rem}
+  .form-row{display:grid;gap:.6rem;margin-bottom:.6rem}
+  .form-row.cols-2{grid-template-columns:1fr 1fr}
+  label{font-size:.72rem;color:#8fa8ab;font-weight:600;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:3px}
+  input,select,textarea{width:100%;background:#0f1e22;border:1.5px solid rgba(85,183,189,.2);border-radius:10px;padding:9px 12px;color:#c8dfe3;font-size:.85rem;outline:none;font-family:inherit}
+  input:focus,select:focus{border-color:#55B7BD}
+  .modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem}
+  .empty{text-align:center;padding:3rem;color:#8fa8ab;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>💼 Расходы компании</h1>
+  <div class="nav-links">
+    <a href="/staff-dashboard.html">🏠 Главная</a>
+    <a href="/staff-cargo">🚛 Сделки</a>
+    <a href="/trip-report">🚛 Рейсы</a>
+    <button class="btn btn-ghost" id="logoutBtn" style="font-size:.75rem">Выйти</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-val" id="statTotal">֏0</div><div class="stat-lbl">Всего за период</div></div>
+    <div class="stat-card"><div class="stat-val" id="statRent">֏0</div><div class="stat-lbl">🏢 Аренда</div></div>
+    <div class="stat-card"><div class="stat-val" id="statSalary">֏0</div><div class="stat-lbl">👷 Зарплаты</div></div>
+    <div class="stat-card"><div class="stat-val" id="statService">֏0</div><div class="stat-lbl">⚙️ Сервисы</div></div>
+    <div class="stat-card"><div class="stat-val" id="statTax">֏0</div><div class="stat-lbl">📋 Налоги</div></div>
+    <div class="stat-card"><div class="stat-val" id="statOther">֏0</div><div class="stat-lbl">📦 Прочее</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="date" id="filterStart">
+    <span style="color:#8fa8ab">—</span>
+    <input type="date" id="filterEnd">
+    <select id="filterCat">
+      <option value="">Все категории</option>
+      <option value="rent">🏢 Аренда</option>
+      <option value="salary">👷 Зарплаты офиса</option>
+      <option value="service">⚙️ Сервисы/подписки</option>
+      <option value="tax">📋 Налоги</option>
+      <option value="fuel">⛽ Топливо офиса</option>
+      <option value="other">📦 Прочее</option>
+    </select>
+    <button class="btn btn-primary" id="addBtn">+ Добавить расход</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Категория</th>
+          <th>Описание</th>
+          <th>Сумма</th>
+          <th>AMD</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="expTable"><tr><td colspan="6" class="empty">Загрузка...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="expModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Добавить расход</div>
+    <div class="form-row cols-2">
+      <div><label>Дата</label><input type="date" id="fDate"></div>
+      <div><label>Категория</label>
+        <select id="fCat">
+          <option value="rent">🏢 Аренда</option>
+          <option value="salary">👷 Зарплаты офиса</option>
+          <option value="service">⚙️ Сервисы/подписки</option>
+          <option value="tax">📋 Налоги</option>
+          <option value="fuel">⛽ Топливо</option>
+          <option value="other">📦 Прочее</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div><label>Сумма</label><input type="number" id="fAmount" placeholder="0" step="0.01"></div>
+      <div><label>Валюта</label>
+        <select id="fCurrency">
+          <option value="AMD">AMD ֏</option>
+          <option value="EUR">EUR €</option>
+          <option value="USD">USD $</option>
+          <option value="RUB">RUB ₽</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Описание</label><input id="fDesc" placeholder="Аренда офиса за август, зарплата менеджера..."></div>
+    </div>
+    <div class="form-row">
+      <div><label>Чек (скан)</label><input type="file" id="fReceipt" accept="image/*,application/pdf"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Отмена</button>
+      <button class="btn btn-primary" id="saveBtn">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER = 'https://gl-api.gltransam.workers.dev';
+const SESSION_MAX = 12 * 60 * 60 * 1000;
+const user = localStorage.getItem('gl_staff_user');
+const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
+if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX) {
+  window.location.href = 'staff.html';
+}
+
+const catLabel = {rent:'🏢 Аренда', salary:'👷 Зарплаты', service:'⚙️ Сервисы', tax:'📋 Налоги', fuel:'⛽ Топливо', other:'📦 Прочее'};
+const catClass = {rent:'cat-rent', salary:'cat-salary', service:'cat-service', tax:'cat-tax', fuel:'cat-fuel', other:'cat-other'};
+
+function api(path, method='GET', body=null) {
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  const token = localStorage.getItem('gl_staff_token');
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(WORKER + path, opts).then(r => r.json());
+}
+
+function fmt(n) { return Number(n||0).toLocaleString('ru', {maximumFractionDigits:0}); }
+
+let allData = [], rates = {EUR:422, USD:366, AMD:1, RUB:4.5};
+let editingId = null;
+
+async function load() {
+  try {
+    const r = await api('/api/rates');
+    rates = r;
+  } catch(_) {}
+
+  const start = document.getElementById('filterStart').value;
+  const end   = document.getElementById('filterEnd').value;
+  const cat   = document.getElementById('filterCat').value;
+
+  let url = '/api/company-expenses';
+  const params = [];
+  if (start) params.push('start='+start);
+  if (end)   params.push('end='+end);
+  if (cat)   params.push('category='+cat);
+  if (params.length) url += '?' + params.join('&');
+
+  allData = await api(url).catch(() => []);
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('expTable');
+  if (!allData.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Нет расходов за выбранный период</td></tr>';
+  } else {
+    tbody.innerHTML = allData.map(e => `
+      <tr>
+        <td>${e.date||''}</td>
+        <td><span class="cat-badge ${catClass[e.category]||'cat-other'}">${catLabel[e.category]||e.category}</span></td>
+        <td>${e.description||''}</td>
+        <td>${e.currency==='AMD'?'֏':'€'}${fmt(e.amount)} ${e.currency}</td>
+        <td>֏${fmt(e.amount_amd)}</td>
+        <td style="display:flex;gap:4px">
+          <button class="btn btn-ghost" style="padding:4px 8px;font-size:.7rem" onclick="editExp(${e.id})">✏️</button>
+          <button class="btn btn-danger" style="padding:4px 8px;font-size:.7rem" onclick="deleteExp(${e.id})">✕</button>
+          ${e.receipt_key ? `<button class="btn btn-ghost" style="padding:4px 8px;font-size:.7rem" onclick="window.open('${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}')">📎</button>` : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  // Статистика
+  const getAMD = (e) => e.amount_amd || (e.amount * (rates[e.currency]||1));
+  const total = allData.reduce((s,e) => s + getAMD(e), 0);
+  document.getElementById('statTotal').textContent = '֏' + fmt(total);
+  ['rent','salary','service','tax','other'].forEach(cat => {
+    const sum = allData.filter(e=>e.category===cat).reduce((s,e)=>s+getAMD(e),0);
+    const el = document.getElementById('stat' + cat.charAt(0).toUpperCase() + cat.slice(1));
+    if (el) el.textContent = '֏' + fmt(sum);
+  });
+}
+
+function openModal(exp=null) {
+  editingId = exp?.id || null;
+  document.getElementById('modalTitle').textContent = exp ? 'Редактировать расход' : 'Добавить расход';
+  document.getElementById('fDate').value = exp?.date || new Date().toISOString().slice(0,10);
+  document.getElementById('fCat').value = exp?.category || 'rent';
+  document.getElementById('fAmount').value = exp?.amount || '';
+  document.getElementById('fCurrency').value = exp?.currency || 'AMD';
+  document.getElementById('fDesc').value = exp?.description || '';
+  document.getElementById('expModal').classList.add('open');
+}
+
+window.editExp = async function(id) {
+  const e = allData.find(x => x.id === id);
+  if (e) openModal(e);
+};
+
+window.deleteExp = async function(id) {
+  if (!confirm('Удалить расход?')) return;
+  await api('/api/company-expenses/' + id, 'DELETE');
+  load();
+};
+
+document.getElementById('addBtn').addEventListener('click', () => openModal());
+document.getElementById('cancelBtn').addEventListener('click', () => document.getElementById('expModal').classList.remove('open'));
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+  const currency = document.getElementById('fCurrency').value;
+  const body = {
+    date: document.getElementById('fDate').value,
+    category: document.getElementById('fCat').value,
+    amount, currency,
+    amount_amd: currency === 'AMD' ? amount : amount * (rates[currency] || 1),
+    description: document.getElementById('fDesc').value,
+    created_by: user
+  };
+
+  const receiptFile = document.getElementById('fReceipt').files[0];
+  if (receiptFile) {
+    const uploadR = await fetch(WORKER + '/api/trips/upload-receipt', {
+      method: 'POST', headers: {'Content-Type': receiptFile.type}, body: receiptFile
+    });
+    const uploadD = await uploadR.json();
+    body.receipt_key = uploadD.key;
+  }
+
+  if (editingId) {
+    await api('/api/company-expenses/' + editingId, 'PUT', body);
+  } else {
+    await api('/api/company-expenses', 'POST', body);
+  }
+  document.getElementById('expModal').classList.remove('open');
+  load();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k => localStorage.removeItem(k));
+  window.location.href = 'staff.html';
+});
+
+['filterStart','filterEnd','filterCat'].forEach(id => {
+  document.getElementById(id).addEventListener('change', load);
+});
+
+// Дефолтный период — текущий месяц
+const now = new Date();
+document.getElementById('filterStart').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+document.getElementById('filterEnd').value = now.toISOString().slice(0,10);
+
+load();
+</script>
+</body>
+</html>
