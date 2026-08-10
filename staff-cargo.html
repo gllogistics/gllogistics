@@ -171,6 +171,13 @@
 .dropzone-chip{background:#E0F4F5;color:#1E3B42;border-radius:6px;padding:3px 8px;font-size:.72rem;display:flex;align-items:center;gap:4px}
 .dropzone-chip button{background:none;border:none;cursor:pointer;color:#C62828;font-size:.8rem;padding:0;line-height:1}
 </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#55B7BD">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GL Logistics">
+  <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
 </head>
 <body>
 <div class="app-wrapper">
@@ -290,5 +297,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/staff-cargo.js"></script>
 <script src="js/dropzone.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
