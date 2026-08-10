@@ -78,6 +78,20 @@ tr:hover td { background:#F0F9F9; }
 .btn-sm { background:#55B7BD; color:#0D1F23; border:none; padding:8px 16px; border-radius:10px; font-size:0.78rem; font-weight:700; cursor:pointer; white-space:nowrap; }
 .btn-sm-del { background:#ef4444; color:#fff; border:none; padding:4px 11px; border-radius:8px; font-size:0.68rem; font-weight:700; cursor:pointer; }
 .show-pwd { color:#55B7BD; background:none; border:none; cursor:pointer; font-size:0.75rem; font-weight:600; }
+
+  @media (max-width: 768px) {
+    .app-wrapper { padding-bottom: 2rem; }
+    .nav-links { overflow-x: auto; flex-wrap: nowrap; gap: .3rem; padding: .5rem; }
+    .nav-links a { white-space: nowrap; font-size: .72rem; padding: 5px 8px; }
+    .expenses-grid { grid-template-columns: repeat(2, 1fr); }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar input, .toolbar select, .toolbar button { width: 100%; }
+    table { font-size: .75rem; }
+    th, td { padding: .5rem .6rem; }
+    .modal-box { margin: 1rem; width: calc(100% - 2rem); max-width: none; }
+    .form-row-2 { grid-template-columns: 1fr; }
+  }
+
 </style>
 <style>
   .expenses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: .8rem; margin-bottom: 1.2rem; }
@@ -157,7 +171,7 @@ tr:hover td { background:#F0F9F9; }
         <option value="fuel">⛽ Топливо</option>
         <option value="other">📦 Прочее</option>
       </select>
-      <button class="action-btn" id="addBtn" style="margin-left:auto">+ Добавить расход</button>
+      <button id="addBtn" style="margin-left:auto;background:#2E7D32;color:#fff;border:none;border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(46,125,50,.3);transition:.2s">+ Добавить расход</button>
     </div>
 
     <!-- Таблица -->
@@ -213,7 +227,7 @@ tr:hover td { background:#F0F9F9; }
     <div class="form-group"><label>Чек (скан)</label><input type="file" id="fReceipt" accept="image/*,application/pdf"></div>
     <div class="modal-footer">
       <button class="btn-secondary" id="cancelBtn">Отмена</button>
-      <button class="action-btn" id="saveBtn">💾 Сохранить</button>
+      <button id="saveBtn" style="background:#2E7D32;color:#fff;border:none;border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer">💾 Сохранить</button>
     </div>
   </div>
 </div>
@@ -223,7 +237,7 @@ const WORKER = 'https://gl-api.gltransam.workers.dev';
 const SESSION_MAX = 12 * 60 * 60 * 1000;
 const user = localStorage.getItem('gl_staff_user');
 const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
-if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX) { window.location.href = 'staff.html'; }
+if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX) { localStorage.removeItem('gl_staff_user'); window.location.href = '/staff.html'; }
 
 const catLabel = {rent:'🏢 Аренда', salary:'👷 Зарплаты', service:'⚙️ Сервисы', tax:'📋 Налоги', fuel:'⛽ Топливо', other:'📦 Прочее'};
 const catClass = {rent:'cat-rent', salary:'cat-salary', service:'cat-service', tax:'cat-tax', fuel:'cat-fuel', other:'cat-other'};
