@@ -63,6 +63,13 @@ tr:hover td{background:#F0F9F9}
   .stats-row{grid-template-columns:repeat(2,1fr)}
 }
 </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#55B7BD">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GL Logistics">
+  <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
 </head>
 <body>
 <div class="top-bar">
@@ -80,7 +87,12 @@ tr:hover td{background:#F0F9F9}
 <div class="layout">
   <!-- Список клиентов -->
   <div class="sidebar">
-    <input class="search-box" id="searchClients" placeholder="🔍 Поиск клиента...">
+    <div style="display:flex;gap:.6rem;align-items:center">
+      <input class="search-box" id="searchClients" placeholder="🔍 Поиск клиента..." style="flex:1">
+      <select id="filterLogist" style="background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:12px;padding:9px 14px;font-size:.85rem;color:#1E3B42;outline:none;font-family:inherit;min-width:160px">
+        <option value="">Все логисты</option>
+      </select>
+    </div>
     <div id="clientsList"><div class="empty-state"><div class="icon">⏳</div><p>Загрузка...</p></div></div>
   </div>
 
@@ -129,6 +141,11 @@ async function load() {
   allCargo.forEach(c => { if (c.client_name && !names.has(c.client_name)) { allClients.push({ name: c.client_name }); names.add(c.client_name); } });
   allClients.sort((a,b) => a.name.localeCompare(b.name));
 
+  // Заполняем список логистов
+  const logists = [...new Set(allCargo.map(c => c.logist).filter(Boolean))].sort();
+  const sel = document.getElementById('filterLogist');
+  sel.innerHTML = '<option value="">Все логисты</option>' +
+    logists.map(l => `<option value="${l}">${l}</option>`).join('');
   renderClientsList(allClients);
 }
 
@@ -232,12 +249,26 @@ async function deleteClient(name) {
   await load();
 }
 
-document.getElementById('searchClients').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  renderClientsList(q ? allClients.filter(c => c.name.toLowerCase().includes(q)) : allClients);
-});
+function applyFilters() {
+  const q = document.getElementById('searchClients').value.toLowerCase();
+  const logist = document.getElementById('filterLogist').value;
+  let filtered = allClients;
+  if (q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
+  if (logist) filtered = filtered.filter(c => {
+    const deals = allCargo.filter(d => d.client_name === c.name);
+    return deals.some(d => d.logist === logist);
+  });
+  renderClientsList(filtered);
+}
+document.getElementById('searchClients').addEventListener('input', applyFilters);
+document.getElementById('filterLogist').addEventListener('change', applyFilters);
 
 load();
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
