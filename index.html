@@ -599,23 +599,7 @@
 <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 <script src="js/main.js"></script>
 
-<script>
-// Анимация партнёров при скролле
-const cards = document.querySelectorAll('.partner-card');
-cards.forEach(c => c.classList.add('reveal-ready'));
-const partnerObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => {
-        entry.target.classList.remove('reveal-ready');
-        entry.target.classList.add('revealed');
-      }, i * 60);
-      partnerObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.1 });
-cards.forEach(c => partnerObserver.observe(c));
-</script>
+
 
 </body>
 </html>
