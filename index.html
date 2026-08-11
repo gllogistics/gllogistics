@@ -407,16 +407,7 @@ setTimeout(function() {
     .partners-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .partner-card { height: 70px; }
   }
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  .partner-card.reveal-ready {
-    opacity: 0;
-  }
-  .partner-card.revealed {
-    animation: fadeInUp 0.5s ease forwards;
   }
 
 </style>
