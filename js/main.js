@@ -15,8 +15,8 @@ document.querySelectorAll('.lang-btn[data-setlang]').forEach(btn => {
 
 setLang('en');
 
-const obs = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')), { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+// Показываем все .reveal элементы — убираем анимацию скролла полностью
+document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
 
 // Chat toggle
 const chatToggle = document.getElementById('chatToggle');
