@@ -179,7 +179,21 @@ async function saveCargo() {
     if (!cargo.product) return alert('Введите товар');
     if (editId) await updateCargo(editId, cargo);
     else { const newCargo = await addCargo(cargo); if (newCargo?.id) await (window.saveSegments||saveSegments)(newCargo.id).catch(()=>{}); }
-    if (editId) await (window.saveSegments||saveSegments)(editId).catch(()=>{});
+    const targetId = editId || null;
+    if (targetId) {
+      await (window.saveSegments||saveSegments)(targetId).catch(()=>{});
+      // Пересчитываем total carrier price с учётом сегментов
+      try {
+        const segs = await api('/api/cargo/' + targetId + '/segments');
+        if (segs && segs.length > 0) {
+          const segTotal = segs.reduce((s, seg) => s + convertToUSD(seg.carrier_price||0, seg.carrier_currency||'USD'), 0);
+          const mainCarrierUSD = convertToUSD(carrierPrice, carrierCur);
+          const totalCarrierUSD = mainCarrierUSD + segTotal;
+          const newCommission = (convertToUSD(clientPrice, clientCur) - totalCarrierUSD).toFixed(2);
+          await api('/api/cargo/' + targetId, 'PUT', {...cargo, commission: newCommission});
+        }
+      } catch(_) {}
+    }
     await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
 }
@@ -296,8 +310,9 @@ function renderAll() {
     const clientCur = c.client_currency || c.currency || 'USD';
     const carrierCur = c.carrier_currency || c.currency || 'USD';
     const clientUSD = convertToUSD(parseFloat(c.client_price||0), clientCur);
-    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur);
-    const profitAMD = usdToAMD(clientUSD - carrierUSD);
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur) + (c.segments_carrier_usd||0);
+    const carrierUSDwSeg = carrierUSD + (c.segments_carrier_usd||0);
+    const profitAMD = usdToAMD(clientUSD - carrierUSDwSeg);
     totalProfitAMD += profitAMD;
     if (!c.client_paid) waitingClientsAMD += usdToAMD(clientUSD);
     else receivedAMD += usdToAMD(clientUSD);
@@ -326,7 +341,7 @@ function renderAll() {
     const clientCur = c.client_currency || c.currency || 'USD';
     const carrierCur = c.carrier_currency || c.currency || 'USD';
     const clientUSD = convertToUSD(parseFloat(c.client_price||0), clientCur);
-    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur);
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur) + (c.segments_carrier_usd||0);
     const profitAMD = usdToAMD(clientUSD - carrierUSD);
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
