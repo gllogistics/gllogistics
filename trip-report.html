@@ -121,16 +121,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 <body>
 <div class="top-bar">
   <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">GL Logistics · Рейсы</a>
-  <div class="nav-links" id="navLinks">
-    <a href="/staff-dashboard.html">📊 Главная</a>
-    <a href="/staff-cargo.html">📦 Сделки</a>
-    <a href="/rateconfirmation">📋 Заявки</a>
-    <a href="/invoice">🧾 Инвойс</a>
-    <a href="/trip-report" class="active">🚛 Рейсы</a>
-    <a href="/clients">👥 Клиенты</a>
-    <a href="/files">📁 Файлы</a>
-    <a href="/expenses.html">💼 Расходы</a>
-  </div>
+  <div class="nav-links" id="navLinks"></div>
   <button class="btn-logout" id="logoutBtn">Выйти</button>
 </div>
 
@@ -335,5 +326,15 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   </script>
+
+// Nav по роли
+(function() {
+  const isAdm = localStorage.getItem('gl_staff_role') === 'admin';
+  const adminNav = '<a href="/staff-dashboard.html">📊 Главная</a><a href="/staff-cargo.html">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report" class="active">🚛 Рейсы</a><a href="/clients">👥 Клиенты</a><a href="/files">📁 Файлы</a><a href="/expenses.html">💼 Расходы</a>';
+  const logistNav = '<a href="/staff-cargo.html">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report" class="active">🚛 Рейсы</a>';
+  const el = document.getElementById('navLinks');
+  if (el) el.innerHTML = isAdm ? adminNav : logistNav;
+})();
+
 </body>
 </html>
