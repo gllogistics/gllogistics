@@ -177,22 +177,16 @@ async function saveCargo() {
       carrier_type: document.getElementById('fCarrierType').value || 'AM'
     };
     if (!cargo.product) return alert('Введите товар');
-    if (editId) await updateCargo(editId, cargo);
-    else { const newCargo = await addCargo(cargo); if (newCargo?.id) await (window.saveSegments||saveSegments)(newCargo.id).catch(()=>{}); }
-    const targetId = editId || null;
-    if (targetId) {
-      await (window.saveSegments||saveSegments)(targetId).catch(()=>{});
-      // Пересчитываем total carrier price с учётом сегментов
-      try {
-        const segs = await api('/api/cargo/' + targetId + '/segments');
-        if (segs && segs.length > 0) {
-          const segTotal = segs.reduce((s, seg) => s + convertToUSD(seg.carrier_price||0, seg.carrier_currency||'USD'), 0);
-          const mainCarrierUSD = convertToUSD(carrierPrice, carrierCur);
-          const totalCarrierUSD = mainCarrierUSD + segTotal;
-          const newCommission = (convertToUSD(clientPrice, clientCur) - totalCarrierUSD).toFixed(2);
-          await api('/api/cargo/' + targetId, 'PUT', {...cargo, commission: newCommission});
-        }
-      } catch(_) {}
+    let savedId = null;
+    if (editId) {
+      await updateCargo(editId, cargo);
+      savedId = editId;
+    } else {
+      const newCargo = await addCargo(cargo);
+      savedId = newCargo?.id || null;
+    }
+    if (savedId) {
+      await (window.saveSegments||saveSegments)(savedId).catch(()=>{});
     }
     await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
