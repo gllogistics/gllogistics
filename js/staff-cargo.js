@@ -235,7 +235,7 @@ async function editCargo(id) {
   currentSegments = [];
   document.getElementById('segmentsList').innerHTML = '';
   document.getElementById('segmentsBlock').style.display = 'none';
-  (window.loadSegments || function(){})( c.id);
+  if (window.loadSegments) window.loadSegments(c.id);
 }
 
 async function deleteCargo(id) {
@@ -398,7 +398,10 @@ function init() {
     const block = document.getElementById('segmentsBlock');
     const isVisible = block.style.display !== 'none';
     block.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible && currentSegments.length === 0) addSegmentRow();
+    if (!isVisible) {
+      document.getElementById('segmentsList').innerHTML = '';
+      if (currentSegments.length === 0) addSegmentRow();
+    }
   });
 
   document.getElementById('addSegmentBtn').addEventListener('click', addSegmentRow);
