@@ -304,7 +304,7 @@ function renderAll() {
     const clientCur = c.client_currency || c.currency || 'USD';
     const carrierCur = c.carrier_currency || c.currency || 'USD';
     const clientUSD = convertToUSD(parseFloat(c.client_price||0), clientCur);
-    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur) + (c.segments_carrier_usd||0);
+    const carrierUSD = convertToUSD(parseFloat(c.carrier_price||0), carrierCur);
     const carrierUSDwSeg = carrierUSD + (c.segments_carrier_usd||0);
     const profitAMD = usdToAMD(clientUSD - carrierUSDwSeg);
     totalProfitAMD += profitAMD;
