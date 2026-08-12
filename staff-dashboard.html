@@ -18,7 +18,8 @@ body { background: #EDF4F4; font-family: 'Inter', sans-serif; padding: 1.5rem; c
 .btn-logout { background: #F5FAFA; color: #1E3B42; border: 1.5px solid rgba(85,183,189,0.3); border-radius: 10px; padding: 7px 18px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
 .btn-logout:hover { background: #E0F4F5; border-color: #55B7BD; }
 .nav-links { display: flex; gap: 4px; margin-bottom: 1.4rem; padding: 4px; background: rgba(255,255,255,0.7); border-radius: 14px; width: fit-content; border: 1px solid rgba(85,183,189,0.15); }
-.nav-links a { background: transparent; color: #5a7a80; padding: 8px 18px; border-radius: 11px; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+.nav-links a { background: transparent; color: #5a7a80; padding: 8px 18px; border-radius: 11px; text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: background .2s, color .2s; }
+.nav-links a:active { transform: none !important; }
 .nav-links a:hover { background: #E8F6F6; color: #1E7A80; }
 .nav-links a.active { background: #55B7BD; color: #fff; font-weight: 700; }
 .section-title { color: #8fa8ab; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.2px; margin: 1.8rem 0 0.8rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
@@ -103,7 +104,6 @@ tr:hover td { background:#F0F9F9; }
     <a href="/trip-report">🚛 Рейсы</a>
     <a href="/clients">👥 Клиенты</a>
     <a href="/files">📁 Файлы</a>
-    <a href="/expenses.html">💼 Расходы</a>
   </div>
 
   <h3 class="section-title">🏦 Банковские счета</h3>
