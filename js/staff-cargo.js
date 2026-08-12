@@ -221,7 +221,7 @@ async function editCargo(id) {
   currentSegments = [];
   document.getElementById('segmentsList').innerHTML = '';
   document.getElementById('segmentsBlock').style.display = 'none';
-  loadSegments(c.id);
+  (window.loadSegments || function(){})( c.id);
 }
 
 async function deleteCargo(id) {
@@ -445,6 +445,9 @@ function init() {
     }
   }
   window.saveSegments = saveSegments;
+  window.addSegmentRow = addSegmentRow;
+  window.loadSegments = loadSegments;
+  window.getSegmentsFromForm = getSegmentsFromForm;
   document.getElementById('resetFilterBtn').addEventListener('click', clearFilter);
   document.getElementById('filterStart').addEventListener('change', renderAll);
   document.getElementById('filterEnd').addEventListener('change', renderAll);
