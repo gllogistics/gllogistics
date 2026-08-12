@@ -399,8 +399,8 @@ function init() {
     const isVisible = block.style.display !== 'none';
     block.style.display = isVisible ? 'none' : 'block';
     if (!isVisible) {
-      document.getElementById('segmentsList').innerHTML = '';
-      if (currentSegments.length === 0) addSegmentRow();
+      const existing = document.querySelectorAll('.segment-row');
+      if (existing.length === 0) addSegmentRow();
     }
   });
 
