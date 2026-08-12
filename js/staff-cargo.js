@@ -448,13 +448,19 @@ function init() {
 
   async function saveSegments(cargoId) {
     const segs = getSegmentsFromForm();
-    if (!segs.length) return;
-    for (const s of currentSegments) {
+    // Получаем актуальные сегменты с сервера
+    const existing = await api('/api/cargo/' + cargoId + '/segments').catch(()=>[]);
+    // Удаляем все существующие
+    for (const s of (existing||[])) {
       await api('/api/cargo/segments/' + s.id, 'DELETE').catch(()=>{});
     }
+    // Создаём новые только если есть данные
     for (const s of segs) {
-      await api('/api/cargo/' + cargoId + '/segments', 'POST', s);
+      if (s.carrier_name) {
+        await api('/api/cargo/' + cargoId + '/segments', 'POST', s);
+      }
     }
+    currentSegments = [];
   }
   window.saveSegments = saveSegments;
   window.addSegmentRow = addSegmentRow;
