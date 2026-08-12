@@ -1,3 +1,4 @@
+let currentSegments = [];
 const API_URL = 'https://gl-api.gltransam.workers.dev';
 const ADMIN_USER = 'TigranMetspagyan';
 const SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000;
@@ -376,7 +377,7 @@ function init() {
   document.getElementById('saveBtn').addEventListener('click', saveCargo);
 
   // ── Сегменты (доп перевозчики) ──
-  let currentSegments = []; // локальные сегменты в форме
+   // локальные сегменты в форме
 
   document.getElementById('toggleSegmentsBtn').addEventListener('click', () => {
     const block = document.getElementById('segmentsBlock');
