@@ -363,8 +363,9 @@ function esc(s) { return (s||'').replace(/</g,'&lt;'); }
 function init() {
   document.getElementById('userInfo').textContent = '👤 ' + user;
   if (isAdmin) document.getElementById('adminBadge').style.display = 'inline-block';
-  const allNav = '<a href="/staff-dashboard.html">📊 Главная</a><a href="/staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a><a href="/clients">👥 Клиенты</a><a href="/files">📁 Файлы</a><a href="/expenses.html">💼 Расходы</a>';
-  document.getElementById('navLinks').innerHTML = isAdmin ? allNav : '<a href="/staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a>';
+  const adminNav = '<a href="/staff-dashboard.html">📊 Главная</a><a href="/staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a><a href="/clients">👥 Клиенты</a><a href="/files">📁 Файлы</a><a href="/expenses.html">💼 Расходы</a>';
+  const logistNav = '<a href="/staff-cargo.html" class="active">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a>';
+  document.getElementById('navLinks').innerHTML = isAdmin ? adminNav : logistNav;
   document.getElementById('logoutBtn').addEventListener('click', doLogout);
   document.getElementById('newDealBtn').addEventListener('click', () => toggleForm());
   document.getElementById('cancelBtn').addEventListener('click', () => toggleForm(false));
