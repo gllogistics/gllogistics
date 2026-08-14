@@ -483,7 +483,7 @@ function init() {
 
 // ── Экспорт в Excel по шаблону ────────────────────────────────────────────────
 async function exportToExcel() {
-  // Загружаем ExcelJS если не загружен
+  // Загружаем ExcelJS
   if (!window.ExcelJS) {
     await new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -493,187 +493,166 @@ async function exportToExcel() {
     });
   }
 
-  const startF = document.getElementById('filterStart').value;
-  const endF   = document.getElementById('filterEnd').value;
-  const fl     = document.getElementById('filterLogist').value;
-  const fp     = document.getElementById('filterPayment').value;
-  const srch   = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-
-  let list = isAdmin ? [...allCargoData] : allCargoData.filter(c => c.logist === user);
-  if (startF) list = list.filter(c => c.load_date >= startF);
-  if (endF)   list = list.filter(c => c.load_date <= endF);
-  if (isAdmin && fl !== 'all') list = list.filter(c => c.logist === fl);
-  if (fp === 'client_pending')  list = list.filter(c => !c.client_paid);
-  if (fp === 'client_paid')     list = list.filter(c =>  c.client_paid);
-  if (fp === 'carrier_pending') list = list.filter(c => !c.carrier_paid);
-  if (fp === 'carrier_paid')    list = list.filter(c =>  c.carrier_paid);
-  if (fp === 'gap') list = list.filter(c => c.carrier_paid && !c.client_paid);
-  if (srch) list = list.filter(c =>
-    [c.client_name, c.carrier_name, c.product, c.logist].some(v => v && v.toLowerCase().includes(srch))
-  );
-  if (!list.length) { alert('Нет данных для экспорта'); return; }
-
-  const rates = exchangeRates || { AMD: 367, EUR: 418, RUB: 4.73 };
-  const gr = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? rates.EUR : cur === 'RUB' ? rates.RUB : rates.AMD;
   const year = new Date().getFullYear();
+  const rates = exchangeRates || {USD:366, EUR:422, RUB:4.4};
+  const getRate = (cur) => cur==='AMD'?1 : cur==='EUR'?(rates.EUR||422) : cur==='RUB'?(rates.RUB||4.4) : (rates.USD||366);
+  const fmtDate = (s) => {
+    if (!s) return '';
+    if (s.includes('-')) { const p=s.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
+    return s;
+  };
 
-  // Рейсы
+  // Загружаем все данные
+  const list = allCargoData || [];
   let trips = [];
   try {
     const tr = await api('/api/trips');
-    trips = (tr||[]).filter(t => t.client_price > 0).map(t => ({
-      date: t.date_start||'', price: t.client_price||0,
-      currency: t.client_currency||'EUR', route: `${t.route_from||''} → ${t.route_to||''}`
-    }));
+    trips = (tr||[]).filter(t=>t.client_price>0);
   } catch(_) {}
 
-  const getQ = d => {
+  const getQ = (d) => {
     if (!d) return 1;
-    try { const m = parseInt((d.includes('-')?d.split('-')[1]:d.split('.')[1])||'1'); return Math.ceil(m/3); }
+    try { const m = parseInt((d.includes('-')?d.split('-')[1]:d.split('.')[0])||'1'); return Math.ceil(m/3); }
     catch(_) { return 1; }
   };
-  const qNames = {1:'I квартал',2:'II квартал',3:'III квартал',4:'IV квартал'};
-  list.sort((a,b) => (a.load_date||'') > (b.load_date||'') ? 1 : -1);
-  const qs = {1:[],2:[],3:[],4:[]};
-  list.forEach(d => qs[getQ(d.load_date||d.unload_date)].push(d));
-  const tqs = {1:[],2:[],3:[],4:[]};
-  trips.forEach(t => tqs[getQ(t.date)].push(t));
+
+  const quarters = {1:[],2:[],3:[],4:[]};
+  const tripQ = {1:[],2:[],3:[],4:[]};
+  list.sort((a,b)=>(a.load_date||'')>(b.load_date||'')?1:-1);
+  list.forEach(d => quarters[getQ(d.unload_date||d.load_date)].push(d));
+  trips.sort((a,b)=>(a.date_start||'')>(b.date_start||'')?1:-1);
+  trips.forEach(t => tripQ[getQ(t.date_start)].push(t));
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet(String(year));
+  const ws = wb.addWorksheet('Sheet1');
 
   // Ширины колонок
-  ws.columns = [
-    {width:24},{width:11},{width:13},{width:8},{width:9},{width:13},
-    {width:11},{width:13},{width:8},{width:9},{width:15},
-    {width:16},{width:11},{width:11},{width:8},{width:8},{width:9},{width:13}
-  ];
+  const widths = [18,14,12,8,10,18,14,12,8,10,18,18,12,16,8,8,10,18];
+  widths.forEach((w,i) => { ws.getColumn(i+1).width = w; });
 
-  // Стили
-  const font = {name:'Sylfaen',size:11};
-  const fontB = {name:'Sylfaen',size:11,bold:true};
-  const fontRB = {name:'Sylfaen',size:11,bold:true,color:{argb:'FFFF0000'}};
-  const fontH = {name:'Sylfaen',size:14,bold:true};
-  const fontG = {name:'Sylfaen',size:11,color:{argb:'FF1E6B1E'}};
-
+  const FONT = 'Sylfaen';
+  const thin = {style:'thin'};
+  const bdr = {top:thin,left:thin,bottom:thin,right:thin};
+  const fn = (bold,color) => ({name:FONT,size:11,bold:!!bold,color:{argb:color||'FF000000'}});
   const fillY = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
   const fillG = {type:'pattern',pattern:'solid',fgColor:{argb:'FFC6EFCE'}};
-
-  const bdr = {
-    top:{style:'thin'},bottom:{style:'thin'},
-    left:{style:'thin'},right:{style:'thin'}
-  };
-  const bdrTB = {top:{style:'thin'},bottom:{style:'thin'}};
-
-  const alC = {horizontal:'center',vertical:'middle',wrapText:true};
+  const alC = {horizontal:'center',vertical:'middle'};
   const alL = {horizontal:'left',vertical:'middle'};
   const alR = {horizontal:'right',vertical:'middle'};
 
   const sc = (row, col, val, opts={}) => {
     const cell = ws.getCell(row, col);
-    if (typeof val === 'string' && val.startsWith('=')) cell.value = {formula: val.slice(1)};
-    else cell.value = val;
-    if (opts.font)      cell.font      = opts.font;
-    if (opts.fill)      cell.fill      = opts.fill;
-    if (opts.border)    cell.border    = opts.border;
+    cell.value = val;
+    if (opts.font) cell.font = opts.font;
+    if (opts.fill) cell.fill = opts.fill;
+    if (opts.border) cell.border = opts.border;
     if (opts.alignment) cell.alignment = opts.alignment;
     return cell;
   };
 
-  const dc = (row, col, val, opts={}) => sc(row, col, val, {font, border:bdr, alignment:alL, ...opts});
+  const merge = (r1,c1,r2,c2) => ws.mergeCells(r1,c1,r2,c2);
 
   // Строка 1 — год
-  ws.mergeCells(1,1,1,18);
-  sc(1,1,`${year}թ. `,{font:fontH,alignment:alC,border:{bottom:{style:'thin'}}});
+  sc(1,1,`${year}թ. `,{font:{name:FONT,size:14,bold:true}});
+  merge(1,1,1,18);
+  ws.getRow(1).height = 20;
 
-  // Строка 3 — группы
-  ws.mergeCells(3,2,3,6);
-  sc(3,2,'Купленная услуга',{font,border:bdr,alignment:alC});
-  ws.mergeCells(3,7,3,11);
-  sc(3,7,'Проданная услуга',{font,border:bdr,alignment:alC});
-  ws.mergeCells(3,13,3,18);
-  sc(3,13,'Нерезидент',{font,border:bdr,alignment:alC});
+  let row = 2;
+  const qNames = {1:'1-ին եռամսյակ',2:'2-րդ եռամսյակ',3:'3-րդ եռամսյակ',4:'4-րդ եռամսյակ'};
 
-  // Строка 4 — заголовки
-  const h4=['',  'Дата','Сумма','Валюта','Курс ЦБ','Итого AMD',
-               'Дата','Сумма','Валюта','Курс ЦБ','Итого AMD',
-               'Налоговая база AMD','Комиссия','Дата оплаты','5%','Валюта','Курс ЦБ','Сумма нерезидента'];
-  h4.forEach((v,i) => { if(i>0) sc(4,i,v,{font:fontB,border:bdr,alignment:alC}); });
-
-  let row = 5;
-
-  [1,2,3,4].forEach(q => {
-    const rq = qs[q]; const tq = tqs[q];
-    if (!rq.length && !tq.length) return;
+  for (const q of [1,2,3,4]) {
+    const qdata = quarters[q];
+    const tdata = tripQ[q];
+    if (!qdata.length && !tdata.length) continue;
 
     // Заголовок квартала
-    ws.mergeCells(row,1,row,18);
-    sc(row,1,`${year}թ. ${qNames[q]}`,{font:fontB,border:bdrTB,alignment:alC});
-    ws.getRow(row).height = 18;
-    row++; const ds = row;
+    sc(row,1,qNames[q],{font:{name:FONT,size:14,bold:true}});
+    merge(row,1,row,18);
+    ws.getRow(row).height = 22;
+    row++;
 
-    rq.forEach(d => {
-      const r = row;
-      const kcur = d.carrier_currency||d.currency||'EUR';
+    // Заголовки групп
+    sc(row,2,'Գնված ծառայություն',{font:fn(true),border:bdr,alignment:alC});
+    merge(row,2,row,6);
+    sc(row,7,'Վաճառված ծառայություն',{font:fn(true),border:bdr,alignment:alC});
+    merge(row,7,row,11);
+    sc(row,13,'Ոչ ռեզիդենտ',{font:fn(true),border:bdr,alignment:alC});
+    merge(row,13,row,18);
+    row++;
+
+    // Заголовки колонок
+    const hdrs = ['','Ամսաթիվ','Գումար','Արժույթ','Փոխարժեք','Ընդամենը ՀՀ դրամ',
+      'Ամսաթիվ','Գումար','Արժույթ','Փոխարժեք','Ընդամենը ՀՀ դրամ',
+      'Շրջ հարկի հարկման բազա ՀՀ դրամ','Գումարը ','Վճարման ամսաթիվը',
+      '0.05','Արժույթը','Փոխարժեք','Ոչ ռեզի շահ գումարը'];
+    hdrs.forEach((h,i) => { if(h) sc(row,i+1,h,{font:fn(true),border:bdr,alignment:alC}); });
+    row++;
+
+    const dataStart = row;
+
+    // Данные сделок
+    qdata.forEach(d => {
+      const kcur = d.carrier_currency||d.currency||'USD';
       const ccur = d.client_currency||d.currency||'AMD';
-      const kamt = parseFloat(d.carrier_price)||0;
-      const camt = parseFloat(d.client_price)||0;
-      const comm = (d.commission!=null&&d.commission!=='') ? parseFloat(d.commission) : null;
+      const kamt = parseFloat(d.carrier_price||0);
+      const camt = parseFloat(d.client_price||0);
+      let comm = d.commission!=null&&d.commission!=='' ? parseFloat(d.commission) : null;
 
-      dc(r,2,d.unload_date||'');
-      dc(r,3,kamt,{alignment:alC});
-      dc(r,4,kcur);
-      dc(r,5,gr(kcur));
-      dc(r,6,`=C${r}*E${r}`);
-      dc(r,7,d.load_date||'');
-      dc(r,8,camt,{alignment:alC});
-      dc(r,9,ccur,{alignment:alC});
-      dc(r,10,gr(ccur),{alignment:alR});
-      dc(r,11,`=H${r}*J${r}`);
-      dc(r,12,`=K${r}-F${r}`);
-      sc(r,13,comm!==null?comm:'ՉԿԱ',{font:fontRB,fill:fillY,border:bdr,alignment:alC});
-      dc(r,14,d.client_paid?(d.payment_date||''):'');
+      sc(row,2,fmtDate(d.unload_date||d.load_date),{font:fn(),border:bdr,alignment:alC});
+      sc(row,3,kamt,{font:fn(),border:bdr,alignment:alC});
+      sc(row,4,kcur,{font:fn(),border:bdr,alignment:alC});
+      sc(row,5,getRate(kcur),{font:fn(),border:bdr,alignment:alC});
+      sc(row,6,{formula:`+C${row}*E${row}`},{font:fn(),border:bdr});
+      sc(row,7,fmtDate(d.load_date),{font:fn(),border:bdr,alignment:alC});
+      sc(row,8,camt,{font:fn(),border:bdr,alignment:alC});
+      sc(row,9,ccur,{font:fn(),border:bdr,alignment:alC});
+      sc(row,10,getRate(ccur),{font:fn(),border:bdr,alignment:alC});
+      sc(row,11,{formula:`+H${row}*J${row}`},{font:fn(),border:bdr});
+      sc(row,12,{formula:`+K${row}-F${row}`},{font:fn(),border:bdr});
+      sc(row,13,comm!==null?comm:'ՉԿԱ',{font:{name:FONT,size:11,color:{argb:'FFFF0000'}},fill:fillY,border:bdr,alignment:alC});
+      sc(row,14,d.client_paid&&d.payment_date?fmtDate(d.payment_date):'',{font:fn(),border:bdr,alignment:alC});
       if (comm!==null) {
-        dc(r,15,`=M${r}*5/100`);
-        dc(r,16,ccur);
+        sc(row,15,{formula:`M${row}*5/100`},{font:fn(),border:bdr});
+        sc(row,16,ccur,{font:fn(),border:bdr,alignment:alC});
+        sc(row,17,getRate(ccur),{font:fn(),border:bdr,alignment:alC});
+        sc(row,18,{formula:`O${row}*Q${row}`},{font:fn(),border:bdr});
       } else {
-        dc(r,15,''); dc(r,16,'');
+        [15,16,17,18].forEach(c=>sc(row,c,'',{font:fn(),border:bdr}));
       }
-      dc(r,17,'');
-      dc(r,18,`=O${r}*Q${r}`);
       row++;
     });
 
-    tq.forEach(t => {
-      const r = row;
-      const ccur = t.currency||'EUR';
-      [2,3,4,5,6].forEach(c => sc(r,c,'-',{font:fontG,fill:fillG,border:bdr,alignment:alC}));
-      sc(r,7,t.date||'',{font:fontG,fill:fillG,border:bdr,alignment:alL});
-      sc(r,8,parseFloat(t.price)||0,{font:fontG,fill:fillG,border:bdr,alignment:alC});
-      sc(r,9,ccur,{font:fontG,fill:fillG,border:bdr,alignment:alC});
-      sc(r,10,gr(ccur),{font:fontG,fill:fillG,border:bdr,alignment:alR});
-      sc(r,11,`=H${r}*J${r}`,{font:fontG,fill:fillG,border:bdr});
-      sc(r,12,`=K${r}-F${r}`,{font:fontG,fill:fillG,border:bdr});
-      sc(r,13,'ՉԿԱ',{font:fontRB,fill:fillY,border:bdr,alignment:alC});
-      sc(r,14,t.route||'',{font:fontG,fill:fillG,border:bdr});
-      [15,16,17,18].forEach(c => sc(r,c,'',{font:fontG,fill:fillG,border:bdr}));
+    // Зелёные строки — рейсы
+    tdata.forEach(t => {
+      const ccur = t.client_currency||'EUR';
+      const camt = parseFloat(t.client_price||0);
+      const fG = {name:FONT,size:11,color:{argb:'FF1E6B1E'}};
+      [2,3,4,5,6].forEach(c=>sc(row,c,'-',{font:fG,fill:fillG,border:bdr,alignment:alC}));
+      sc(row,7,fmtDate(t.date_start),{font:fG,fill:fillG,border:bdr,alignment:alL});
+      sc(row,8,camt,{font:fG,fill:fillG,border:bdr,alignment:alC});
+      sc(row,9,ccur,{font:fG,fill:fillG,border:bdr,alignment:alC});
+      sc(row,10,getRate(ccur),{font:fG,fill:fillG,border:bdr,alignment:alR});
+      sc(row,11,{formula:`H${row}*J${row}`},{font:fG,fill:fillG,border:bdr});
+      sc(row,12,{formula:`K${row}`},{font:fG,fill:fillG,border:bdr});
+      sc(row,13,'ՉԿԱ',{font:{name:FONT,size:11,color:{argb:'FFFF0000'}},fill:fillY,border:bdr,alignment:alC});
+      sc(row,14,`${t.route_from||''} → ${t.route_to||''}`,{font:fG,fill:fillG,border:bdr});
+      [15,16,17,18].forEach(c=>sc(row,c,'',{font:fG,fill:fillG,border:bdr}));
       row++;
     });
 
     // Итого квартала
-    ws.mergeCells(row,1,row,11);
-    sc(row,1,`Ընдаmenea ${year}թ. ${qNames[q]}`,{font:fontB,border:bdrTB,alignment:alC});
-    sc(row,12,`=SUM(L${ds}:L${row-1})`,{font:fontB,border:bdrTB,alignment:alC});
     row++;
-  });
+    sc(row,1,`Ընդամենը ${year}թ.`,{font:{name:FONT,size:12,bold:true}});
+    row++;
+    sc(row,12,{formula:`SUM(L${dataStart}:L${row-2})`},{font:fn(true),border:bdr});
+    row+=2;
+  }
 
   // Скачиваем
   const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url = URL.createObjectURL(blob);
+  const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const a = document.createElement('a');
-  a.href = url;
+  a.href = URL.createObjectURL(blob);
   a.download = `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`;
   a.click();
-  URL.revokeObjectURL(url);
 }
