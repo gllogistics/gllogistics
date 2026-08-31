@@ -397,7 +397,7 @@ async function addExpense() {
 
   const expAmount = parseFloat(document.getElementById('eAmount').value) || 0;
   const expCurrency = document.getElementById('eCurrency').value;
-  const expRate = expCurrency === 'AMD' ? 1 : expCurrency === 'EUR' ? (exchangeRates?.EUR || window._eurRate || 422) : expCurrency === 'RUB' ? (exchangeRates?.RUB || 4.4) : (exchangeRates?.USD || window._usdRate || 366);
+  const expRate = expCurrency === 'AMD' ? 1 : expCurrency === 'EUR' ? (window._eurRate || 422) : expCurrency === 'RUB' ? (window._rubRate || 4.4) : (window._usdRate || 366);
   const expAmountAMD = expCurrency === 'AMD' ? expAmount : expAmount * expRate;
 
   await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', {
