@@ -268,6 +268,7 @@ function renderExpenses(expenses) {
       <span class="expense-date">${e.date || ''}</span>
       <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
       ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
+      <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✏️</button>
       <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button>
     </div>`).join('');
 
@@ -400,7 +401,10 @@ async function addExpense() {
   const expRate = expCurrency === 'AMD' ? 1 : expCurrency === 'EUR' ? (window._eurRate || 422) : expCurrency === 'RUB' ? (window._rubRate || 4.4) : (window._usdRate || 366);
   const expAmountAMD = expCurrency === 'AMD' ? expAmount : expAmount * expRate;
 
-  await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', {
+  const editId = document.getElementById('expenseModal')._editId;
+  document.getElementById('expenseModal')._editId = null;
+  document.getElementById('expModalTitle').textContent = 'Добавить расход';
+  const expBody = {
     category: document.getElementById('eCat').value,
     amount: expAmount,
     currency: expCurrency,
@@ -408,7 +412,12 @@ async function addExpense() {
     date: document.getElementById('eDate').value,
     description: document.getElementById('eDesc').value,
     receipt_key,
-  });
+  };
+  if (editId) {
+    await api('/api/trips/expenses/' + editId, 'PUT', expBody);
+  } else {
+    await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', expBody);
+  }
 
   document.getElementById('expenseModal').classList.remove('open');
   document.getElementById('eAmount').value = '';
@@ -417,6 +426,22 @@ async function addExpense() {
   await openTrip({ id: currentTrip.id });
   await loadTrips();
 }
+
+
+window.editExpense = function(id) {
+  const exp = (currentTrip?.expenses || []).find(e => e.id === id);
+  if (!exp) return;
+  // Заполняем форму
+  document.getElementById('eCat').value = exp.category || 'fuel';
+  document.getElementById('eAmount').value = exp.amount || '';
+  document.getElementById('eCurrency').value = exp.currency || 'AMD';
+  document.getElementById('eDate').value = exp.date || '';
+  document.getElementById('eDesc').value = exp.description || '';
+  // Помечаем что редактируем
+  document.getElementById('expenseModal')._editId = id;
+  document.getElementById('expModalTitle').textContent = 'Редактировать расход';
+  document.getElementById('expenseModal').classList.add('open');
+};
 
 async function deleteExpense(id) {
   if (!confirm('Удалить расход?')) return;
@@ -504,14 +529,15 @@ document.getElementById('bankFileInput').addEventListener('change', async (e) =>
       body: file,
     });
     const uploadD = await uploadR.json();
-    await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', {
+      const body2 = {
       category: 'bank',
       amount: 0,
       currency: 'AMD',
       date: new Date().toISOString().slice(0,10),
       description: 'Банковская выписка: ' + file.name,
       receipt_key: uploadD.key,
-    });
+    };
+    await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', body2);
     await openTrip({ id: currentTrip.id });
     e.target.value = '';
     alert('✅ Выписка загружена!');
