@@ -266,7 +266,7 @@ function renderExpenses(expenses) {
       <span class="expense-cat ${catClass[e.category]}">${catLabel[e.category]}</span>
       <span class="expense-desc">${esc(e.description || '')}</span>
       <span class="expense-date">${e.date || ''}</span>
-      <span class="expense-amt">${e.currency === 'EUR' ? '€' : '֏'}${fmt(e.amount)}</span>
+      <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
       ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
       <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button>
     </div>`).join('');
@@ -395,10 +395,16 @@ async function addExpense() {
     receipt_key = uploadD.key;
   }
 
+  const expAmount = parseFloat(document.getElementById('eAmount').value) || 0;
+  const expCurrency = document.getElementById('eCurrency').value;
+  const expRate = expCurrency === 'AMD' ? 1 : expCurrency === 'EUR' ? (exchangeRates?.EUR || window._eurRate || 422) : expCurrency === 'RUB' ? (exchangeRates?.RUB || 4.4) : (exchangeRates?.USD || window._usdRate || 366);
+  const expAmountAMD = expCurrency === 'AMD' ? expAmount : expAmount * expRate;
+
   await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', {
     category: document.getElementById('eCat').value,
-    amount: parseFloat(document.getElementById('eAmount').value) || 0,
-    currency: document.getElementById('eCurrency').value,
+    amount: expAmount,
+    currency: expCurrency,
+    amount_amd: expAmountAMD,
     date: document.getElementById('eDate').value,
     description: document.getElementById('eDesc').value,
     receipt_key,
