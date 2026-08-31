@@ -403,7 +403,7 @@ async function addExpense() {
 
   const editId = document.getElementById('expenseModal')._editId;
   document.getElementById('expenseModal')._editId = null;
-  document.getElementById('expModalTitle').textContent = 'Добавить расход';
+  const _t2 = document.getElementById('expModalTitle'); if(_t2) _t2.textContent = 'Добавить расход';
   const expBody = {
     category: document.getElementById('eCat').value,
     amount: expAmount,
@@ -439,7 +439,7 @@ window.editExpense = function(id) {
   document.getElementById('eDesc').value = exp.description || '';
   // Помечаем что редактируем
   document.getElementById('expenseModal')._editId = id;
-  document.getElementById('expModalTitle').textContent = 'Редактировать расход';
+  const _t = document.getElementById('expModalTitle'); if(_t) _t.textContent = 'Редактировать расход';
   document.getElementById('expenseModal').classList.add('open');
 };
 
