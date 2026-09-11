@@ -120,6 +120,8 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; mi
   </div>
 </div>
 
+<div id="folderInfo" style="text-align:center;padding:.8rem;color:#8fa8ab;font-size:.78rem;margin-top:-.5rem;margin-bottom:1rem"></div>
+
 <!-- New Folder Modal -->
 <div class="modal" id="folderModal">
   <div class="modal-box">
@@ -252,6 +254,16 @@ function renderFiles() {
   const total = filteredFolders.length + filteredFiles.length;
   const totalSize = filteredFiles.reduce((s, f) => s + (f.size || 0), 0);
   badge.innerHTML = `<b>${total}</b> элементов · ${fmtSize(totalSize)}`;
+
+  // Показываем info внизу если внутри папки
+  const info = document.getElementById('folderInfo');
+  if (info) {
+    if (currentPath) {
+      info.textContent = `${filteredFiles.length} файлов · ${filteredFolders.length} папок · ${fmtSize(totalSize)}`;
+    } else {
+      info.textContent = '';
+    }
+  }
 
   if (!total) {
     el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
