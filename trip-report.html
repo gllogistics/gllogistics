@@ -129,7 +129,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
   <!-- Список рейсов -->
   <div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
-      <h2>🚛 Рейсы</h2>
+      <h2>Рейсы</h2>
       <button class="btn btn-primary btn-sm" id="newTripBtn">+ Новый рейс</button>
     </div>
     <div class="trips-grid" id="tripsList"><p style="color:#8fa8ab;font-size:.8rem">Загрузка...</p></div>
@@ -140,7 +140,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
       <h2 id="detailTitle">📋 Детали рейса</h2>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" id="editTripBtn">✏️ Изменить</button>
+        <button class="btn btn-ghost btn-sm" id="editTripBtn">Изменить</button>
         <button class="btn btn-ghost btn-sm" id="wialonSyncBtn">🛰 Wialon</button>
         <button class="btn btn-ghost btn-sm" id="uploadBankBtn">🏦 Выписка</button>
         <input type="file" id="bankFileInput" accept="image/*,application/pdf" style="display:none">
@@ -153,14 +153,14 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 
     <!-- Данные Wialon -->
     <div class="wialon-block" id="wialonBlock" style="display:none">
-      <div class="wialon-title">🛰 Данные GPS (Wialon)</div>
+      <div class="wialon-title">Данные GPS (Wialon)</div>
       <div id="wialonData"></div>
     </div>
 
     <!-- Расходы -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-        <h2 style="margin:0;font-size:.85rem">💳 Расходы и чеки</h2>
+        <h2 style="margin:0;font-size:.85rem">Расходы и чеки</h2>
         <button class="btn btn-primary btn-sm" id="addExpenseBtn">+ Добавить</button>
       </div>
       <div id="expensesList"><p style="color:#8fa8ab;font-size:.75rem">Нет расходов</p></div>
@@ -211,7 +211,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div id="seg1Block" style="display:none;background:#F0F9F9;border-radius:12px;padding:.8rem;border:1.5px solid rgba(85,183,189,.2);margin-bottom:.5rem;position:relative">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
         <div style="display:flex;gap:6px;align-items:center">
-          <span id="seg1Label" style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px">🔀 Промежуточный рейс</span>
+          <span id="seg1Label" style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px">Доп. плечо</span>
           <button type="button" id="segTypeBtn" onclick="toggleSegType()" style="background:#E0F4F5;color:#1E7A80;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.7rem">→ Сделать обратным</button>
         </div>
         <button type="button" onclick="closeSeg(1)" style="background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.75rem">✕ Убрать</button>
@@ -276,7 +276,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
           <option value="salary">👷 Зарплата водителю</option>
           <option value="bank">🏦 Банковская выписка</option>
           <option value="ferry">🚢 Паром</option>
-          <option value="other">📦 Прочее</option>
+          <option value="other">Прочее</option>
         </select>
       </div>
       <div><label>Дата</label><input type="date" id="eDate"></div>
@@ -298,7 +298,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     </div>
     <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.8rem">
       <button class="btn btn-ghost" id="cancelExpenseModal">Отмена</button>
-      <button class="btn btn-primary" id="saveExpenseBtn">💾 Сохранить</button>
+      <button class="btn btn-primary" id="saveExpenseBtn">Сохранить</button>
     </div>
   </div>
 </div>
@@ -307,7 +307,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 <div class="ai-panel" id="aiPanel">
   <div class="ai-header" id="aiToggle">
     <span class="dot"></span>
-    <span class="ai-title">🤖 Claude · Ассистент</span>
+    <span class="ai-title">Claude · Ассистент</span>
     <span class="ai-toggle" id="aiToggleIcon">▼</span>
   </div>
   <div class="ai-body" id="aiBody">
@@ -330,18 +330,18 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var adm = localStorage.getItem('gl_staff_role') === 'admin';
-  var an = '<a href="/staff-dashboard.html">📊 Главная</a>'
-    + '<a href="/staff-cargo.html">📦 Сделки</a>'
-    + '<a href="/rateconfirmation">📋 Заявки</a>'
-    + '<a href="/invoice">🧾 Инвойс</a>'
-    + '<a href="/trip-report" class="active">🚛 Рейсы</a>'
-    + '<a href="/clients">👥 Клиенты</a>'
-    + '<a href="/files">📁 Файлы</a>'
-    + '<a href="/expenses.html">💼 Расходы</a>';
-  var ln = '<a href="/staff-cargo.html">📦 Сделки</a>'
-    + '<a href="/rateconfirmation">📋 Заявки</a>'
-    + '<a href="/invoice">🧾 Инвойс</a>'
-    + '<a href="/trip-report" class="active">🚛 Рейсы</a>';
+  var an = '<a href="/staff-dashboard.html">Главная</a>'
+    + '<a href="/staff-cargo.html">Сделки</a>'
+    + '<a href="/rateconfirmation">Заявки</a>'
+    + '<a href="/invoice">Инвойс</a>'
+    + '<a href="/trip-report" class="active">Рейсы</a>'
+    + '<a href="/clients">Клиенты</a>'
+    + '<a href="/files">Файлы</a>'
+    + '<a href="/expenses.html">Расходы</a>';
+  var ln = '<a href="/staff-cargo.html">Сделки</a>'
+    + '<a href="/rateconfirmation">Заявки</a>'
+    + '<a href="/invoice">Инвойс</a>'
+    + '<a href="/trip-report" class="active">Рейсы</a>';
   var el = document.getElementById('navLinks');
   if (el) el.innerHTML = adm ? an : ln;
 });
