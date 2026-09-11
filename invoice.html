@@ -146,7 +146,12 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
   <div class="form-panel">
     <div class="form-section">📋 Инвойс</div>
     <div class="g3 mb">
-      <div><label>Invoice №</label><input id="fNum" readonly style="background:#E0F4F5;font-weight:800;color:#1E7A80"></div>
+      <div><label>Invoice №</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="fNum" readonly style="background:#E0F4F5;font-weight:800;color:#1E7A80;flex:1">
+          <button id="editNumBtn" onclick="toggleNumEdit()" title="Редактировать номер" style="background:#E0F4F5;border:1.5px solid #55B7BD;border-radius:8px;padding:6px 10px;cursor:pointer;color:#1E7A80;font-size:.85rem;flex-shrink:0">✏️</button>
+        </div>
+      </div>
       <div><label>Issue Date</label><input type="date" id="fIssue"></div>
       <div><label>Due Date</label><input type="date" id="fDue"></div>
     </div>
@@ -569,6 +574,27 @@ document.addEventListener('click', e => {
   if (e.target.id === 'newInvoiceBtn') currentInvoiceId = null;
 });
 
+
+function toggleNumEdit() {
+  const inp = document.getElementById('fNum');
+  const btn = document.getElementById('editNumBtn');
+  if (inp.readOnly) {
+    inp.readOnly = false;
+    inp.style.background = '#fff';
+    inp.style.border = '2px solid #55B7BD';
+    inp.focus();
+    inp.select();
+    btn.textContent = '✅';
+    btn.title = 'Подтвердить';
+  } else {
+    inp.readOnly = true;
+    inp.style.background = '#E0F4F5';
+    inp.style.border = '';
+    btn.textContent = '✏️';
+    btn.title = 'Редактировать номер';
+    if (typeof render === 'function') render();
+  }
+}
 </script>
 </body>
 </html>
