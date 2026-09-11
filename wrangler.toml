@@ -6,3 +6,7 @@ database_id = "f223c52a-75d5-4b87-9d9f-b4f4eeaa0d31"
 [[r2_buckets]]
 binding = "CONTRACTS_BUCKET"
 bucket_name = "gl-contracts"
+
+[[r2_buckets]]
+binding = "BACKUP_BUCKET"
+bucket_name = "gl-contracts-backup"
