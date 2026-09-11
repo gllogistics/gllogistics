@@ -6,7 +6,77 @@
 <title>GL Logistics | Файлы</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#55B7BD">
-<script src="/js/emoji-remover.js"></script>
+<script src="/js/emoji-remover.js">
+// Переименование
+let _renameKey = '';
+let _renameIsFolder = false;
+
+window.renameItem = function(key, isFolder) {
+  _renameKey = key;
+  _renameIsFolder = isFolder;
+  const name = key.split('/').pop();
+  document.getElementById('renameTitle').textContent = isFolder ? 'Переименовать папку' : 'Переименовать файл';
+  document.getElementById('renameInput').value = name;
+  document.getElementById('renameModal').classList.add('open');
+  setTimeout(() => { document.getElementById('renameInput').select(); }, 100);
+};
+
+document.getElementById('renameConfirm').addEventListener('click', async () => {
+  const newName = document.getElementById('renameInput').value.trim().replace(/[\/]/g,'');
+  if (!newName) return;
+  const parts = _renameKey.split('/');
+  parts[parts.length - 1] = newName;
+  const newKey = parts.join('/');
+  if (newKey === _renameKey) { document.getElementById('renameModal').classList.remove('open'); return; }
+  await fetch(WORKER + '/api/files/rename', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oldKey: _renameKey, newKey })
+  });
+  document.getElementById('renameModal').classList.remove('open');
+  await loadFiles();
+});
+
+document.getElementById('renameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('renameConfirm').click();
+});
+
+// Перемещение
+let _moveKey = '';
+
+window.moveItem = function(key) {
+  _moveKey = key;
+  // Собираем список папок
+  const folders = new Set();
+  allFiles.forEach(f => {
+    const k = f.key || '';
+    const parts = k.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      folders.add(parts.slice(0, i).join('/'));
+    }
+  });
+  const sel = document.getElementById('moveTarget');
+  sel.innerHTML = '<option value="">Корень (Мои файлы)</option>';
+  [...folders].sort().forEach(f => {
+    if (!key.startsWith(f)) { // нельзя переместить в себя
+      sel.innerHTML += `<option value="${f}">${f}</option>`;
+    }
+  });
+  document.getElementById('moveModal').classList.add('open');
+};
+
+document.getElementById('moveConfirm').addEventListener('click', async () => {
+  const target = document.getElementById('moveTarget').value;
+  await fetch(WORKER + '/api/files/move', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: _moveKey, targetFolder: target })
+  });
+  document.getElementById('moveModal').classList.remove('open');
+  await loadFiles();
+});
+
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -142,6 +212,33 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; mi
   <div class="up-stats">
     <span id="upCurrent">0 / 0 файлов</span>
     <span id="upSize"></span>
+  </div>
+</div>
+
+
+<!-- Rename Modal -->
+<div class="modal" id="renameModal">
+  <div class="modal-box">
+    <div class="modal-title" id="renameTitle">Переименовать</div>
+    <input type="text" id="renameInput" placeholder="Новое название" maxlength="100">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('renameModal').classList.remove('open')">Отмена</button>
+      <button class="btn btn-primary" id="renameConfirm">Переименовать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Move Modal -->
+<div class="modal" id="moveModal">
+  <div class="modal-box">
+    <div class="modal-title">Переместить в папку</div>
+    <select id="moveTarget" style="width:100%;padding:10px;border:1.5px solid #e8f4f5;border-radius:10px;font-family:inherit;font-size:.85rem;margin-bottom:1rem;outline:none">
+      <option value="">Корень (Мои файлы)</option>
+    </select>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('moveModal').classList.remove('open')">Отмена</button>
+      <button class="btn btn-primary" id="moveConfirm">Переместить</button>
+    </div>
   </div>
 </div>
 
@@ -303,6 +400,7 @@ function renderFiles() {
       <div class="file-name">${folder}</div>
       <div class="file-meta">Папка</div>
       <div class="file-actions">
+        <button onclick="event.stopPropagation();renameItem('${currentPath ? currentPath + '/' + folder : folder}', true)" title="Переименовать">✎</button>
         <button onclick="event.stopPropagation();deleteFolder('${currentPath ? currentPath + '/' + folder : folder}')" title="Удалить">✕</button>
       </div>
     </div>
@@ -318,6 +416,8 @@ function renderFiles() {
       <div class="file-name">${name}</div>
       <div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.uploaded)}</div>
       <div class="file-actions">
+        <button onclick="event.stopPropagation();renameItem('${key}', false)" title="Переименовать">✎</button>
+        <button onclick="event.stopPropagation();moveItem('${key}')" title="Переместить">⇄</button>
         <button onclick="event.stopPropagation();downloadFile('${key}')" title="Скачать">↓</button>
         <button onclick="event.stopPropagation();deleteFile('${key}')" title="Удалить">✕</button>
       </div>
@@ -588,6 +688,76 @@ if (window.location.hash) {
   try { currentPath = decodeURIComponent(window.location.hash.slice(1)); } catch(_) {}
 }
 loadFiles();
+
+// Переименование
+let _renameKey = '';
+let _renameIsFolder = false;
+
+window.renameItem = function(key, isFolder) {
+  _renameKey = key;
+  _renameIsFolder = isFolder;
+  const name = key.split('/').pop();
+  document.getElementById('renameTitle').textContent = isFolder ? 'Переименовать папку' : 'Переименовать файл';
+  document.getElementById('renameInput').value = name;
+  document.getElementById('renameModal').classList.add('open');
+  setTimeout(() => { document.getElementById('renameInput').select(); }, 100);
+};
+
+document.getElementById('renameConfirm').addEventListener('click', async () => {
+  const newName = document.getElementById('renameInput').value.trim().replace(/[\/]/g,'');
+  if (!newName) return;
+  const parts = _renameKey.split('/');
+  parts[parts.length - 1] = newName;
+  const newKey = parts.join('/');
+  if (newKey === _renameKey) { document.getElementById('renameModal').classList.remove('open'); return; }
+  await fetch(WORKER + '/api/files/rename', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oldKey: _renameKey, newKey })
+  });
+  document.getElementById('renameModal').classList.remove('open');
+  await loadFiles();
+});
+
+document.getElementById('renameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('renameConfirm').click();
+});
+
+// Перемещение
+let _moveKey = '';
+
+window.moveItem = function(key) {
+  _moveKey = key;
+  // Собираем список папок
+  const folders = new Set();
+  allFiles.forEach(f => {
+    const k = f.key || '';
+    const parts = k.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      folders.add(parts.slice(0, i).join('/'));
+    }
+  });
+  const sel = document.getElementById('moveTarget');
+  sel.innerHTML = '<option value="">Корень (Мои файлы)</option>';
+  [...folders].sort().forEach(f => {
+    if (!key.startsWith(f)) { // нельзя переместить в себя
+      sel.innerHTML += `<option value="${f}">${f}</option>`;
+    }
+  });
+  document.getElementById('moveModal').classList.add('open');
+};
+
+document.getElementById('moveConfirm').addEventListener('click', async () => {
+  const target = document.getElementById('moveTarget').value;
+  await fetch(WORKER + '/api/files/move', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: _moveKey, targetFolder: target })
+  });
+  document.getElementById('moveModal').classList.remove('open');
+  await loadFiles();
+});
+
 </script>
 </body>
 </html>
