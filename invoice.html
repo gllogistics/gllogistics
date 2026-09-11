@@ -414,7 +414,14 @@ async function refreshInvoiceNumber() {
   try {
     const r = await fetch(W+'/api/invoice-number/peek');
     const d = await r.json();
-    document.getElementById('fNum').value = d.number || '';
+    const inp = document.getElementById('fNum');
+    inp._manualEdit = false;
+    inp.readOnly = true;
+    inp.style.background = '#E0F4F5';
+    inp.style.border = '';
+    const btn = document.getElementById('editNumBtn');
+    if (btn) { btn.textContent = '✏️'; btn.title = 'Редактировать номер'; }
+    inp.value = d.number || '';
     render();
   } catch(_) {}
 }
