@@ -158,12 +158,12 @@ tr:hover td { background:#F0F9F9; }
 
     <!-- Статистика -->
     <div class="expenses-grid" id="statsGrid">
-      <div class="exp-stat"><div class="exp-stat-val" id="statTotal">֏0</div><div class="exp-stat-lbl">💼 Всего за период</div></div>
-      <div class="exp-stat"><div class="exp-stat-val" id="statRent">֏0</div><div class="exp-stat-lbl">🏢 Аренда</div></div>
-      <div class="exp-stat"><div class="exp-stat-val" id="statSalary">֏0</div><div class="exp-stat-lbl">👷 Зарплаты</div></div>
-      <div class="exp-stat"><div class="exp-stat-val" id="statService">֏0</div><div class="exp-stat-lbl">⚙️ Сервисы</div></div>
-      <div class="exp-stat"><div class="exp-stat-val" id="statTax">֏0</div><div class="exp-stat-lbl">📋 Налоги</div></div>
-      <div class="exp-stat"><div class="exp-stat-val" id="statOther">֏0</div><div class="exp-stat-lbl">📦 Прочее</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statTotal">֏0</div><div class="exp-stat-lbl">Всего за период</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statRent">֏0</div><div class="exp-stat-lbl">Аренда</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statSalary">֏0</div><div class="exp-stat-lbl">Зарплаты</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statService">֏0</div><div class="exp-stat-lbl">Сервисы</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statTax">֏0</div><div class="exp-stat-lbl">Налоги</div></div>
+      <div class="exp-stat"><div class="exp-stat-val" id="statOther">֏0</div><div class="exp-stat-lbl">Прочее</div></div>
     </div>
 
     <!-- Фильтры -->
@@ -173,12 +173,12 @@ tr:hover td { background:#F0F9F9; }
       <input type="date" id="filterEnd">
       <select id="filterCat">
         <option value="">Все категории</option>
-        <option value="rent">🏢 Аренда</option>
-        <option value="salary">👷 Зарплаты офиса</option>
-        <option value="service">⚙️ Сервисы/подписки</option>
-        <option value="tax">📋 Налоги</option>
+        <option value="rent">Аренда</option>
+        <option value="salary">Зарплаты офиса</option>
+        <option value="service">Сервисы/подписки</option>
+        <option value="tax">Налоги</option>
         <option value="fuel">⛽ Топливо</option>
-        <option value="other">📦 Прочее</option>
+        <option value="other">Прочее</option>
       </select>
       <button id="addBtn" style="margin-left:auto;background:#2E7D32;color:#fff;border:none;border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(46,125,50,.3);transition:.2s">+ Добавить расход</button>
     </div>
@@ -212,12 +212,12 @@ tr:hover td { background:#F0F9F9; }
       <div class="form-group"><label>Дата</label><input type="date" id="fDate"></div>
       <div class="form-group"><label>Категория</label>
         <select id="fCat">
-          <option value="rent">🏢 Аренда</option>
-          <option value="salary">👷 Зарплаты офиса</option>
-          <option value="service">⚙️ Сервисы/подписки</option>
-          <option value="tax">📋 Налоги</option>
+          <option value="rent">Аренда</option>
+          <option value="salary">Зарплаты офиса</option>
+          <option value="service">Сервисы/подписки</option>
+          <option value="tax">Налоги</option>
           <option value="fuel">⛽ Топливо</option>
-          <option value="other">📦 Прочее</option>
+          <option value="other">Прочее</option>
         </select>
       </div>
     </div>
@@ -236,7 +236,7 @@ tr:hover td { background:#F0F9F9; }
     <div class="form-group"><label>Чек (скан)</label><input type="file" id="fReceipt" accept="image/*,application/pdf"></div>
     <div class="modal-footer">
       <button class="btn-secondary" id="cancelBtn">Отмена</button>
-      <button id="saveBtn" style="background:#2E7D32;color:#fff;border:none;border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer">💾 Сохранить</button>
+      <button id="saveBtn" style="background:#2E7D32;color:#fff;border:none;border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer">Сохранить</button>
     </div>
   </div>
 </div>
@@ -258,7 +258,7 @@ function checkSession() {
 }
 if (!checkSession()) throw new Error('Not authenticated');
 
-const catLabel = {rent:'🏢 Аренда', salary:'👷 Зарплаты', service:'⚙️ Сервисы', tax:'📋 Налоги', fuel:'⛽ Топливо', other:'📦 Прочее'};
+const catLabel = {rent:'Аренда', salary:'Зарплаты', service:'Сервисы', tax:'Налоги', fuel:'⛽ Топливо', other:'Прочее'};
 const catClass = {rent:'cat-rent', salary:'cat-salary', service:'cat-service', tax:'cat-tax', fuel:'cat-fuel', other:'cat-other'};
 
 function api(path, method='GET', body=null) {
