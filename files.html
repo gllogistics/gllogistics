@@ -327,6 +327,12 @@ function renderBreadcrumb() {
 
 function navigateTo(path) {
   currentPath = path;
+  // Сохраняем путь в URL hash
+  if (path) {
+    history.replaceState(null, '', '#' + encodeURIComponent(path));
+  } else {
+    history.replaceState(null, '', window.location.pathname);
+  }
   renderFiles();
 }
 
@@ -519,6 +525,10 @@ document.getElementById('createFolder').addEventListener('click', async () => {
 });
 document.getElementById('folderName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('createFolder').click(); });
 
+// Восстанавливаем путь из URL hash
+if (window.location.hash) {
+  try { currentPath = decodeURIComponent(window.location.hash.slice(1)); } catch(_) {}
+}
 loadFiles();
 </script>
 </body>
