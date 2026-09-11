@@ -359,23 +359,34 @@ function navigateTo(path) {
   renderFiles();
 }
 
-function fileUrl(key) {
-  // Файлы хранятся с files/ префиксом в R2
-  // API возвращает ключи без files/, добавляем обратно
+async function getSignedUrl(key) {
+  // Получаем временную подписанную ссылку (1 час)
   const storageKey = key.startsWith('files/') ? key : 'files/' + key;
-  return WORKER + '/api/files/' + storageKey.split('/').map(encodeURIComponent).join('/');
+  const token = localStorage.getItem('gl_staff_token');
+  const r = await fetch(WORKER + '/api/files/sign?key=' + storageKey.split('/').map(encodeURIComponent).join('/'), {
+    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+  });
+  const d = await r.json();
+  return d.url;
 }
 
 async function openFile(key) {
-  window.open(fileUrl(key), '_blank');
+  try {
+    const url = await getSignedUrl(key);
+    if (url) window.open(url, '_blank');
+    else alert('Не удалось получить ссылку');
+  } catch(e) { alert('Ошибка открытия файла'); }
 }
 
 async function downloadFile(key) {
-  const a = document.createElement('a');
-  a.href = fileUrl(key);
-  a.download = key.split('/').pop();
-  a.target = '_blank';
-  a.click();
+  try {
+    const url = await getSignedUrl(key);
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = key.split('/').pop();
+    a.click();
+  } catch(e) { alert('Ошибка скачивания'); }
 }
 
 async function deleteFile(key) {
