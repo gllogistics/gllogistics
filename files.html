@@ -349,9 +349,10 @@ async function deleteFolder(folderPath) {
   const allInFolder = allFiles.filter(f => (f.key||f.name||'').startsWith(folderPath + '/'));
   if (allInFolder.length > 0) {
     if (!confirm(`Удалить папку "${folderPath.split('/').pop()}" и ${allInFolder.length} файлов внутри?`)) return;
-    for (const f of allInFolder) {
-      await fetch(WORKER + '/api/files/' + (f.key||f.name).split('/').map(encodeURIComponent).join('/'), { method: 'DELETE' });
-    }
+    await Promise.all(allInFolder.map(f => {
+      const sk = (f.key||f.name||'').startsWith('files/') ? (f.key||f.name) : 'files/' + (f.key||f.name);
+      return fetch(WORKER + '/api/files/' + sk.split('/').map(encodeURIComponent).join('/'), { method: 'DELETE' });
+    }));
   } else {
     if (!confirm(`Удалить папку "${folderPath.split('/').pop()}"?`)) return;
   }
