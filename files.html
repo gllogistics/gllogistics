@@ -108,7 +108,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; mi
   <div class="upload-zone" id="uploadZone">
     <svg viewBox="0 0 24 24" fill="none" stroke="#55B7BD" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto .5rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     <p>Перетащите файлы сюда или <strong>нажмите для выбора</strong></p>
-    <p style="font-size:.75rem;margin-top:.3rem">PDF, Word, Excel, фото — до 50 МБ каждый</p>
+    <p style="font-size:.75rem;margin-top:.3rem">PDF, Word, Excel, фото и папки</p>
   </div>
 
   <!-- Files grid -->
@@ -352,22 +352,72 @@ async function deleteFolder(folderPath) {
   await loadFiles();
 }
 
+
+// Рекурсивная загрузка папок
+async function readEntry(entry) {
+  return new Promise((resolve, reject) => {
+    if (entry.isFile) {
+      entry.file(resolve, reject);
+    }
+  });
+}
+
+async function readDir(dirEntry) {
+  return new Promise((resolve, reject) => {
+    const reader = dirEntry.createReader();
+    const entries = [];
+    function readBatch() {
+      reader.readEntries(batch => {
+        if (!batch.length) { resolve(entries); return; }
+        entries.push(...batch);
+        readBatch();
+      }, reject);
+    }
+    readBatch();
+  });
+}
+
+async function uploadEntries(entries, basePath) {
+  for (const entry of entries) {
+    if (entry.isFile) {
+      const file = await readEntry(entry);
+      const key = basePath ? basePath + '/' + file.name : file.name;
+      await uploadSingleFile(file, key);
+    } else if (entry.isDirectory) {
+      // Создаём папку и рекурсивно загружаем содержимое
+      const folderPath = basePath ? basePath + '/' + entry.name : entry.name;
+      const subEntries = await readDir(entry);
+      if (subEntries.length === 0) {
+        // Пустая папка — создаём .keep
+        const keepKey = folderPath + '/.keep';
+        const formData = new FormData();
+        formData.append('file', new Blob([''], {type:'text/plain'}), '.keep');
+        formData.append('key', keepKey);
+        await fetch(WORKER + '/api/files/upload', { method: 'POST', body: formData });
+      } else {
+        await uploadEntries(subEntries, folderPath);
+      }
+    }
+  }
+  await loadFiles();
+}
+
+async function uploadSingleFile(file, key) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('key', key);
+  await fetch(WORKER + '/api/files/upload', { method: 'POST', body: formData });
+}
+
 async function uploadFiles(fileList) {
   const files = [...fileList];
   if (!files.length) return;
 
   let uploaded = 0;
   for (const file of files) {
-    // Загружаем в текущую папку
     const key = currentPath ? currentPath + '/' + file.name : file.name;
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('key', key);
-      await fetch(WORKER + '/api/files/upload', {
-        method: 'POST',
-        body: formData
-      });
+      await uploadSingleFile(file, key);
       uploaded++;
     } catch(e) {
       console.error('Upload error:', file.name, e);
@@ -390,7 +440,18 @@ const zone = document.getElementById('uploadZone');
 zone.addEventListener('click', () => document.getElementById('fileInput').click());
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
 zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); uploadFiles(e.dataTransfer.files); });
+zone.addEventListener('drop', async e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  // Поддержка папок через DataTransferItemList
+  const items = [...(e.dataTransfer.items || [])];
+  if (items.length && items[0].webkitGetAsEntry) {
+    const entries = items.map(i => i.webkitGetAsEntry()).filter(Boolean);
+    await uploadEntries(entries, currentPath);
+  } else {
+    uploadFiles(e.dataTransfer.files);
+  }
+});
 
 // New folder
 document.getElementById('newFolderBtn').addEventListener('click', () => {
