@@ -384,29 +384,55 @@ async function readDir(dirEntry) {
   });
 }
 
-async function uploadEntries(entries, basePath) {
-  for (const entry of entries) {
-    if (entry.isFile) {
-      const file = await readEntry(entry);
-      const key = basePath ? basePath + '/' + file.name : file.name;
-      await uploadSingleFile(file, key);
-    } else if (entry.isDirectory) {
-      // Создаём папку и рекурсивно загружаем содержимое
-      const folderPath = basePath ? basePath + '/' + entry.name : entry.name;
-      const subEntries = await readDir(entry);
-      if (subEntries.length === 0) {
-        // Пустая папка — создаём .keep
-        const keepKey = folderPath + '/.keep';
-        const formData = new FormData();
-        formData.append('file', new Blob([''], {type:'text/plain'}), '.keep');
-        formData.append('key', keepKey);
-        await fetch(WORKER + '/api/files/upload', { method: 'POST', body: formData });
-      } else {
-        await uploadEntries(subEntries, folderPath);
+async function uploadEntries(entries, basePath, isTopLevel = true) {
+  // Сначала собираем все файлы рекурсивно
+  const uploads = [];
+
+  async function collectFiles(ents, path) {
+    for (const entry of ents) {
+      if (entry.isFile) {
+        const file = await readEntry(entry);
+        const key = path ? path + '/' + file.name : file.name;
+        uploads.push({ file, key });
+      } else if (entry.isDirectory) {
+        const folderPath = path ? path + '/' + entry.name : entry.name;
+        const subEntries = await readDir(entry);
+        if (subEntries.length === 0) {
+          // Пустая папка
+          uploads.push({ file: new File([''], '.keep', {type:'text/plain'}), key: folderPath + '/.keep' });
+        } else {
+          await collectFiles(subEntries, folderPath);
+        }
       }
     }
   }
-  await loadFiles();
+
+  await collectFiles(entries, basePath);
+
+  if (!uploads.length) return;
+
+  // Показываем прогресс
+  const total = uploads.length;
+  let done = 0;
+
+  // Загружаем параллельно пачками по 5
+  const BATCH = 5;
+  for (let i = 0; i < uploads.length; i += BATCH) {
+    const batch = uploads.slice(i, i + BATCH);
+    await Promise.all(batch.map(async ({file, key}) => {
+      try {
+        await uploadSingleFile(file, key);
+        done++;
+      } catch(e) {
+        console.error('Upload failed:', key, e);
+      }
+    }));
+  }
+
+  if (isTopLevel) {
+    await loadFiles();
+    alert('Загружено ' + done + ' из ' + total + ' файлов');
+  }
 }
 
 async function uploadSingleFile(file, key) {
