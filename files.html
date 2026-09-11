@@ -434,7 +434,7 @@ async function uploadEntries(entries, basePath, isTopLevel = true) {
   let done = 0;
 
   // Загружаем параллельно пачками по 5
-  const BATCH = 5;
+  const BATCH = 20;
   for (let i = 0; i < uploads.length; i += BATCH) {
     const batch = uploads.slice(i, i + BATCH);
     await Promise.all(batch.map(async ({file, key}) => {
