@@ -90,7 +90,7 @@ function renderBankAccounts() {
       <div class="bank-balance">${formatCurrency(displayBalance, acc.currency)}</div>
       <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
       <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс" value="${balance}">
-      <button class="btn-save-balance" data-currency="${acc.currency}">💾 Обновить баланс</button>
+      <button class="btn-save-balance" data-currency="${acc.currency}">Обновить баланс</button>
       ${extraHtml}
     </div>`;
   }).join('');
@@ -283,9 +283,9 @@ async function loadData() {
     document.getElementById('statsRowTop').innerHTML = `
       <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
       <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
-      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">✅ Получено</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">📤 Оплачено</div></div>
-      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : '💰 Свободные средства'}</div></div>`;
+      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">Получено</div></div>
+      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">Оплачено</div></div>
+      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : 'Свободные средства'}</div></div>`;
 
     const tripRevAMD = Math.round(tripsFinance.total_revenue_amd || 0);
     const tripExpAMD = Math.round((tripsFinance.total_expenses_amd || 0) + (tripsFinance.total_advance_amd || 0) + (tripsFinance.total_salary_amd || 0));
@@ -297,12 +297,12 @@ async function loadData() {
         <div class="lbl">🏦 Реальная касса (счёт)</div>
       </div>
       <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
-      <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">🕐 Ждём от клиентов</div></div>
-      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">🕐 Должны перевозчикам</div></div>
+      <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">Ждём от клиентов</div></div>
+      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">Должны перевозчикам</div></div>
       ${tripRevAMD > 0 ? `
-      <div class="stat-card stat-profit" style="border:1px solid rgba(85,183,189,.2)"><div class="num">֏${tripRevAMD.toLocaleString()}</div><div class="lbl">🚛 Доход рейсов</div></div>
+      <div class="stat-card stat-profit" style="border:1px solid rgba(85,183,189,.2)"><div class="num">֏${tripRevAMD.toLocaleString()}</div><div class="lbl">Доход рейсов</div></div>
       <div class="stat-card"><div class="num">֏${tripExpAMD.toLocaleString()}</div><div class="lbl">🚛 Расходы рейсов</div></div>
-      <div class="stat-card ${tripProfitAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${tripProfitAMD.toLocaleString()}</div><div class="lbl">🚛 Прибыль рейсов</div></div>
+      <div class="stat-card ${tripProfitAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${tripProfitAMD.toLocaleString()}</div><div class="lbl">Прибыль рейсов</div></div>
       ` : ''}`;
 
     renderFinanceSummary(Math.round(receivedAMD), Math.round(paidAMD), Math.round(totalProfitAMD), Math.round(waitingClientsAMD), Math.round(waitingCarriersAMD));
@@ -341,7 +341,7 @@ function renderFinanceSummary(received, paid, profit, waitingClients, waitingCar
   const el = document.getElementById('financeSummary');
   if (!el) return;
   el.innerHTML = `
-    <h4>💡 Финансовый срез <span style="font-weight:400;color:#8fa8ab">Получено vs Оплачено</span></h4>
+    <h4>Финансовый срез <span style="font-weight:400;color:#8fa8ab">Получено vs Оплачено</span></h4>
     <div class="fin-bar"><div class="fin-bar-get" style="width:${pct}%">✅ ${pct}%</div><div class="fin-bar-pay" style="width:${100-pct}%">📤 ${100-pct}%</div></div>
     <div class="fin-row"><span><b style="color:#1B7A3E">֏${received.toLocaleString('ru')}</b> получено</span><span style="color:#1E7A80;font-weight:700">Прибыль: <b>֏${profit.toLocaleString('ru')}</b></span><span><b style="color:#BF360C">֏${paid.toLocaleString('ru')}</b> оплачено</span></div>
     <div class="fin-extra"><span>🕐 Ждём: <b style="color:#1565C0">֏${waitingClients.toLocaleString('ru')}</b></span><span>📋 Должны: <b style="color:#7B1FA2">֏${waitingCarriers.toLocaleString('ru')}</b></span></div>`;
