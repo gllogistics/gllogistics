@@ -319,19 +319,16 @@ function navigateTo(path) {
 }
 
 async function openFile(key) {
-  try {
-    const r = await fetch(WORKER + '/api/files/' + encodeURIComponent(key));
-    const d = await r.json();
-    if (d.url) window.open(d.url, '_blank');
-  } catch(e) { alert('Ошибка открытия файла'); }
+  // Открываем напрямую через URL
+  window.open(WORKER + '/api/files/' + encodeURIComponent(key), '_blank');
 }
 
 async function downloadFile(key) {
-  try {
-    const r = await fetch(WORKER + '/api/files/' + encodeURIComponent(key));
-    const d = await r.json();
-    if (d.url) { const a = document.createElement('a'); a.href = d.url; a.download = key.split('/').pop(); a.click(); }
-  } catch(e) { alert('Ошибка скачивания'); }
+  const a = document.createElement('a');
+  a.href = WORKER + '/api/files/' + encodeURIComponent(key);
+  a.download = key.split('/').pop();
+  a.target = '_blank';
+  a.click();
 }
 
 async function deleteFile(key) {
