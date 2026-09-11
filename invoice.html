@@ -432,7 +432,7 @@ async function makePdf(){
 
 $('btnDl').onclick=async()=>{
   const b=$('btnDl'); b.disabled=true; b.textContent='⏳...';
-  try{ await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); await refreshInvoiceNumber(); }
+  try{ if (!document.getElementById("fNum")._manualEdit) await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); await refreshInvoiceNumber(); }
   finally{ b.disabled=false; b.textContent='⬇ Скачать PDF'; }
 };
 
@@ -441,7 +441,7 @@ $('btnSend').onclick=async()=>{
   if(!email){alert('Введите email клиента');return;}
   const b=$('btnSend'); b.disabled=true; b.textContent='⏳ Отправка...';
   try{
-    await getNextNumber();
+    if (!document.getElementById("fNum")._manualEdit) await getNextNumber();
     const pdf=await makePdf();
     const blob=pdf.output('blob');
     const up=await fetch(W+'/api/upload-contract',{method:'POST',headers:{'Content-Type':'application/pdf'},body:blob});
