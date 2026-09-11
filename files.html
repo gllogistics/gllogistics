@@ -80,6 +80,15 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; mi
   .files-grid { grid-template-columns: repeat(2, 1fr); }
   .toolbar { flex-direction: column; align-items: stretch; }
 }
+
+/* Upload progress */
+#uploadProgress { display:none; position:fixed; bottom:1.5rem; right:1.5rem; background:#fff; border-radius:16px; padding:1rem 1.2rem; box-shadow:0 8px 32px rgba(0,0,0,.15); border:1.5px solid #e8f4f5; min-width:280px; z-index:9999; }
+#uploadProgress .up-title { font-size:.82rem; font-weight:700; color:#1E3B42; margin-bottom:.6rem; display:flex; justify-content:space-between; }
+#uploadProgress .up-bar-wrap { background:#f0f4f5; border-radius:99px; height:8px; overflow:hidden; margin-bottom:.4rem; }
+#uploadProgress .up-bar { background:linear-gradient(90deg,#55B7BD,#3d9ea4); height:100%; border-radius:99px; transition:width .3s; width:0%; }
+#uploadProgress .up-stats { font-size:.72rem; color:#8fa8ab; display:flex; justify-content:space-between; }
+#uploadProgress .up-done { color:#2E7D32; font-weight:700; }
+
 </style>
 </head>
 <body>
@@ -121,6 +130,20 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; mi
 </div>
 
 <div id="folderInfo" style="text-align:center;padding:.8rem;color:#8fa8ab;font-size:.78rem;margin-top:-.5rem;margin-bottom:1rem"></div>
+
+
+<!-- Upload Progress -->
+<div id="uploadProgress">
+  <div class="up-title">
+    <span>Загрузка файлов...</span>
+    <span id="upPercent">0%</span>
+  </div>
+  <div class="up-bar-wrap"><div class="up-bar" id="upBar"></div></div>
+  <div class="up-stats">
+    <span id="upCurrent">0 / 0 файлов</span>
+    <span id="upSize"></span>
+  </div>
+</div>
 
 <!-- New Folder Modal -->
 <div class="modal" id="folderModal">
@@ -403,7 +426,6 @@ async function readDir(dirEntry) {
 }
 
 async function uploadEntries(entries, basePath, isTopLevel = true) {
-  // Сначала собираем все файлы рекурсивно
   const uploads = [];
 
   async function collectFiles(ents, path) {
@@ -416,7 +438,6 @@ async function uploadEntries(entries, basePath, isTopLevel = true) {
         const folderPath = path ? path + '/' + entry.name : entry.name;
         const subEntries = await readDir(entry);
         if (subEntries.length === 0) {
-          // Пустая папка
           uploads.push({ file: new File([''], '.keep', {type:'text/plain'}), key: folderPath + '/.keep' });
         } else {
           await collectFiles(subEntries, folderPath);
@@ -426,30 +447,56 @@ async function uploadEntries(entries, basePath, isTopLevel = true) {
   }
 
   await collectFiles(entries, basePath);
-
   if (!uploads.length) return;
 
-  // Показываем прогресс
   const total = uploads.length;
   let done = 0;
+  let totalBytes = uploads.reduce((s, u) => s + (u.file.size||0), 0);
 
-  // Загружаем параллельно пачками по 5
+  // Показываем прогресс
+  const prog = document.getElementById('uploadProgress');
+  const bar = document.getElementById('upBar');
+  const pct = document.getElementById('upPercent');
+  const cur = document.getElementById('upCurrent');
+  const sz = document.getElementById('upSize');
+  if (prog) {
+    prog.style.display = 'block';
+    document.querySelector('#uploadProgress .up-title span').textContent =
+      uploads[0]?.key?.split('/')[0] ? 'Загрузка: ' + uploads[0].key.split('/')[0] : 'Загрузка файлов...';
+  }
+
+  function updateProgress() {
+    const p = Math.round(done / total * 100);
+    if (bar) bar.style.width = p + '%';
+    if (pct) pct.textContent = p + '%';
+    if (cur) cur.textContent = done + ' / ' + total + ' файлов';
+    if (sz) sz.textContent = fmtSize(totalBytes);
+  }
+  updateProgress();
+
   const BATCH = 20;
   for (let i = 0; i < uploads.length; i += BATCH) {
     const batch = uploads.slice(i, i + BATCH);
     await Promise.all(batch.map(async ({file, key}) => {
       try {
         await uploadSingleFile(file, key);
-        done++;
       } catch(e) {
         console.error('Upload failed:', key, e);
       }
+      done++;
+      updateProgress();
     }));
   }
 
   if (isTopLevel) {
+    // Показываем завершение
+    if (prog) {
+      document.querySelector('#uploadProgress .up-title span').textContent = 'Готово!';
+      document.querySelector('#uploadProgress .up-title span:last-child').className = 'up-done';
+      if (bar) bar.style.background = '#2E7D32';
+    }
     await loadFiles();
-    alert('Загружено ' + done + ' из ' + total + ' файлов');
+    setTimeout(() => { if (prog) prog.style.display = 'none'; }, 3000);
   }
 }
 
