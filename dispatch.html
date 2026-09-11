@@ -101,10 +101,10 @@ tr:hover td { background: #f5fbfb; }
 
   <!-- Статистика -->
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">🚛 Всего машин</div></div>
-    <div class="stat-card green"><div class="stat-num" id="statDelivered">0</div><div class="stat-lbl">✅ Доставлено</div></div>
-    <div class="stat-card orange"><div class="stat-num" id="statTransit">0</div><div class="stat-lbl">🔄 В пути</div></div>
-    <div class="stat-card"><div class="stat-num" id="statRevenue">€0</div><div class="stat-lbl">💰 Сумма за период</div></div>
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Всего машин</div></div>
+    <div class="stat-card green"><div class="stat-num" id="statDelivered">0</div><div class="stat-lbl">Доставлено</div></div>
+    <div class="stat-card orange"><div class="stat-num" id="statTransit">0</div><div class="stat-lbl">В пути</div></div>
+    <div class="stat-card"><div class="stat-num" id="statRevenue">€0</div><div class="stat-lbl">Сумма за период</div></div>
   </div>
 
   <!-- Фильтры -->
@@ -181,7 +181,7 @@ tr:hover td { background: #f5fbfb; }
     <div class="form-group"><label>Заметки</label><textarea id="fNotes" rows="2" style="resize:vertical"></textarea></div>
     <div class="modal-footer">
       <button class="btn-secondary" id="cancelBtn">Отмена</button>
-      <button class="action-btn" id="saveBtn">💾 Сохранить</button>
+      <button class="action-btn" id="saveBtn">Сохранить</button>
     </div>
   </div>
 </div>
@@ -335,8 +335,8 @@ document.getElementById('filterEnd').value = now.toISOString().slice(0,10);
 // Навигация по роли
 document.addEventListener('DOMContentLoaded', function() {
   var isAdm = localStorage.getItem('gl_staff_role') === 'admin';
-  var an = '<a href="/staff-dashboard.html">📊 Главная</a><a href="/staff-cargo.html">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a><a href="/clients">👥 Клиенты</a><a href="/files">📁 Файлы</a><a href="/expenses.html">💼 Расходы</a><a href="/dispatch.html" class="active">🛰 Диспатчинг</a>';
-  var ln = '<a href="/staff-cargo.html">📦 Сделки</a><a href="/rateconfirmation">📋 Заявки</a><a href="/invoice">🧾 Инвойс</a><a href="/trip-report">🚛 Рейсы</a>';
+  var an = '<a href="/staff-dashboard.html">Главная</a><a href="/staff-cargo.html">Сделки</a><a href="/rateconfirmation">Заявки</a><a href="/invoice">Инвойс</a><a href="/trip-report">Рейсы</a><a href="/clients">Клиенты</a><a href="/files">Файлы</a><a href="/expenses.html">Расходы</a><a href="/dispatch.html" class="active">Диспатчинг</a>';
+  var ln = '<a href="/staff-cargo.html">Сделки</a><a href="/rateconfirmation">Заявки</a><a href="/invoice">Инвойс</a><a href="/trip-report">Рейсы</a>';
   var el = document.getElementById('navLinks');
   if (el) el.innerHTML = isAdm ? an : ln;
 });
