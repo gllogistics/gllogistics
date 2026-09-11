@@ -2,299 +2,425 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://gl-api.gltransam.workers.dev; object-src 'none'; base-uri 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GL Logistics | Файлы</title>
-<link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#55B7BD">
+<script src="/js/emoji-remover.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:100vh;padding:1.5rem}
-.top-bar{background:#fff;border-radius:16px;padding:.65rem 1.8rem;margin-bottom:1.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 0 rgba(0,0,0,.06),0 4px 16px rgba(30,59,66,.06)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1rem;text-decoration:none;color:#0D1F23}
-.brand img{height:32px}
-.nav-links{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.7);border-radius:14px;width:fit-content;border:1px solid rgba(85,183,189,.15)}
-.nav-links a{background:transparent;color:#5a7a80;padding:8px 18px;border-radius:11px;text-decoration:none;font-size:.8rem;font-weight:600}
-.nav-links a:hover{background:#E8F6F6;color:#1E7A80}
-.nav-links a.active{background:#55B7BD;color:#fff;font-weight:600}
-.btn-logout{background:#F5FAFA;color:#1E3B42;border:1.5px solid rgba(85,183,189,.3);border-radius:10px;padding:7px 18px;cursor:pointer;font-weight:600;font-size:.8rem}
-.btn-logout:hover{background:#E0F4F5}
-
-.main{max-width:900px;margin:0 auto}
-h1{font-size:1.4rem;font-weight:800;color:#1E3B42;margin-bottom:1.4rem;display:flex;align-items:center;gap:10px}
-
-/* Зона загрузки */
-.drop-zone{background:#fff;border:2px dashed rgba(85,183,189,.4);border-radius:20px;padding:2.5rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:1.4rem}
-.drop-zone:hover,.drop-zone.drag-over{border-color:#55B7BD;background:#F0F9F9}
-.drop-zone .icon{font-size:2.5rem;margin-bottom:.6rem}
-.drop-zone .hint{color:#5a7a80;font-size:.85rem}
-.drop-zone .hint b{color:#1E7A80}
-.drop-zone input{display:none}
-
-/* Поиск и статистика */
-.toolbar{display:flex;gap:.8rem;align-items:center;margin-bottom:1rem}
-.search-box{flex:1;background:#fff;border:1.5px solid rgba(85,183,189,.2);border-radius:12px;padding:9px 14px;font-size:.85rem;color:#1E3B42;outline:none;font-family:inherit}
-.search-box:focus{border-color:#55B7BD}
-.stats-badge{background:#fff;border:1px solid rgba(85,183,189,.2);border-radius:10px;padding:8px 14px;font-size:.8rem;color:#5a7a80;white-space:nowrap}
-.stats-badge b{color:#1E7A80}
-
-/* Список файлов */
-.files-grid{display:flex;flex-direction:column;gap:.5rem}
-.file-row{background:#fff;border-radius:14px;border:1px solid rgba(85,183,189,.12);padding:.9rem 1.1rem;display:flex;align-items:center;gap:1rem;transition:.15s;box-shadow:0 1px 4px rgba(30,59,66,.04)}
-.file-row:hover{border-color:rgba(85,183,189,.4);box-shadow:0 2px 12px rgba(85,183,189,.1)}
-.file-icon{font-size:1.8rem;width:42px;text-align:center;flex-shrink:0}
-.file-info{flex:1;min-width:0}
-.file-name{font-weight:600;color:#1E3B42;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file-meta{font-size:.72rem;color:#8fa8ab;margin-top:2px}
-.file-size{font-size:.75rem;color:#5a7a80;font-weight:600;white-space:nowrap}
-.file-actions{display:flex;gap:.4rem;flex-shrink:0}
-.btn-dl{background:#F0F9F9;color:#1E7A80;border:1.5px solid rgba(85,183,189,.3);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.78rem;font-weight:700;text-decoration:none}
-.btn-dl:hover{background:#E0F4F5}
-.btn-del{background:#FEF2F2;color:#C62828;border:1.5px solid rgba(198,40,40,.2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.78rem;font-weight:700}
-.btn-del:hover{background:#FECDD3}
-
-/* Прогресс */
-.upload-progress{background:#F0F9F9;border:1px solid rgba(85,183,189,.3);border-radius:12px;padding:1rem;margin-bottom:1rem;display:none}
-.progress-bar{height:6px;background:#E0F4F5;border-radius:3px;overflow:hidden;margin-top:.5rem}
-.progress-fill{height:100%;background:#55B7BD;border-radius:3px;transition:width .2s}
-.progress-label{font-size:.8rem;color:#1E7A80;font-weight:600}
-
-.empty-state{text-align:center;padding:3rem;color:#8fa8ab}
-.empty-state .icon{font-size:3rem;margin-bottom:.8rem}
-.empty-state p{font-size:.9rem}
-
-.nav-links a:active, .nav-links a:focus { transform: none !important; box-shadow: none !important; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; min-height: 100vh; }
+.app-wrapper { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+.top-bar { background: #fff; border-radius: 0 0 20px 20px; padding: .8rem 1.4rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.brand { display: flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1rem; color: #1E3B42; text-decoration: none; }
+.brand img { height: 32px; }
+.btn-logout { margin-left: auto; background: none; border: 1.5px solid #e0eaeb; border-radius: 10px; padding: 6px 14px; color: #8fa8ab; font-size: .78rem; cursor: pointer; font-family: inherit; }
 .nav-links { display: flex; gap: 2px; margin-bottom: 1.4rem; padding: 6px; background: rgba(255,255,255,0.7); border-radius: 16px; width: fit-content; border: 1px solid rgba(85,183,189,0.15); flex-wrap: wrap; }
-.nav-links a { background: transparent; color: #5a7a80; padding: 8px 14px; border-radius: 12px; text-decoration: none; font-size: 11px; font-weight: 600; transition: background .2s, color .2s; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 60px; text-align: center; line-height: 1.2; }
-.nav-links a svg { opacity: 0.6; transition: opacity .2s; }
+.nav-links a { background: transparent; color: #5a7a80; padding: 8px 14px; border-radius: 12px; text-decoration: none; font-size: 11px; font-weight: 600; transition: background .2s, color .2s; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 60px; text-align: center; }
+.nav-links a svg { opacity: 0.6; width: 18px; height: 18px; }
 .nav-links a:hover { background: #E8F6F6; color: #1E7A80; }
 .nav-links a:hover svg { opacity: 1; }
-.nav-links a.active { background: #55B7BD; color: #fff; font-weight: 600; }
+.nav-links a.active { background: #55B7BD; color: #fff; }
 .nav-links a.active svg { opacity: 1; stroke: #fff; }
-.nav-links a:active { transform: none !important; }
+
+/* Toolbar */
+.toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+.toolbar input { background: #fff; border: 1.5px solid #e8f4f5; border-radius: 10px; padding: 8px 12px; color: #1E3B42; font-size: .82rem; outline: none; font-family: inherit; flex: 1; min-width: 160px; }
+.toolbar input:focus { border-color: #55B7BD; }
+.btn { border: none; border-radius: 10px; padding: 8px 16px; font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: .2s; }
+.btn-primary { background: #55B7BD; color: #fff; }
+.btn-primary:hover { background: #3d9ea4; }
+.btn-success { background: #2E7D32; color: #fff; border-radius: 24px; padding: 9px 18px; }
+.btn-ghost { background: rgba(85,183,189,.1); color: #1E7A80; }
+.btn-danger { background: #FEF2F2; color: #C62828; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 1rem; font-size: .82rem; color: #8fa8ab; flex-wrap: wrap; }
+.breadcrumb a { color: #1E7A80; text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: #c0d4d6; }
+
+/* File grid */
+.files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem; margin-bottom: 1.5rem; }
+.file-card { background: #fff; border-radius: 14px; border: 1.5px solid #e8f4f5; padding: 1rem; cursor: pointer; transition: all .2s; position: relative; }
+.file-card:hover { border-color: #55B7BD; box-shadow: 0 4px 16px rgba(85,183,189,.15); transform: translateY(-2px); }
+.file-card.folder { border-left: 3px solid #55B7BD; }
+.file-card.folder:hover { background: #f0f9f9; }
+.file-icon { font-size: 2rem; margin-bottom: .5rem; text-align: center; }
+.file-icon svg { width: 40px; height: 40px; }
+.file-name { font-size: .82rem; font-weight: 600; color: #1E3B42; word-break: break-all; margin-bottom: .3rem; }
+.file-meta { font-size: .72rem; color: #8fa8ab; }
+.file-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .2s; }
+.file-card:hover .file-actions { opacity: 1; }
+.file-actions button { background: rgba(255,255,255,.9); border: 1px solid #e8f4f5; border-radius: 6px; padding: 3px 7px; font-size: .72rem; cursor: pointer; }
+.file-actions button:hover { background: #FEF2F2; border-color: #f5c6c6; color: #C62828; }
+
+/* Upload zone */
+.upload-zone { border: 2px dashed #c0d4d6; border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; transition: all .2s; cursor: pointer; background: #fff; }
+.upload-zone:hover, .upload-zone.drag-over { border-color: #55B7BD; background: #f0f9f9; }
+.upload-zone p { color: #8fa8ab; font-size: .85rem; margin-top: .5rem; }
+.upload-zone strong { color: #1E7A80; }
+
+/* New folder modal */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
+.modal.open { display: flex; }
+.modal-box { background: #fff; border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 380px; }
+.modal-title { font-size: 1rem; font-weight: 700; color: #1E7A80; margin-bottom: 1rem; }
+.modal-box input { width: 100%; background: #f8fbfc; border: 1.5px solid #e8f4f5; border-radius: 10px; padding: 10px 12px; font-size: .9rem; outline: none; font-family: inherit; margin-bottom: 1rem; }
+.modal-box input:focus { border-color: #55B7BD; }
+.modal-footer { display: flex; gap: .6rem; justify-content: flex-end; }
+.btn-secondary { background: #f0f4f5; color: #5a7a80; }
+
+.empty-state { text-align: center; padding: 3rem; color: #8fa8ab; }
+.empty-state svg { width: 48px; height: 48px; opacity: .3; margin-bottom: 1rem; }
+.stats-badge { background: #E8F6F6; color: #1E7A80; padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600; }
+
+@media (max-width: 600px) {
+  .files-grid { grid-template-columns: repeat(2, 1fr); }
+  .toolbar { flex-direction: column; align-items: stretch; }
+}
 </style>
-<style>
-.dropzone{border:2px dashed rgba(85,183,189,.4);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:.2s;background:#F5FAFA;position:relative}
-.dropzone:hover,.dropzone.drag-over{border-color:#55B7BD;background:#E8F6F6}
-.dropzone.drag-over{border-style:solid}
-.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.dropzone-label{font-size:.78rem;color:#8fa8ab;pointer-events:none}
-.dropzone-label .dz-icon{font-size:1.5rem;display:block;margin-bottom:4px}
-.dropzone-label strong{color:#1E7A80}
-.dropzone-files{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.dropzone-chip{background:#E0F4F5;color:#1E3B42;border-radius:6px;padding:3px 8px;font-size:.72rem;display:flex;align-items:center;gap:4px}
-.dropzone-chip button{background:none;border:none;cursor:pointer;color:#C62828;font-size:.8rem;padding:0;line-height:1}
-</style>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#55B7BD">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="GL Logistics">
-  <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
-<script src="/js/emoji-remover.js"></script>
 </head>
 <body>
-
-<div class="top-bar">
-  <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">GL Logistics</a>
-  <div class="nav-links">
-    <a href="/staff-dashboard.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Главная</span></a>
-    <a href="/staff-cargo.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><polyline points="16 3 12 7 8 3"/></svg><span>Сделки</span></a>
-    <a href="/rateconfirmation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Заявки</span></a>
-    <a href="/invoice"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>Инвойс</span></a>
-    <a href="/trip-report"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Рейсы</span></a>
-    <a href="/clients"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Клиенты</span></a>
-    <a href="/files" class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Файлы</span></a>
-    <a href="/expenses.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Расходы</span></a>
-    <a href="/dispatch.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Диспатчинг</span></a>
+<div class="app-wrapper">
+  <div class="top-bar">
+    <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL"><span>GL Logistics · Файлы</span></a>
+    <button class="btn-logout" id="logoutBtn">Выйти</button>
   </div>
-  <button class="btn-logout" id="logoutBtn">Выйти</button>
+  <div class="nav-links" id="navLinks"></div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" id="searchInput" placeholder="Поиск файлов...">
+    <span class="stats-badge" id="statsBadge">0 файлов</span>
+    <button class="btn btn-ghost" id="newFolderBtn">+ Папка</button>
+    <button class="btn btn-success" onclick="document.getElementById('fileInput').click()">+ Загрузить</button>
+    <input type="file" id="fileInput" multiple style="display:none">
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" id="breadcrumb">
+    <a onclick="navigateTo('')">Мои файлы</a>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#55B7BD" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto .5rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <p>Перетащите файлы сюда или <strong>нажмите для выбора</strong></p>
+    <p style="font-size:.75rem;margin-top:.3rem">PDF, Word, Excel, фото — до 50 МБ каждый</p>
+  </div>
+
+  <!-- Files grid -->
+  <div class="files-grid" id="filesList">
+    <div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <p>Загрузка...</p>
+    </div>
+  </div>
 </div>
 
-<div class="main">
-  <h1>Мои файлы</h1>
-
-  <!-- Зона загрузки -->
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" multiple>
-    <div class="icon">☁️</div>
-    <div class="hint">Перетащите файлы сюда или <b>нажмите для выбора</b></div>
-    <div style="font-size:.75rem;color:#aaa;margin-top:.4rem">PDF, Word, Excel, фото, любые файлы · до 50 МБ каждый</div>
-  </div>
-
-  <!-- Прогресс загрузки -->
-  <div class="upload-progress" id="uploadProgress">
-    <div class="progress-label" id="progressLabel">Загрузка...</div>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-  </div>
-
-  <!-- Тулбар -->
-  <div class="toolbar">
-    <input class="search-box" id="searchBox" placeholder="Поиск файлов..." type="text">
-    <div class="stats-badge" id="statsBadge"><b>0</b> файлов</div>
-  </div>
-
-  <!-- Список -->
-  <div class="files-grid" id="filesList">
-    <div class="empty-state"><div class="icon">📂</div><p>Загрузка...</p></div>
+<!-- New Folder Modal -->
+<div class="modal" id="folderModal">
+  <div class="modal-box">
+    <div class="modal-title">Новая папка</div>
+    <input type="text" id="folderName" placeholder="Название папки" maxlength="50">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelFolder">Отмена</button>
+      <button class="btn btn-primary" id="createFolder">Создать</button>
+    </div>
   </div>
 </div>
 
 <script>
 const WORKER = 'https://gl-api.gltransam.workers.dev';
-const ADMIN  = 'TigranMetspagyan';
 const SESSION_MAX = 12 * 60 * 60 * 1000;
-
-// Auth
 const user = localStorage.getItem('gl_staff_user');
 const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
-if (!user || (Date.now() - loginTime) > SESSION_MAX || user !== ADMIN) {
-  localStorage.removeItem('gl_staff_user');
-  window.location.href = 'staff.html';
+if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX) { window.location.replace('/staff.html'); throw ''; }
+
+// Nav
+document.addEventListener('DOMContentLoaded', () => {
+  const isAdm = localStorage.getItem('gl_staff_user') === 'TigranMetspagyan';
+  const ICONS = {
+    'Главная': 'M3,3h7v7H3V3zm11,0h7v7h-7V3zM3,14h7v7H3v-7zm11,0h7v7h-7v-7z',
+    'Сделки': 'M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7z',
+    'Заявки': 'M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8z',
+    'Инвойс': 'M22,6.5A.5.5,0,0,0,21.5,6H2.5A.5.5,0,0,0,2,6.5v11A.5.5,0,0,0,2.5,18h19a.5.5,0,0,0,.5-.5Z',
+    'Рейсы': 'M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3z',
+    'Клиенты': 'M17,21v-2a4,4,0,0,0-4-4H5a4,4,0,0,0-4,4v2M9,7a4,4,0,1,0,0,8A4,4,0,0,0,9,7z',
+    'Файлы': 'M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2h5l2,3h9a2,2,0,0,1,2,2z',
+    'Расходы': 'M12,1V23M17,5H9.5a3.5,3.5,0,0,0,0,7h5a3.5,3.5,0,0,1,0,7H6',
+    'Диспатчинг': 'M12,2A10,10,0,1,0,12,22A10,10,0,0,0,12,2z',
+  };
+  const pAll = ['/staff-dashboard.html','Главная'],['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'],['/clients','Клиенты'],['/files','Файлы'],['/expenses.html','Расходы'],['/dispatch.html','Диспатчинг'];
+  const pLog = ['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'];
+  const pages = isAdm ? [pAll].flat() : [pLog].flat();
+  // Fix: proper array
+  const allPages = [['/staff-dashboard.html','Главная'],['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'],['/clients','Клиенты'],['/files','Файлы'],['/expenses.html','Расходы'],['/dispatch.html','Диспатчинг']];
+  const logPages = [['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы']];
+  const navPages = isAdm ? allPages : logPages;
+  const el = document.getElementById('navLinks');
+  el.innerHTML = navPages.map(([href, label]) => {
+    const active = label === 'Файлы' ? ' class="active"' : '';
+    const d = ICONS[label] || '';
+    return `<a href="${href}"${active}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="${d}"/></svg><span>${label}</span></a>`;
+  }).join('');
+});
+
+// File state
+let currentPath = ''; // текущая папка (prefix)
+let allFiles = [];
+
+function api(path, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const token = localStorage.getItem('gl_staff_token');
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(WORKER + path, opts).then(r => r.json());
 }
 
+function fmtSize(b) {
+  if (!b) return '0 Б';
+  if (b < 1024) return b + ' Б';
+  if (b < 1024*1024) return (b/1024).toFixed(1) + ' КБ';
+  return (b/1024/1024).toFixed(1) + ' МБ';
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  return new Date(s).toLocaleDateString('ru', {day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+
+function fileIcon(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const icons = {
+    pdf: '#C62828', doc: '#1565C0', docx: '#1565C0', xls: '#2E7D32', xlsx: '#2E7D32',
+    jpg: '#E65100', jpeg: '#E65100', png: '#E65100', webp: '#E65100', gif: '#E65100',
+    zip: '#6A1B9A', rar: '#6A1B9A', mp4: '#1A237E', mov: '#1A237E',
+  };
+  const color = icons[ext] || '#8fa8ab';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" style="width:36px;height:36px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="6" y="18" fill="${color}" stroke="none" font-size="5" font-weight="700">${ext.toUpperCase()}</text></svg>`;
+}
+
+function folderIcon() {
+  return `<svg viewBox="0 0 24 24" fill="#E8F6F6" stroke="#55B7BD" stroke-width="1.5" style="width:36px;height:36px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+}
+
+async function loadFiles() {
+  try {
+    const r = await fetch(WORKER + '/api/files');
+    allFiles = await r.json();
+    renderFiles();
+  } catch(e) {
+    document.getElementById('filesList').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Ошибка загрузки</p></div>';
+  }
+}
+
+function getItemsAtPath(path) {
+  // Получаем папки и файлы в текущей директории
+  const prefix = path ? path + '/' : '';
+  const folders = new Set();
+  const files = [];
+
+  allFiles.forEach(f => {
+    const key = f.key || f.name || '';
+    if (!key.startsWith(prefix)) return;
+    const rest = key.slice(prefix.length);
+    if (!rest) return;
+    const parts = rest.split('/');
+    if (parts.length > 1) {
+      folders.add(parts[0]); // вложенная папка
+    } else {
+      files.push(f); // файл в текущей папке
+    }
+  });
+
+  return { folders: [...folders].sort(), files };
+}
+
+function renderFiles() {
+  const el = document.getElementById('filesList');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const badge = document.getElementById('statsBadge');
+
+  // Обновляем breadcrumb
+  renderBreadcrumb();
+
+  const { folders, files } = getItemsAtPath(currentPath);
+
+  // Фильтр по поиску
+  const filteredFolders = search ? folders.filter(f => f.toLowerCase().includes(search)) : folders;
+  const filteredFiles = search ? files.filter(f => (f.key||f.name||'').toLowerCase().includes(search)) : files;
+
+  const total = filteredFolders.length + filteredFiles.length;
+  const totalSize = filteredFiles.reduce((s, f) => s + (f.size || 0), 0);
+  badge.innerHTML = `<b>${total}</b> элементов · ${fmtSize(totalSize)}`;
+
+  if (!total) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <p>${search ? 'Ничего не найдено' : 'Папка пуста. Загрузите файлы!'}</p>
+    </div>`;
+    return;
+  }
+
+  // Папки
+  let html = filteredFolders.map(folder => `
+    <div class="file-card folder" onclick="navigateTo('${currentPath ? currentPath + '/' + folder : folder}')">
+      <div class="file-icon">${folderIcon()}</div>
+      <div class="file-name">${folder}</div>
+      <div class="file-meta">Папка</div>
+      <div class="file-actions">
+        <button onclick="event.stopPropagation();deleteFolder('${currentPath ? currentPath + '/' + folder : folder}')" title="Удалить">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Файлы
+  html += filteredFiles.map(f => {
+    const key = f.key || f.name || '';
+    const name = key.split('/').pop();
+    return `
+    <div class="file-card" onclick="openFile('${key}')">
+      <div class="file-icon">${fileIcon(name)}</div>
+      <div class="file-name">${name}</div>
+      <div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.uploaded)}</div>
+      <div class="file-actions">
+        <button onclick="event.stopPropagation();downloadFile('${key}')" title="Скачать">↓</button>
+        <button onclick="event.stopPropagation();deleteFile('${key}')" title="Удалить">✕</button>
+      </div>
+    </div>
+    `;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function renderBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  if (!currentPath) {
+    bc.innerHTML = '<span>Мои файлы</span>';
+    return;
+  }
+  const parts = currentPath.split('/');
+  let html = `<a onclick="navigateTo('')">Мои файлы</a>`;
+  parts.forEach((part, i) => {
+    const path = parts.slice(0, i+1).join('/');
+    html += `<span class="sep">/</span>`;
+    if (i === parts.length - 1) {
+      html += `<span>${part}</span>`;
+    } else {
+      html += `<a onclick="navigateTo('${path}')">${part}</a>`;
+    }
+  });
+  bc.innerHTML = html;
+}
+
+function navigateTo(path) {
+  currentPath = path;
+  renderFiles();
+}
+
+async function openFile(key) {
+  try {
+    const r = await fetch(WORKER + '/api/files/' + encodeURIComponent(key));
+    const d = await r.json();
+    if (d.url) window.open(d.url, '_blank');
+  } catch(e) { alert('Ошибка открытия файла'); }
+}
+
+async function downloadFile(key) {
+  try {
+    const r = await fetch(WORKER + '/api/files/' + encodeURIComponent(key));
+    const d = await r.json();
+    if (d.url) { const a = document.createElement('a'); a.href = d.url; a.download = key.split('/').pop(); a.click(); }
+  } catch(e) { alert('Ошибка скачивания'); }
+}
+
+async function deleteFile(key) {
+  if (!confirm('Удалить файл?')) return;
+  await fetch(WORKER + '/api/files/' + encodeURIComponent(key), { method: 'DELETE' });
+  await loadFiles();
+}
+
+async function deleteFolder(folderPath) {
+  const { files } = getItemsAtPath(folderPath);
+  // Также считаем вложенные
+  const allInFolder = allFiles.filter(f => (f.key||f.name||'').startsWith(folderPath + '/'));
+  if (allInFolder.length > 0) {
+    if (!confirm(`Удалить папку "${folderPath.split('/').pop()}" и ${allInFolder.length} файлов внутри?`)) return;
+    for (const f of allInFolder) {
+      await fetch(WORKER + '/api/files/' + encodeURIComponent(f.key||f.name), { method: 'DELETE' });
+    }
+  } else {
+    if (!confirm(`Удалить папку "${folderPath.split('/').pop()}"?`)) return;
+  }
+  await loadFiles();
+}
+
+async function uploadFiles(fileList) {
+  const files = [...fileList];
+  if (!files.length) return;
+
+  let uploaded = 0;
+  for (const file of files) {
+    // Загружаем в текущую папку
+    const key = currentPath ? currentPath + '/' + file.name : file.name;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('key', key);
+      await fetch(WORKER + '/api/files/upload', {
+        method: 'POST',
+        body: formData
+      });
+      uploaded++;
+    } catch(e) {
+      console.error('Upload error:', file.name, e);
+    }
+  }
+  await loadFiles();
+  if (uploaded) alert(`Загружено ${uploaded} из ${files.length} файлов`);
+}
+
+// Events
+document.getElementById('searchInput').addEventListener('input', renderFiles);
+document.getElementById('fileInput').addEventListener('change', e => uploadFiles(e.target.files));
 document.getElementById('logoutBtn').addEventListener('click', () => {
   ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k => localStorage.removeItem(k));
   window.location.href = 'staff.html';
 });
 
-// Иконки по типу файла
-function fileIcon(name) {
-  const ext = name.split('.').pop().toLowerCase();
-  const icons = {
-    pdf: '📄', doc: '📝', docx: '📝', xls: '📊', xlsx: '📊',
-    ppt: '📊', pptx: '📊', jpg: '🖼️', jpeg: '🖼️', png: '🖼️',
-    gif: '🖼️', webp: '🖼️', mp4: '🎬', avi: '🎬', mov: '🎬',
-    mp3: '🎵', zip: '🗜️', rar: '🗜️', txt: '📃', csv: '📊',
-  };
-  return icons[ext] || '📎';
-}
+// Upload zone drag & drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('click', () => document.getElementById('fileInput').click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); uploadFiles(e.dataTransfer.files); });
 
-function fmtSize(bytes) {
-  if (bytes < 1024) return bytes + ' Б';
-  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' КБ';
-  return (bytes/1024/1024).toFixed(1) + ' МБ';
-}
-
-function fmtDate(d) {
-  return new Date(d).toLocaleString('ru', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-
-// Загрузка списка
-let allFiles = [];
-async function loadFiles() {
-  try {
-    const r = await fetch(WORKER + '/api/files');
-    allFiles = await r.json();
-    renderFiles(allFiles);
-  } catch(e) {
-    document.getElementById('filesList').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Ошибка загрузки</p></div>`;
-  }
-}
-
-function renderFiles(files) {
-  const el = document.getElementById('filesList');
-  const badge = document.getElementById('statsBadge');
-  const totalSize = files.reduce((s,f) => s + (f.size||0), 0);
-  badge.innerHTML = `<b>${files.length}</b> файлов · ${fmtSize(totalSize)}`;
-
-  if (!files.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Файлов нет. Загрузите первый!</p></div>`;
-    return;
-  }
-
-  el.innerHTML = files.map(f => `
-    <div class="file-row">
-      <div class="file-icon">${fileIcon(f.name)}</div>
-      <div class="file-info">
-        <div class="file-name" title="${f.name}">${f.name}</div>
-        <div class="file-meta">${fmtDate(f.uploaded)}</div>
-      </div>
-      <div class="file-size">${fmtSize(f.size)}</div>
-      <div class="file-actions">
-        <a class="btn-dl" href="${WORKER}/api/files/${encodeURIComponent(f.name)}" download="${f.name}" target="_blank">⬇ Скачать</a>
-        <button class="btn-del" onclick="deleteFile('${f.name.replace(/'/g,"\\'")}')">🗑</button>
-      </div>
-    </div>`).join('');
-}
-
-// Поиск
-document.getElementById('searchBox').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  renderFiles(q ? allFiles.filter(f => f.name.toLowerCase().includes(q)) : allFiles);
+// New folder
+document.getElementById('newFolderBtn').addEventListener('click', () => {
+  document.getElementById('folderName').value = '';
+  document.getElementById('folderModal').classList.add('open');
+  setTimeout(() => document.getElementById('folderName').focus(), 100);
 });
-
-// Удаление
-async function deleteFile(name) {
-  if (!confirm('Удалить файл "' + name + '"?')) return;
-  await fetch(WORKER + '/api/files/' + encodeURIComponent(name), { method: 'DELETE' });
+document.getElementById('cancelFolder').addEventListener('click', () => document.getElementById('folderModal').classList.remove('open'));
+document.getElementById('createFolder').addEventListener('click', async () => {
+  const name = document.getElementById('folderName').value.trim().replace(/[/\\]/g, '');
+  if (!name) return;
+  // Создаём папку — загружаем пустой placeholder файл
+  const folderKey = currentPath ? currentPath + '/' + name + '/.keep' : name + '/.keep';
+  const formData = new FormData();
+  formData.append('file', new Blob([''], {type:'text/plain'}), '.keep');
+  formData.append('key', folderKey);
+  await fetch(WORKER + '/api/files/upload', { method: 'POST', body: formData });
+  document.getElementById('folderModal').classList.remove('open');
   await loadFiles();
-}
-window.deleteFile = deleteFile;
-
-// Загрузка файлов
-async function uploadFiles(files) {
-  const progress = document.getElementById('uploadProgress');
-  const fill = document.getElementById('progressFill');
-  const label = document.getElementById('progressLabel');
-  progress.style.display = 'block';
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const pct = Math.round((i / files.length) * 100);
-    fill.style.width = pct + '%';
-    label.textContent = `Загрузка ${i+1}/${files.length}: ${file.name}`;
-
-    try {
-      await fetch(WORKER + '/api/files', {
-        method: 'POST',
-        headers: {
-          'Content-Type': file.type || 'application/octet-stream',
-          'X-File-Name': encodeURIComponent(file.name),
-        },
-        body: file,
-      });
-    } catch(e) {
-      console.error('Upload error:', e);
-    }
-  }
-
-  fill.style.width = '100%';
-  label.textContent = '✅ Загружено!';
-  setTimeout(() => { progress.style.display = 'none'; }, 1500);
-  await loadFiles();
-}
-
-// Drag & Drop
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-
-dropZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => { if (e.target.files.length) uploadFiles(Array.from(e.target.files)); });
-
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const files = Array.from(e.dataTransfer.files);
-  if (files.length) uploadFiles(files);
 });
-
-// Paste (Ctrl+V)
-document.addEventListener('paste', e => {
-  const files = Array.from(e.clipboardData.files);
-  if (files.length) uploadFiles(files);
-});
+document.getElementById('folderName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('createFolder').click(); });
 
 loadFiles();
 </script>
-<script src="js/dropzone.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-  </script>
 </body>
 </html>
