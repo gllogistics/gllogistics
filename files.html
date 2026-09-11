@@ -320,12 +320,12 @@ function navigateTo(path) {
 
 async function openFile(key) {
   // Открываем напрямую через URL
-  window.open(WORKER + '/api/files/' + encodeURIComponent(key), '_blank');
+  window.open(WORKER + '/api/files/' + key.split('/').map(encodeURIComponent).join('/'), '_blank');
 }
 
 async function downloadFile(key) {
   const a = document.createElement('a');
-  a.href = WORKER + '/api/files/' + encodeURIComponent(key);
+  a.href = WORKER + '/api/files/' + key.split('/').map(encodeURIComponent).join('/');
   a.download = key.split('/').pop();
   a.target = '_blank';
   a.click();
@@ -333,7 +333,7 @@ async function downloadFile(key) {
 
 async function deleteFile(key) {
   if (!confirm('Удалить файл?')) return;
-  await fetch(WORKER + '/api/files/' + encodeURIComponent(key), { method: 'DELETE' });
+  await fetch(WORKER + '/api/files/' + key.split('/').map(encodeURIComponent).join('/'), { method: 'DELETE' });
   await loadFiles();
 }
 
@@ -344,7 +344,7 @@ async function deleteFolder(folderPath) {
   if (allInFolder.length > 0) {
     if (!confirm(`Удалить папку "${folderPath.split('/').pop()}" и ${allInFolder.length} файлов внутри?`)) return;
     for (const f of allInFolder) {
-      await fetch(WORKER + '/api/files/' + encodeURIComponent(f.key||f.name), { method: 'DELETE' });
+      await fetch(WORKER + '/api/files/' + (f.key||f.name).split('/').map(encodeURIComponent).join('/'), { method: 'DELETE' });
     }
   } else {
     if (!confirm(`Удалить папку "${folderPath.split('/').pop()}"?`)) return;
