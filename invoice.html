@@ -153,7 +153,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
 <div class="layout">
   <!-- ФОРМА -->
   <div class="form-panel">
-    <div class="form-section">📋 Инвойс</div>
+    <div class="form-section">Инвойс</div>
     <div class="g3 mb">
       <div><label>Invoice №</label>
         <div style="display:flex;gap:6px;align-items:center">
@@ -166,7 +166,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
     </div>
     <div class="mb"><label>Order Number</label><input id="fOrder" placeholder="Номер заказа / CMR"></div>
 
-    <div class="form-section">👤 Клиент</div>
+    <div class="form-section">Клиент</div>
     <div class="mb"><label>Name</label><input id="cName" placeholder="Company Name"></div>
     <div class="mb"><label>Address</label><input id="cAddr" placeholder="Address"></div>
     <div class="g2 mb">
@@ -174,7 +174,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
       <div><label>Email (PDF придёт сюда)</label><input type="email" id="cEmail" placeholder="client@example.com"></div>
     </div>
 
-    <div class="form-section">📦 Позиции</div>
+    <div class="form-section">Позиции</div>
     <div class="items-hdr">
       <span>Description</span><span>QTY</span><span>Advance</span><span>Total</span><span></span>
     </div>
@@ -193,7 +193,7 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
     </div>
 
     <div style="grid-column:1/-1;margin-bottom:.4rem">
-  <label style="font-size:.68rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">🏦 Банковские реквизиты</label>
+  <label style="font-size:.68rem;font-weight:700;color:#5a7a80;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Банковские реквизиты</label>
   <select id="fBankSel" style="width:100%;background:#F0F9F9;border:1.5px solid rgba(85,183,189,.25);border-radius:9px;padding:8px 12px;color:#1E3B42;font-size:.83rem;outline:none;font-family:inherit">
     <option value="eur_raiffeisen">EUR — Raiffeisen Bank International (Vienna)</option>
     <option value="eur_delubac">EUR — Banque Delubac &amp; CIE (Paris)</option>
@@ -201,8 +201,8 @@ input:focus,select:focus{border-color:#55B7BD;background:#fff}
     <option value="rub">RUB — Оридж­ин Банк (Москва)</option>
   </select>
 </div>
-<button onclick="saveInvoice()" style="background:#2E7D32;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:.85rem;font-weight:700;cursor:pointer;margin-right:.5rem">💾 Сохранить</button><button class="btn-dl" id="btnDl">⬇ Скачать PDF</button>
-    <button class="btn-send" id="btnSend">📧 Отправить клиенту</button>
+<button onclick="saveInvoice()" style="background:#2E7D32;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:.85rem;font-weight:700;cursor:pointer;margin-right:.5rem">Сохранить</button><button class="btn-dl" id="btnDl">Скачать PDF</button>
+    <button class="btn-send" id="btnSend">Отправить клиенту</button>
   </div>
 
   <!-- ПРЕВЬЮ -->
@@ -449,7 +449,7 @@ async function makePdf(){
 $('btnDl').onclick=async()=>{
   const b=$('btnDl'); b.disabled=true; b.textContent='⏳...';
   try{ if (!document.getElementById("fNum")._manualEdit) await getNextNumber(); const p=await makePdf(); p.save('Invoice-'+fv('fNum')+'.pdf'); await refreshInvoiceNumber(); }
-  finally{ b.disabled=false; b.textContent='⬇ Скачать PDF'; }
+  finally{ b.disabled=false; b.textContent='Скачать PDF'; }
 };
 
 $('btnSend').onclick=async()=>{
@@ -477,7 +477,7 @@ $('btnSend').onclick=async()=>{
     })});
     alert('✅ Инвойс отправлен на '+email); await refreshInvoiceNumber();
   }catch(e){alert('Ошибка: '+e.message);}
-  finally{b.disabled=false;b.textContent='📧 Отправить клиенту';}
+  finally{b.disabled=false;b.textContent='Отправить клиенту';}
 };
 
 render();
