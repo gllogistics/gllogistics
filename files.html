@@ -318,14 +318,20 @@ function navigateTo(path) {
   renderFiles();
 }
 
+function fileUrl(key) {
+  // Файлы хранятся с files/ префиксом в R2
+  // API возвращает ключи без files/, добавляем обратно
+  const storageKey = key.startsWith('files/') ? key : 'files/' + key;
+  return WORKER + '/api/files/' + storageKey.split('/').map(encodeURIComponent).join('/');
+}
+
 async function openFile(key) {
-  // Открываем напрямую через URL
-  window.open(WORKER + '/api/files/' + key.split('/').map(encodeURIComponent).join('/'), '_blank');
+  window.open(fileUrl(key), '_blank');
 }
 
 async function downloadFile(key) {
   const a = document.createElement('a');
-  a.href = WORKER + '/api/files/' + key.split('/').map(encodeURIComponent).join('/');
+  a.href = fileUrl(key);
   a.download = key.split('/').pop();
   a.target = '_blank';
   a.click();
