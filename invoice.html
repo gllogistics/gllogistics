@@ -449,6 +449,114 @@ render();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
-  </script>
+  
+// ── Сохранение инвойсов ──────────────────────────────────────
+const WORKER_URL = (typeof WORKER !== 'undefined' ? WORKER : null) || 
+  document.querySelector('script[src*="invoice"]')?.src?.split('/js/')[0] || 
+  'https://gl-api.gltransam.workers.dev';
+
+let currentInvoiceId = null; // ID редактируемого инвойса
+
+function getInvoiceData() {
+  const items = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    const desc = row.querySelector('.item-desc')?.value || '';
+    const qty  = parseFloat(row.querySelector('.item-qty')?.value) || 1;
+    const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+    if (desc || price) items.push({desc, qty, price});
+  });
+  return {
+    invoice_number: document.getElementById('fNum')?.value || '',
+    issue_date:     document.getElementById('fDate')?.value || '',
+    due_date:       document.getElementById('fDue')?.value || '',
+    client_name:    document.getElementById('fName')?.value || '',
+    client_address: document.getElementById('fAddr')?.value || '',
+    client_email:   document.getElementById('fEmail')?.value || '',
+    order_number:   document.getElementById('fOrder')?.value || '',
+    currency:       document.getElementById('fCur')?.value || 'EUR',
+    misc:           parseFloat(document.getElementById('fMisc')?.value) || 0,
+    bank_details:   document.getElementById('fBank')?.value || '',
+    items,
+    created_by:     localStorage.getItem('gl_staff_user') || ''
+  };
+}
+
+async function saveInvoice() {
+  const data = getInvoiceData();
+  const WURL = 'https://gl-api.gltransam.workers.dev';
+  const opts = {method: currentInvoiceId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)};
+  const url = currentInvoiceId ? `${WURL}/api/invoices/${currentInvoiceId}` : `${WURL}/api/invoices`;
+  const res = await fetch(url, opts).then(r=>r.json());
+  if (!currentInvoiceId && res.id) currentInvoiceId = res.id;
+  alert(currentInvoiceId ? '✅ Инвойс сохранён!' : '✅ Инвойс сохранён!');
+  loadInvoiceHistory();
+}
+
+async function loadInvoiceHistory() {
+  const WURL = 'https://gl-api.gltransam.workers.dev';
+  const list = await fetch(`${WURL}/api/invoices`).then(r=>r.json()).catch(()=>[]);
+  const el = document.getElementById('invoiceHistoryList');
+  if (!list.length) { el.innerHTML = '<span style="color:#8fa8ab;font-size:.8rem">Нет сохранённых инвойсов</span>'; return; }
+  el.innerHTML = list.map(inv => `
+    <div style="background:#fff;border:1.5px solid #e8f4f5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:.6rem;cursor:pointer" onclick="loadInvoice(${inv.id})">
+      <span style="font-weight:700;color:#1E7A80;font-size:.82rem">№${inv.invoice_number}</span>
+      <span style="color:#8fa8ab;font-size:.75rem">${inv.client_name||'—'}</span>
+      <span style="color:#8fa8ab;font-size:.72rem">${inv.issue_date||''}</span>
+      <button onclick="event.stopPropagation();deleteInvoice(${inv.id})" style="margin-left:auto;background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:.72rem">✕</button>
+    </div>
+  `).join('');
+}
+
+async function loadInvoice(id) {
+  const WURL = 'https://gl-api.gltransam.workers.dev';
+  const inv = await fetch(`${WURL}/api/invoices/${id}`).then(r=>r.json());
+  currentInvoiceId = id;
+  // Заполняем форму
+  if (document.getElementById('fNum'))   document.getElementById('fNum').value = inv.invoice_number || '';
+  if (document.getElementById('fDate'))  document.getElementById('fDate').value = inv.issue_date || '';
+  if (document.getElementById('fDue'))   document.getElementById('fDue').value = inv.due_date || '';
+  if (document.getElementById('fName'))  document.getElementById('fName').value = inv.client_name || '';
+  if (document.getElementById('fAddr'))  document.getElementById('fAddr').value = inv.client_address || '';
+  if (document.getElementById('fEmail')) document.getElementById('fEmail').value = inv.client_email || '';
+  if (document.getElementById('fOrder')) document.getElementById('fOrder').value = inv.order_number || '';
+  if (document.getElementById('fCur'))   document.getElementById('fCur').value = inv.currency || 'EUR';
+  if (document.getElementById('fMisc'))  document.getElementById('fMisc').value = inv.misc || 0;
+  if (document.getElementById('fBank'))  document.getElementById('fBank').value = inv.bank_details || '';
+  // Заполняем позиции
+  const items = inv.items || [];
+  const container = document.querySelector('.items-container');
+  if (container && items.length) {
+    container.innerHTML = '';
+    items.forEach(item => {
+      addRow && addRow();
+      const rows = container.querySelectorAll('.item-row');
+      const row = rows[rows.length-1];
+      if (row) {
+        row.querySelector('.item-desc').value = item.desc || '';
+        row.querySelector('.item-qty').value = item.qty || 1;
+        row.querySelector('.item-price').value = item.price || 0;
+      }
+    });
+  }
+  if (typeof render === 'function') render();
+  window.scrollTo(0, document.getElementById('invoiceHistoryPanel').offsetTop + 100);
+}
+
+async function deleteInvoice(id) {
+  if (!confirm('Удалить инвойс?')) return;
+  const WURL = 'https://gl-api.gltransam.workers.dev';
+  await fetch(`${WURL}/api/invoices/${id}`, {method:'DELETE'});
+  if (currentInvoiceId === id) currentInvoiceId = null;
+  loadInvoiceHistory();
+}
+
+// Загружаем историю при старте
+window.addEventListener('load', loadInvoiceHistory);
+// При создании нового — сбрасываем ID
+document.addEventListener('click', e => {
+  if (e.target.id === 'newInvoiceBtn') currentInvoiceId = null;
+});
+
+</script>
 </body>
 </html>
