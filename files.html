@@ -153,10 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'Расходы': 'M12,1V23M17,5H9.5a3.5,3.5,0,0,0,0,7h5a3.5,3.5,0,0,1,0,7H6',
     'Диспатчинг': 'M12,2A10,10,0,1,0,12,22A10,10,0,0,0,12,2z',
   };
-  const pAll = ['/staff-dashboard.html','Главная'],['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'],['/clients','Клиенты'],['/files','Файлы'],['/expenses.html','Расходы'],['/dispatch.html','Диспатчинг'];
-  const pLog = ['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'];
-  const pages = isAdm ? [pAll].flat() : [pLog].flat();
-  // Fix: proper array
   const allPages = [['/staff-dashboard.html','Главная'],['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'],['/clients','Клиенты'],['/files','Файлы'],['/expenses.html','Расходы'],['/dispatch.html','Диспатчинг']];
   const logPages = [['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы']];
   const navPages = isAdm ? allPages : logPages;
