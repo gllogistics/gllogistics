@@ -388,13 +388,22 @@ function render() {
   const total = allData.length;
   const delivered = allData.filter(d=>d.status==='delivered').length;
   const transit = allData.filter(d=>d.status==='transit').length;
-  const revenue = allData.reduce((s,d) => s + (parseFloat(d.rate)||0), 0);
-  const mainCur = allData[0]?.rate_currency || 'EUR';
+
+  // Конвертируем всё в AMD по текущим курсам
+  const rates = await api('/api/rates').catch(() => ({USD:366, EUR:422, RUB:4.4}));
+  const toAMD = (amt, cur) => {
+    if (!amt) return 0;
+    if (cur === 'AMD') return parseFloat(amt);
+    if (cur === 'EUR') return parseFloat(amt) * (rates.EUR || 422);
+    if (cur === 'RUB') return parseFloat(amt) * (rates.RUB || 4.4);
+    return parseFloat(amt) * (rates.USD || 366); // USD default
+  };
+  const revenueAMD = allData.reduce((s,d) => s + toAMD(d.rate, d.rate_currency), 0);
 
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statDelivered').textContent = delivered;
   document.getElementById('statTransit').textContent = transit;
-  document.getElementById('statRevenue').textContent = (curSign[mainCur]||'€') + fmt(revenue);
+  document.getElementById('statRevenue').textContent = '֏' + Math.round(revenueAMD).toLocaleString('ru');
 }
 
 function openModal(d=null) {
