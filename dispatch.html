@@ -357,6 +357,12 @@ async function load() {
   if (params.length) url += '?' + params.join('&');
 
   allData = await api(url).catch(() => []);
+  // Загружаем курсы здесь чтобы render() оставался sync
+  try {
+    window._dispRates = await api('/api/rates');
+  } catch(_) {
+    window._dispRates = {USD:366, EUR:422, RUB:4.4};
+  }
   render();
 }
 
@@ -390,7 +396,7 @@ function render() {
   const transit = allData.filter(d=>d.status==='transit').length;
 
   // Конвертируем всё в AMD по текущим курсам
-  const rates = await api('/api/rates').catch(() => ({USD:366, EUR:422, RUB:4.4}));
+  const rates = window._dispRates || {USD:366, EUR:422, RUB:4.4};
   const toAMD = (amt, cur) => {
     if (!amt) return 0;
     if (cur === 'AMD') return parseFloat(amt);
