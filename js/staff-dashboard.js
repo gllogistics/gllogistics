@@ -235,11 +235,23 @@ async function deleteLogist(name) {
 
 async function loadData() {
   try {
-    const [cargo, contracts, tripsFinance] = await Promise.all([
+    const dashStart = document.getElementById('dashStart')?.value || '';
+    const dashEnd   = document.getElementById('dashEnd')?.value || '';
+
+    const [cargoAll, contracts, tripsFinance] = await Promise.all([
       api('/api/cargo'),
       api('/api/contracts-history').catch(() => []),
       api('/api/trips/finance').catch(() => ({})),
-    ]);
+    ])
+
+    // Фильтруем cargo по периоду
+    const cargo = cargoAll.filter(c => {
+      const d = c.load_date || c.unload_date || '';
+      if (dashStart && d < dashStart) return false;
+      if (dashEnd && d > dashEnd) return false;
+      return true;
+    });
+;
 
     // История договоров
     const cTable = document.getElementById('contractsTable');
@@ -362,3 +374,10 @@ function init() {
     });
   });
 }
+
+window.applyDashFilter = function() { loadData(); };
+window.resetDashFilter = function() {
+  document.getElementById('dashStart').value = '';
+  document.getElementById('dashEnd').value = '';
+  loadData();
+};
