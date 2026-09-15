@@ -375,9 +375,19 @@ function init() {
   });
 }
 
-window.applyDashFilter = function() { loadData(); };
-window.resetDashFilter = function() {
-  document.getElementById('dashStart').value = '';
-  document.getElementById('dashEnd').value = '';
-  loadData();
-};
+// Фильтр дат на дашборде
+document.addEventListener('DOMContentLoaded', function() {
+  const applyBtn = document.getElementById('dashApplyBtn');
+  const resetBtn = document.getElementById('dashResetBtn');
+  if (applyBtn) applyBtn.addEventListener('click', () => loadData());
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    document.getElementById('dashStart').value = '';
+    document.getElementById('dashEnd').value = '';
+    loadData();
+  });
+  // Enter в полях дат
+  ['dashStart','dashEnd'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => loadData());
+  });
+});
