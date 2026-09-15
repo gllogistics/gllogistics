@@ -241,7 +241,7 @@ async function loadData() {
     const [cargoAll, contracts, tripsFinance] = await Promise.all([
       api('/api/cargo'),
       api('/api/contracts-history').catch(() => []),
-      api('/api/trips/finance').catch(() => ({})),
+      api('/api/trips/finance' + (dashStart ? '?start=' + dashStart + (dashEnd ? '&end=' + dashEnd : '') : '')).catch(() => ({})),
     ])
 
     // Фильтруем cargo по периоду
