@@ -377,15 +377,25 @@ function init() {
 
 // Фильтр дат на дашборде
 document.addEventListener('DOMContentLoaded', function() {
+  // Устанавливаем текущий месяц по умолчанию
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const firstDay = y + '-' + m + '-01';
+  const lastDay = new Date(y, now.getMonth() + 1, 0).toISOString().slice(0, 10);
+  const startEl = document.getElementById('dashStart');
+  const endEl = document.getElementById('dashEnd');
+  if (startEl) startEl.value = firstDay;
+  if (endEl) endEl.value = lastDay;
+
   const applyBtn = document.getElementById('dashApplyBtn');
   const resetBtn = document.getElementById('dashResetBtn');
   if (applyBtn) applyBtn.addEventListener('click', () => loadData());
   if (resetBtn) resetBtn.addEventListener('click', () => {
-    document.getElementById('dashStart').value = '';
-    document.getElementById('dashEnd').value = '';
+    if (startEl) startEl.value = firstDay;
+    if (endEl) endEl.value = lastDay;
     loadData();
   });
-  // Enter в полях дат
   ['dashStart','dashEnd'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', () => loadData());
