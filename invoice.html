@@ -566,15 +566,15 @@ window.loadInvoice = async function(id) {
   currentInvoiceId = id;
   // Заполняем форму
   if (document.getElementById('fNum'))   document.getElementById('fNum').value = inv.invoice_number || '';
-  if (document.getElementById('fDate'))  document.getElementById('fDate').value = inv.issue_date || '';
+  if (document.getElementById('fIssue'))  document.getElementById('fIssue').value = inv.issue_date || '';
   if (document.getElementById('fDue'))   document.getElementById('fDue').value = inv.due_date || '';
-  if (document.getElementById('fName'))  document.getElementById('fName').value = inv.client_name || '';
-  if (document.getElementById('fAddr'))  document.getElementById('fAddr').value = inv.client_address || '';
-  if (document.getElementById('fEmail')) document.getElementById('fEmail').value = inv.client_email || '';
+  if (document.getElementById('cName'))  document.getElementById('cName').value = inv.client_name || '';
+  if (document.getElementById('cAddr'))  document.getElementById('cAddr').value = inv.client_address || '';
+  if (document.getElementById('cEmail')) document.getElementById('cEmail').value = inv.client_email || '';
   if (document.getElementById('fOrder')) document.getElementById('fOrder').value = inv.order_number || '';
   if (document.getElementById('fCur'))   document.getElementById('fCur').value = inv.currency || 'EUR';
   if (document.getElementById('fMisc'))  document.getElementById('fMisc').value = inv.misc || 0;
-  if (document.getElementById('fBank'))  document.getElementById('fBank').value = inv.bank_details || '';
+  if (document.getElementById('fBankSel'))  document.getElementById('fBankSel').value = inv.bank_details || '';
   // Заполняем позиции
   const items = typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : (inv.items || []);
   const container = document.querySelector('.items-container');
