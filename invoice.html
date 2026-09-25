@@ -476,8 +476,7 @@ $('btnSend').onclick=async()=>{
       pdfKey:ud.key, pdfName:'Invoice-'+fv('fNum')+'.pdf',
       html:`<p>Инвойс №${fv('fNum')} отправлен.<br>Клиент: ${fv('cName')}<br>Email: ${email}<br>Сумма: ${bal.toLocaleString('en',{minimumFractionDigits:2})}${cur}</p>`
     })});
-    alert('✅ Инвойс отправлен на '+email);
-    // Автосохраняем если реальный email (содержит @ и .)
+    // Автосохраняем ПЕРЕД очисткой формы если реальный email
     if (email && email.includes('@') && email.includes('.')) {
       try {
         const data = getInvoiceData();
@@ -489,6 +488,7 @@ $('btnSend').onclick=async()=>{
         loadInvoiceHistory();
       } catch(_) {}
     }
+    alert('✅ Инвойс отправлен на '+email);
     await refreshInvoiceNumber();
   }catch(e){alert('Ошибка: '+e.message);}
   finally{b.disabled=false;b.textContent='Отправить клиенту';}
