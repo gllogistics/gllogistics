@@ -476,7 +476,20 @@ $('btnSend').onclick=async()=>{
       pdfKey:ud.key, pdfName:'Invoice-'+fv('fNum')+'.pdf',
       html:`<p>Инвойс №${fv('fNum')} отправлен.<br>Клиент: ${fv('cName')}<br>Email: ${email}<br>Сумма: ${bal.toLocaleString('en',{minimumFractionDigits:2})}${cur}</p>`
     })});
-    alert('✅ Инвойс отправлен на '+email); await refreshInvoiceNumber();
+    alert('✅ Инвойс отправлен на '+email);
+    // Автосохраняем если реальный email (содержит @ и .)
+    if (email && email.includes('@') && email.includes('.')) {
+      try {
+        const data = getInvoiceData();
+        const WURL = 'https://gl-api.gltransam.workers.dev';
+        const method = currentInvoiceId ? 'PUT' : 'POST';
+        const url = currentInvoiceId ? WURL+'/api/invoices/'+currentInvoiceId : WURL+'/api/invoices';
+        const res = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}).then(r=>r.json());
+        if (!currentInvoiceId && res.id) currentInvoiceId = res.id;
+        loadInvoiceHistory();
+      } catch(_) {}
+    }
+    await refreshInvoiceNumber();
   }catch(e){alert('Ошибка: '+e.message);}
   finally{b.disabled=false;b.textContent='Отправить клиенту';}
 };
