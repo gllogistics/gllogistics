@@ -338,7 +338,7 @@ function render(){
     <table class="inv-items">
       <thead><tr><th>Description</th><th>QTY</th><th>Advance</th><th>Total</th></tr></thead>
       <tbody>
-        ${rows.length?rows.map(r=>`<tr><td>${r.desc}</td><td>${r.qty}x</td><td style="text-align:right">${r.adv?fmt(r.adv,cur):''}</td><td style="text-align:right;font-weight:700">${fmt(r.total,cur)}</td></tr>`).join(''):`<tr><td colspan="4" style="color:#ccc;text-align:center;padding:20px">Добавьте позиции...</td></tr>`}
+        ${rows.length?rows.map(r=>`<tr><td>${r.desc}</td><td>${r.qty != null && r.qty !== "" ? r.qty + "x" : ""}</td><td style="text-align:right">${r.adv?fmt(r.adv,cur):''}</td><td style="text-align:right;font-weight:700">${fmt(r.total,cur)}</td></tr>`).join(''):`<tr><td colspan="4" style="color:#ccc;text-align:center;padding:20px">Добавьте позиции...</td></tr>`}
         ${Array(Math.max(0,5-rows.length)).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
       </tbody>
     </table>
