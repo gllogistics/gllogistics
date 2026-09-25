@@ -285,7 +285,7 @@ const $=id=>document.getElementById(id);
 const fv=id=>($( id)?.value||'').trim();
 const fmt=(n,c)=>n&&!isNaN(n)?parseFloat(n).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+c:'';
 
-function items(){ return [...document.querySelectorAll('#itemsList .item-row')].map(r=>({ desc:r.querySelector('.idesc').value, qty:r.querySelector('.iqty').value||'1', adv:r.querySelector('.iadv').value, total:r.querySelector('.itotal').value })).filter(i=>i.desc||i.total); }
+function items(){ return [...document.querySelectorAll('#itemsList .item-row')].map(r=>({ desc:r.querySelector('.idesc').value, qty:r.querySelector('.iqty').value, adv:r.querySelector('.iadv').value, total:r.querySelector('.itotal').value })).filter(i=>i.desc||i.total); }
 
 function render(){
   const num=fv('fNum'), issue=fv('fIssue'), due=fv('fDue'), order=fv('fOrder');
