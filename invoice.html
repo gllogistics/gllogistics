@@ -543,7 +543,7 @@ async function saveInvoice() {
   loadInvoiceHistory();
 }
 
-async function loadInvoiceHistory() {
+window.loadInvoiceHistory = async function loadInvoiceHistory() {
   const WURL = 'https://gl-api.gltransam.workers.dev';
   const list = await fetch(`${WURL}/api/invoices`).then(r=>r.json()).catch(()=>[]);
   const el = document.getElementById('invoiceHistoryList');
@@ -558,7 +558,7 @@ async function loadInvoiceHistory() {
   `).join('');
 }
 
-async function loadInvoice(id) {
+window.loadInvoice = async function(id) {
   const WURL = 'https://gl-api.gltransam.workers.dev';
   const inv = await fetch(`${WURL}/api/invoices/${id}`).then(r=>r.json());
   currentInvoiceId = id;
@@ -596,7 +596,7 @@ async function loadInvoice(id) {
   else window.scrollTo(0, 300);
 }
 
-async function deleteInvoice(id) {
+window.deleteInvoice = async function(id) {
   if (!confirm('Удалить инвойс?')) return;
   const WURL = 'https://gl-api.gltransam.workers.dev';
   await fetch(`${WURL}/api/invoices/${id}`, {method:'DELETE'});
