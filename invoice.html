@@ -511,10 +511,12 @@ let currentInvoiceId = null; // ID редактируемого инвойса
 function getInvoiceData() {
   const items = [];
   document.querySelectorAll('.item-row').forEach(row => {
-    const desc = row.querySelector('.item-desc')?.value || '';
-    const qtyVal = row.querySelector('.item-qty')?.value; const qty = qtyVal === '' || qtyVal === undefined ? 1 : (parseFloat(qtyVal) || 1);
-    const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
-    if (desc || price) items.push({desc, qty, price});
+    const desc = row.querySelector('.idesc')?.value || '';
+    const qtyVal = row.querySelector('.iqty')?.value;
+    const qty = qtyVal === '' || qtyVal === undefined ? 1 : (parseFloat(qtyVal) || 1);
+    const adv = parseFloat(row.querySelector('.iadv')?.value) || 0;
+    const price = parseFloat(row.querySelector('.itotal')?.value) || 0;
+    if (desc || price) items.push({desc, qty, adv, price});
   });
   return {
     invoice_number: document.getElementById('fNum')?.value || '',
