@@ -574,7 +574,7 @@ async function loadInvoice(id) {
   if (document.getElementById('fMisc'))  document.getElementById('fMisc').value = inv.misc || 0;
   if (document.getElementById('fBank'))  document.getElementById('fBank').value = inv.bank_details || '';
   // Заполняем позиции
-  const items = inv.items || [];
+  const items = typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : (inv.items || []);
   const container = document.querySelector('.items-container');
   if (container && items.length) {
     container.innerHTML = '';
@@ -590,7 +590,10 @@ async function loadInvoice(id) {
     });
   }
   if (typeof render === 'function') render();
-  window.scrollTo(0, document.getElementById('invoiceHistoryPanel').offsetTop + 100);
+  // Скролим к форме инвойса
+  const formEl = document.querySelector('.invoice-form') || document.querySelector('#invDoc');
+  if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else window.scrollTo(0, 300);
 }
 
 async function deleteInvoice(id) {
