@@ -512,7 +512,7 @@ function getInvoiceData() {
   const items = [];
   document.querySelectorAll('.item-row').forEach(row => {
     const desc = row.querySelector('.item-desc')?.value || '';
-    const qty  = parseFloat(row.querySelector('.item-qty')?.value) || 1;
+    const qtyVal = row.querySelector('.item-qty')?.value; const qty = qtyVal === '' || qtyVal === undefined ? 1 : (parseFloat(qtyVal) || 1);
     const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
     if (desc || price) items.push({desc, qty, price});
   });
@@ -584,7 +584,7 @@ window.loadInvoice = async function(id) {
       const row = rows[rows.length-1];
       if (row) {
         row.querySelector('.item-desc').value = item.desc || '';
-        row.querySelector('.item-qty').value = item.qty || 1;
+        row.querySelector('.item-qty').value = (item.qty !== undefined && item.qty !== null) ? item.qty : 1;
         row.querySelector('.item-price').value = item.price || 0;
       }
     });
