@@ -520,15 +520,15 @@ function getInvoiceData() {
   });
   return {
     invoice_number: document.getElementById('fNum')?.value || '',
-    issue_date:     document.getElementById('fDate')?.value || '',
+    issue_date:     document.getElementById('fIssue')?.value || '',
     due_date:       document.getElementById('fDue')?.value || '',
-    client_name:    document.getElementById('fName')?.value || '',
-    client_address: document.getElementById('fAddr')?.value || '',
-    client_email:   document.getElementById('fEmail')?.value || '',
+    client_name:    document.getElementById('cName')?.value || '',
+    client_address: document.getElementById('cAddr')?.value || '',
+    client_email:   document.getElementById('cEmail')?.value || '',
     order_number:   document.getElementById('fOrder')?.value || '',
-    currency:       document.getElementById('fCur')?.value || 'EUR',
+    currency:       document.getElementById('fCur')?.value || '€',
     misc:           parseFloat(document.getElementById('fMisc')?.value) || 0,
-    bank_details:   document.getElementById('fBank')?.value || '',
+    bank_details:   document.getElementById('fBankSel')?.value || '',
     items,
     created_by:     localStorage.getItem('gl_staff_user') || ''
   };
