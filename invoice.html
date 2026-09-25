@@ -585,9 +585,10 @@ window.loadInvoice = async function(id) {
       const rows = container.querySelectorAll('.item-row');
       const row = rows[rows.length-1];
       if (row) {
-        row.querySelector('.item-desc').value = item.desc || '';
-        row.querySelector('.item-qty').value = (item.qty !== undefined && item.qty !== null) ? item.qty : 1;
-        row.querySelector('.item-price').value = item.price || 0;
+        const d = row.querySelector('.idesc'); if(d) d.value = item.desc || '';
+        const q = row.querySelector('.iqty'); if(q) q.value = item.qty != null ? item.qty : '';
+        const a = row.querySelector('.iadv'); if(a) a.value = item.adv || 0;
+        const t = row.querySelector('.itotal'); if(t) t.value = item.price || 0;
       }
     });
   }
