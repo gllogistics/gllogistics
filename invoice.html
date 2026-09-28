@@ -576,20 +576,19 @@ window.loadInvoice = async function(id) {
   if (document.getElementById('fMisc'))  document.getElementById('fMisc').value = inv.misc || 0;
   if (document.getElementById('fBankSel'))  document.getElementById('fBankSel').value = inv.bank_details || '';
   // Заполняем позиции
-  const items = typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : (inv.items || []);
-  const container = document.querySelector('.items-container');
-  if (container && items.length) {
+  const invItems = typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : (inv.items || []);
+  const container = document.getElementById('itemsList');
+  if (container && invItems.length) {
     container.innerHTML = '';
-    items.forEach(item => {
-      addRow && addRow();
-      const rows = container.querySelectorAll('.item-row');
-      const row = rows[rows.length-1];
-      if (row) {
-        const d = row.querySelector('.idesc'); if(d) d.value = item.desc || '';
-        const q = row.querySelector('.iqty'); if(q) q.value = item.qty != null ? item.qty : '';
-        const a = row.querySelector('.iadv'); if(a) a.value = item.adv || 0;
-        const t = row.querySelector('.itotal'); if(t) t.value = item.price || 0;
-      }
+    invItems.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'item-row';
+      div.innerHTML = '<input class="idesc" placeholder="Описание..."><input class="iqty" type="number" placeholder="1" style="text-align:center"><input class="iadv" type="number" placeholder="0" step="0.01"><input class="itotal" type="number" placeholder="0.00" step="0.01"><button class="btn-del" onclick="if(document.querySelectorAll(\'.item-row\').length>1){this.closest(\'.item-row\').remove();render&&render()}">✕</button>';
+      container.appendChild(div);
+      div.querySelector('.idesc').value = item.desc || '';
+      const qEl = div.querySelector('.iqty'); if(qEl) qEl.value = item.qty != null ? item.qty : '';
+      const aEl = div.querySelector('.iadv'); if(aEl) aEl.value = item.adv || 0;
+      const tEl = div.querySelector('.itotal'); if(tEl) tEl.value = item.price || 0;
     });
   }
   if (typeof render === 'function') render();
