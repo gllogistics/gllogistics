@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/images/GL_LOGISTICs_line_-09.jpg.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Автопарк</title>
+<meta name="theme-color" content="#55B7BD">
+<script src="/js/emoji-remover.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f0f4f5; color: #1E3B42; min-height: 100vh; }
+.app-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 1rem 2rem; }
+.top-bar { background: #fff; border-radius: 0 0 20px 20px; padding: .8rem 1.4rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.brand { display: flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1rem; color: #1E3B42; text-decoration: none; }
+.brand img { height: 32px; }
+.btn-logout { margin-left: auto; background: none; border: 1.5px solid #e0eaeb; border-radius: 10px; padding: 6px 14px; color: #8fa8ab; font-size: .78rem; cursor: pointer; font-family: inherit; }
+.nav-links { display: flex; gap: 2px; margin-bottom: 1.4rem; padding: 6px; background: rgba(255,255,255,0.7); border-radius: 16px; width: fit-content; border: 1px solid rgba(85,183,189,0.15); flex-wrap: wrap; }
+.nav-links a { position: relative; background: transparent; color: #5a7a80; padding: 8px 14px; border-radius: 12px; text-decoration: none; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 60px; }
+.nav-links a svg { opacity: .6; width: 18px; height: 18px; }
+.nav-links a:hover { background: #E8F6F6; color: #1E7A80; }
+.nav-links a.active { background: #55B7BD; color: #fff; }
+.nav-links a.active svg { opacity: 1; stroke: #fff; }
+
+.toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+.toolbar select, .toolbar input { background: #fff; border: 1.5px solid #e8f4f5; border-radius: 10px; padding: 8px 12px; font-size: .82rem; font-family: inherit; color: #1E3B42; outline: none; }
+.btn { border: none; border-radius: 10px; padding: 8px 16px; font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-primary { background: #55B7BD; color: #fff; }
+.btn-success { background: #2E7D32; color: #fff; }
+.btn-ghost { background: rgba(85,183,189,.12); color: #1E7A80; }
+.btn-secondary { background: #f0f4f5; color: #5a7a80; }
+.btn-danger { background: #FEF2F2; color: #C62828; }
+.btn-sm { padding: 4px 10px; font-size: .74rem; border-radius: 8px; }
+
+.alerts { background: #fff; border-radius: 16px; border: 1.5px solid #f5d0c5; padding: 1rem 1.2rem; margin-bottom: 1.2rem; display: none; }
+.alerts h3 { font-size: .85rem; margin-bottom: .6rem; color: #C62828; }
+.alert-row { display: flex; gap: .8rem; align-items: center; padding: 6px 0; border-bottom: 1px solid #f7eeee; font-size: .82rem; cursor: pointer; }
+.alert-row:last-child { border-bottom: none; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: .9rem; }
+.vcard { background: #fff; border-radius: 16px; border: 1.5px solid #e8f4f5; padding: 1rem 1.1rem; cursor: pointer; transition: .2s; border-left: 4px solid #2E7D32; }
+.vcard:hover { box-shadow: 0 4px 16px rgba(85,183,189,.15); transform: translateY(-2px); }
+.vcard.soon { border-left-color: #E65100; }
+.vcard.overdue { border-left-color: #C62828; }
+.vcard .plate { font-size: 1.05rem; font-weight: 800; }
+.vcard .sub { font-size: .75rem; color: #8fa8ab; margin: 2px 0 8px; }
+.vcard .km { font-size: .8rem; font-weight: 600; color: #1E7A80; margin-bottom: 8px; }
+.chip { display: inline-block; font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; margin: 0 4px 4px 0; }
+.chip.ok { background: #E8F5E9; color: #2E7D32; }
+.chip.soon { background: #FFF3E0; color: #E65100; }
+.chip.overdue { background: #FFEBEE; color: #C62828; }
+.chip.unknown { background: #f0f4f5; color: #8fa8ab; }
+.type-badge { float: right; font-size: .68rem; font-weight: 700; color: #5a7a80; background: #f0f4f5; padding: 2px 8px; border-radius: 10px; }
+
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 2rem 1rem; }
+.modal.open { display: flex; }
+.modal-box { background: #fff; border-radius: 20px; padding: 1.4rem; width: 100%; max-width: 520px; }
+.modal-box.wide { max-width: 900px; }
+.modal-title { font-size: 1rem; font-weight: 700; color: #1E7A80; margin-bottom: 1rem; display: flex; align-items: center; gap: .6rem; }
+.fg { margin-bottom: .7rem; }
+.fg label { font-size: .7rem; color: #8fa8ab; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 3px; }
+.fg input, .fg select, .fg textarea { width: 100%; background: #f8fbfc; border: 1.5px solid #e8f4f5; border-radius: 10px; padding: 9px 12px; font-size: .85rem; font-family: inherit; color: #1E3B42; outline: none; }
+.fg input:focus, .fg select:focus { border-color: #55B7BD; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.hint { font-size: .72rem; color: #8fa8ab; margin: -4px 0 8px; }
+.mfooter { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1rem; }
+.section { margin-top: 1.2rem; }
+.section-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; }
+.section-head h4 { font-size: .85rem; }
+table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+th { text-align: left; font-size: .68rem; color: #8fa8ab; text-transform: uppercase; padding: 6px 8px; border-bottom: 1.5px solid #e8f4f5; }
+td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
+.table-wrap { overflow-x: auto; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .5rem; font-size: .8rem; }
+.info-grid div span { display: block; font-size: .68rem; color: #8fa8ab; text-transform: uppercase; }
+.empty { text-align: center; padding: 2.5rem; color: #8fa8ab; font-size: .85rem; grid-column: 1/-1; }
+@media (max-width: 600px) { .row2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-wrapper">
+  <div class="top-bar">
+    <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL"><span>GL Logistics · Автопарк</span></a>
+    <button class="btn-logout" id="logoutBtn">Выйти</button>
+  </div>
+  <div class="nav-links" id="navLinks"></div>
+
+  <div class="alerts" id="alertsBox"><h3 id="alertsTitle">Требует внимания</h3><div id="alertsList"></div></div>
+
+  <div class="toolbar">
+    <select id="typeFilter">
+      <option value="">Все</option>
+      <option value="truck">Тягачи</option>
+      <option value="trailer">Прицепы</option>
+    </select>
+    <span id="syncInfo" style="font-size:.75rem;color:#8fa8ab"></span>
+    <button class="btn btn-ghost" id="syncBtn" style="margin-left:auto">Обновить пробег из Wialon</button>
+    <button class="btn btn-success" id="addVehicleBtn">+ Машина / прицеп</button>
+  </div>
+
+  <div class="grid" id="vehicleGrid"><div class="empty">Загрузка...</div></div>
+</div>
+
+<!-- Карточка машины -->
+<div class="modal" id="detailModal">
+  <div class="modal-box wide">
+    <div class="modal-title">
+      <span id="dTitle"></span>
+      <button class="btn btn-ghost btn-sm" id="dEditBtn" style="margin-left:auto">Изменить</button>
+      <button class="btn btn-secondary btn-sm" data-close="detailModal">Закрыть</button>
+    </div>
+    <div class="info-grid" id="dInfo"></div>
+
+    <div class="section">
+      <div class="section-head">
+        <h4>Напоминания</h4>
+        <button class="btn btn-ghost btn-sm" id="addReminderBtn">+ Напоминание</button>
+        <button class="btn btn-secondary btn-sm" id="presetBtn">Стандартный набор</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Что</th><th>Последний раз</th><th>Следующий</th><th>Осталось</th><th>Статус</th><th></th></tr></thead>
+        <tbody id="dReminders"></tbody>
+      </table></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h4>История обслуживания</h4>
+        <button class="btn btn-success btn-sm" id="addServiceBtn">+ Запись</button>
+        <span id="dTotalCost" style="margin-left:auto;font-size:.8rem;font-weight:700;color:#1E7A80"></span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Дата</th><th>Что</th><th>Пробег</th><th>Стоимость</th><th>Комментарий</th><th></th></tr></thead>
+        <tbody id="dServices"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- Машина: форма -->
+<div class="modal" id="vehicleModal">
+  <div class="modal-box">
+    <div class="modal-title" id="vTitle">Новая машина</div>
+    <div class="row2">
+      <div class="fg"><label>Тип</label><select id="vType"><option value="truck">Тягач</option><option value="trailer">Прицеп / полуприцеп</option></select></div>
+      <div class="fg"><label>Госномер</label><input id="vPlate" placeholder="284 HT 61"></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Марка</label><input id="vBrand" placeholder="DAF, Volvo, Schmitz..."></div>
+      <div class="fg"><label>Модель</label><input id="vModel"></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Год</label><input id="vYear" type="number"></div>
+      <div class="fg"><label>VIN</label><input id="vVin"></div>
+    </div>
+    <div class="fg" id="vWialonWrap"><label>Объект в Wialon</label><select id="vWialon"><option value="">— не привязан —</option></select></div>
+    <p class="hint" id="vWialonHint">Пробег будет подтягиваться автоматически каждый день.</p>
+    <div class="fg" id="vAttachWrap" style="display:none"><label>Прицеплен к тягачу</label><select id="vAttach"><option value="">— нет —</option></select></div>
+    <p class="hint" id="vAttachHint" style="display:none">Пробег прицепа будет расти вместе с пробегом тягача.</p>
+    <div class="fg"><label>Текущий пробег, км</label><input id="vOdo" type="number"></div>
+    <div class="fg"><label>Заметки</label><textarea id="vNotes" rows="2"></textarea></div>
+    <div class="mfooter">
+      <button class="btn btn-danger" id="vDeleteBtn" style="margin-right:auto;display:none">Удалить</button>
+      <button class="btn btn-secondary" data-close="vehicleModal">Отмена</button>
+      <button class="btn btn-primary" id="vSaveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Напоминание: форма -->
+<div class="modal" id="reminderModal">
+  <div class="modal-box">
+    <div class="modal-title" id="rTitle">Напоминание</div>
+    <div class="fg"><label>Что отслеживать</label><select id="rKind"></select></div>
+    <div class="row2">
+      <div class="fg"><label>Каждые, км</label><input id="rIntKm" type="number" placeholder="60000"></div>
+      <div class="fg"><label>Каждые, дней</label><input id="rIntDays" type="number" placeholder="365"></div>
+    </div>
+    <p class="hint">Считается от последней записи обслуживания этого типа. Что наступит раньше — то и сработает.</p>
+    <div class="row2">
+      <div class="fg"><label>Или точная дата</label><input id="rDueDate" type="date"></div>
+      <div class="fg"><label>Или точный пробег, км</label><input id="rDueKm" type="number"></div>
+    </div>
+    <p class="hint">Для страховки и техосмотра удобнее указать дату окончания.</p>
+    <div class="row2">
+      <div class="fg"><label>Предупредить за, км</label><input id="rWarnKm" type="number" value="5000"></div>
+      <div class="fg"><label>Предупредить за, дней</label><input id="rWarnDays" type="number" value="30"></div>
+    </div>
+    <div class="mfooter">
+      <button class="btn btn-danger" id="rDeleteBtn" style="margin-right:auto;display:none">Удалить</button>
+      <button class="btn btn-secondary" data-close="reminderModal">Отмена</button>
+      <button class="btn btn-primary" id="rSaveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Обслуживание: форма -->
+<div class="modal" id="serviceModal">
+  <div class="modal-box">
+    <div class="modal-title" id="sTitle">Запись обслуживания</div>
+    <div class="row2">
+      <div class="fg"><label>Что сделано</label><select id="sKind"></select></div>
+      <div class="fg"><label>Дата</label><input id="sDate" type="date"></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Пробег, км</label><input id="sOdo" type="number"></div>
+      <div class="fg"><label>Стоимость</label>
+        <div style="display:flex;gap:4px"><input id="sCost" type="number" step="0.01" style="flex:1">
+        <select id="sCur" style="width:80px"><option>AMD</option><option>EUR</option><option>USD</option><option>RUB</option></select></div>
+      </div>
+    </div>
+    <div class="fg"><label>Комментарий (детали, марка масла, СТО)</label><textarea id="sDesc" rows="2"></textarea></div>
+    <div class="row2">
+      <div class="fg"><label>Действует до / следующая дата</label><input id="sNextDate" type="date"></div>
+      <div class="fg"><label>Следующая замена на, км</label><input id="sNextKm" type="number"></div>
+    </div>
+    <p class="hint">Необязательно. Если заполнить, напоминание возьмёт эти значения вместо интервала. Для страховки укажите дату окончания полиса.</p>
+    <div class="mfooter">
+      <button class="btn btn-danger" id="sDeleteBtn" style="margin-right:auto;display:none">Удалить</button>
+      <button class="btn btn-secondary" data-close="serviceModal">Отмена</button>
+      <button class="btn btn-primary" id="sSaveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER = 'https://gl-api.gltransam.workers.dev';
+const user = localStorage.getItem('gl_staff_user');
+const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
+if (!user || !loginTime || (Date.now() - loginTime) > 12*3600*1000) { location.replace('/staff.html'); throw ''; }
+
+function api(path, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const t = localStorage.getItem('gl_staff_token');
+  if (t) opts.headers.Authorization = 'Bearer ' + t;
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(WORKER + path, opts).then(r => r.json());
+}
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 });
+const open = id => $(id).classList.add('open');
+const close = id => $(id).classList.remove('open');
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close(b.dataset.close)));
+
+// Навигация
+(function nav() {
+  const isAdm = user === 'TigranMetspagyan';
+  const I = {
+    'Главная':'M3,3h7v7H3V3zm11,0h7v7h-7V3zM3,14h7v7H3v-7zm11,0h7v7h-7v-7z',
+    'Сделки':'M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7zM16,3l-4,4-4-4',
+    'Заявки':'M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8zM14,2V8H20M16,13H8M16,17H8',
+    'Инвойс':'M2,5H22a0,0,0,0,1,2,2v14a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V7A2,2,0,0,1,2,5zM2,10H22',
+    'Рейсы':'M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3zM16,8H20l3,3v5H16zM5.5,16A2.5,2.5,0,1,1,5.5,21A2.5,2.5,0,0,1,5.5,16zM18.5,16A2.5,2.5,0,1,1,18.5,21A2.5,2.5,0,0,1,18.5,16z',
+    'Клиенты':'M17,21v-2a4,4,0,0,0-4-4H5a4,4,0,0,0-4,4v2M9,7a4,4,0,1,0,0,8A4,4,0,0,0,9,7z',
+    'Файлы':'M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2h5l2,3h9a2,2,0,0,1,2,2z',
+    'Расходы':'M12,1V23M17,5H9.5a3.5,3.5,0,0,0,0,7h5a3.5,3.5,0,0,1,0,7H6',
+    'Диспатчинг':'M12,2A10,10,0,1,0,12,22A10,10,0,0,0,12,2zM2,12H22M12,2a15.3,15.3,0,0,1,4,10,15.3,15.3,0,0,1-4,10,15.3,15.3,0,0,1-4-10,15.3,15.3,0,0,1,4-10z',
+  };
+  const all = [['/staff-dashboard.html','Главная'],['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы'],['/clients','Клиенты'],['/files','Файлы'],['/expenses.html','Расходы'],['/dispatch.html','Диспатчинг']];
+  const log = [['/staff-cargo.html','Сделки'],['/rateconfirmation','Заявки'],['/invoice','Инвойс'],['/trip-report','Рейсы']];
+  $('navLinks').innerHTML = (isAdm ? all : log).map(([h, l]) =>
+    `<a href="${h}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="${I[l]}"/></svg><span>${l}</span></a>`).join('');
+})();
+$('logoutBtn').addEventListener('click', () => {
+  ['gl_staff_user','gl_staff_login_time','gl_staff_token','gl_staff_last_active'].forEach(k => localStorage.removeItem(k));
+  location.href = '/staff.html';
+});
+
+let vehicles = [], kinds = {}, current = null, editVehicleId = null, editReminderId = null, editServiceId = null;
+const statusText = { ok: 'В норме', soon: 'Скоро', overdue: 'Просрочено', unknown: 'Нет данных' };
+
+function leftText(r) {
+  const p = [];
+  if (r.left_days != null) p.push(r.left_days < 0 ? `просрочено ${-r.left_days} дн.` : `${r.left_days} дн.`);
+  if (r.left_km != null) p.push(r.left_km <= 0 ? `перепробег ${fmt(-r.left_km)} км` : `${fmt(r.left_km)} км`);
+  return p.join(' / ') || '—';
+}
+function nextText(r) {
+  const p = [];
+  if (r.next_date) p.push(r.next_date);
+  if (r.next_km != null) p.push(fmt(r.next_km) + ' км');
+  return p.join(' / ') || '—';
+}
+
+async function load() {
+  [vehicles, kinds] = await Promise.all([api('/api/fleet').catch(() => []), api('/api/fleet/kinds').catch(() => ({}))]);
+  if (!Array.isArray(vehicles)) vehicles = [];
+  const opts = Object.entries(kinds).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  $('rKind').innerHTML = opts; $('sKind').innerHTML = opts;
+  render();
+}
+
+function render() {
+  const f = $('typeFilter').value;
+  const list = vehicles.filter(v => !f || v.type === f);
+  $('vehicleGrid').innerHTML = list.length ? list.map(v => {
+    const chips = v.reminders.filter(r => r.status !== 'ok').slice(0, 4)
+      .map(r => `<span class="chip ${r.status}">${esc(r.label)}: ${leftText(r)}</span>`).join('')
+      || (v.reminders.length ? '<span class="chip ok">Всё в норме</span>' : '<span class="chip unknown">Напоминаний нет</span>');
+    const attached = v.attached_to ? vehicles.find(x => x.id === v.attached_to) : null;
+    return `<div class="vcard ${v.status}" data-id="${v.id}">
+      <span class="type-badge">${v.type === 'trailer' ? 'Прицеп' : 'Тягач'}</span>
+      <div class="plate">${esc(v.plate)}</div>
+      <div class="sub">${esc([v.brand, v.model, v.year].filter(Boolean).join(' ')) || '&nbsp;'}${attached ? ' · с ' + esc(attached.plate) : ''}</div>
+      <div class="km">${fmt(v.odometer)} км${v.wialon_unit_id ? ' · Wialon' : ''}</div>
+      <div>${chips}</div></div>`;
+  }).join('') : '<div class="empty">Машин пока нет. Нажмите «+ Машина / прицеп».</div>';
+
+  // Блок уведомлений
+  const alerts = [];
+  vehicles.forEach(v => v.reminders.forEach(r => { if (r.status === 'soon' || r.status === 'overdue') alerts.push({ v, r }); }));
+  alerts.sort((a, b) => (a.r.status === 'overdue' ? 0 : 1) - (b.r.status === 'overdue' ? 0 : 1));
+  $('alertsBox').style.display = alerts.length ? 'block' : 'none';
+  $('alertsTitle').textContent = 'Требует внимания: ' + alerts.length;
+  $('alertsList').innerHTML = alerts.map(({ v, r }) =>
+    `<div class="alert-row" data-id="${v.id}"><b style="min-width:90px">${esc(v.plate)}</b><span style="flex:1">${esc(r.label)}</span><span class="chip ${r.status}">${leftText(r)}</span></div>`).join('');
+
+  const synced = vehicles.map(v => v.odometer_updated_at).filter(Boolean).sort().pop();
+  $('syncInfo').textContent = synced ? 'Пробег обновлён: ' + synced.slice(0, 16) : '';
+}
+
+$('typeFilter').addEventListener('change', render);
+document.addEventListener('click', e => {
+  const card = e.target.closest('.vcard, .alert-row');
+  if (card) openDetail(parseInt(card.dataset.id));
+});
+
+// ── Карточка ──
+async function openDetail(id) {
+  current = await api('/api/fleet/' + id);
+  const v = current;
+  const attached = v.attached_to ? vehicles.find(x => x.id === v.attached_to) : null;
+  $('dTitle').textContent = v.plate + (v.type === 'trailer' ? ' · прицеп' : ' · тягач');
+  $('dInfo').innerHTML = [
+    ['Марка / модель', [v.brand, v.model].filter(Boolean).join(' ') || '—'],
+    ['Год', v.year || '—'], ['VIN', v.vin || '—'],
+    ['Пробег', fmt(v.odometer) + ' км'],
+    ['Источник пробега', v.wialon_unit_id ? 'Wialon' : (attached ? 'от тягача ' + attached.plate : 'вручную')],
+    ['Заметки', v.notes || '—'],
+  ].map(([k, val]) => `<div><span>${k}</span>${esc(val)}</div>`).join('');
+
+  $('dReminders').innerHTML = v.reminders.length ? v.reminders.map(r => `<tr>
+      <td><b>${esc(r.label)}</b></td>
+      <td>${r.last_date ? esc(r.last_date) : '—'}${r.last_km ? '<br><small>' + fmt(r.last_km) + ' км</small>' : ''}</td>
+      <td>${nextText(r)}</td><td>${leftText(r)}</td>
+      <td><span class="chip ${r.status}">${statusText[r.status]}</span></td>
+      <td><button class="btn btn-ghost btn-sm" data-rem="${r.id}">Изм.</button></td></tr>`).join('')
+    : '<tr><td colspan="6" style="color:#8fa8ab">Добавьте напоминания или нажмите «Стандартный набор»</td></tr>';
+
+  $('dServices').innerHTML = v.services.length ? v.services.map(s => `<tr>
+      <td>${esc(s.date)}</td><td>${esc(kinds[s.kind] || s.kind)}</td>
+      <td>${s.odometer ? fmt(s.odometer) + ' км' : '—'}</td>
+      <td>${s.cost ? fmt(s.cost) + ' ' + esc(s.currency) : '—'}</td>
+      <td>${esc(s.description)}${s.next_date ? '<br><small>до ' + esc(s.next_date) + '</small>' : ''}</td>
+      <td><button class="btn btn-ghost btn-sm" data-svc="${s.id}">Изм.</button></td></tr>`).join('')
+    : '<tr><td colspan="6" style="color:#8fa8ab">Записей пока нет</td></tr>';
+  const total = v.services.reduce((s, x) => s + (x.cost_amd || 0), 0);
+  $('dTotalCost').textContent = total ? 'Всего потрачено: ֏' + fmt(total) : '';
+  open('detailModal');
+}
+$('dReminders').addEventListener('click', e => { const b = e.target.closest('[data-rem]'); if (b) openReminder(current.reminders.find(r => r.id == b.dataset.rem)); });
+$('dServices').addEventListener('click', e => { const b = e.target.closest('[data-svc]'); if (b) openService(current.services.find(s => s.id == b.dataset.svc)); });
+
+// ── Машина ──
+async function openVehicle(v) {
+  editVehicleId = v ? v.id : null;
+  $('vTitle').textContent = v ? 'Изменить: ' + v.plate : 'Новая машина / прицеп';
+  $('vType').value = v?.type || 'truck';
+  $('vPlate').value = v?.plate || ''; $('vBrand').value = v?.brand || ''; $('vModel').value = v?.model || '';
+  $('vYear').value = v?.year || ''; $('vVin').value = v?.vin || ''; $('vOdo').value = v?.odometer || '';
+  $('vNotes').value = v?.notes || '';
+  $('vDeleteBtn').style.display = v ? 'block' : 'none';
+  $('vAttach').innerHTML = '<option value="">— нет —</option>' + vehicles.filter(x => x.type === 'truck')
+    .map(x => `<option value="${x.id}">${esc(x.plate)}</option>`).join('');
+  $('vAttach').value = v?.attached_to || '';
+  toggleType();
+  open('vehicleModal');
+  const sel = $('vWialon');
+  sel.innerHTML = '<option value="">Загрузка списка Wialon...</option>';
+  const units = await api('/api/fleet/wialon-units').catch(() => ({ error: 'нет связи' }));
+  if (Array.isArray(units)) {
+    sel.innerHTML = '<option value="">— не привязан —</option>' +
+      units.map(u => `<option value="${u.id}">${esc(u.name)} · ${fmt(u.mileage)} км</option>`).join('');
+    sel.value = v?.wialon_unit_id || '';
+  } else {
+    sel.innerHTML = '<option value="">Wialon недоступен: ' + esc(units.error) + '</option>';
+  }
+}
+function toggleType() {
+  const trailer = $('vType').value === 'trailer';
+  $('vAttachWrap').style.display = $('vAttachHint').style.display = trailer ? 'block' : 'none';
+}
+$('vType').addEventListener('change', toggleType);
+$('vWialon').addEventListener('change', e => {
+  const m = e.target.selectedOptions[0]?.textContent.match(/·\s([\d\s ]+)\sкм/);
+  if (m && !$('vOdo').value) $('vOdo').value = m[1].replace(/\s/g, '');
+});
+$('addVehicleBtn').addEventListener('click', () => openVehicle(null));
+$('dEditBtn').addEventListener('click', () => { close('detailModal'); openVehicle(current); });
+$('vSaveBtn').addEventListener('click', async () => {
+  const body = {
+    type: $('vType').value, plate: $('vPlate').value.trim(), brand: $('vBrand').value.trim(),
+    model: $('vModel').value.trim(), year: parseInt($('vYear').value) || null, vin: $('vVin').value.trim(),
+    wialon_unit_id: parseInt($('vWialon').value) || null,
+    attached_to: $('vType').value === 'trailer' ? (parseInt($('vAttach').value) || null) : null,
+    odometer: parseFloat($('vOdo').value) || 0, notes: $('vNotes').value.trim()
+  };
+  if (!body.plate) { alert('Укажите госномер'); return; }
+  if (editVehicleId) await api('/api/fleet/' + editVehicleId, 'PUT', body);
+  else await api('/api/fleet', 'POST', body);
+  close('vehicleModal'); await load();
+});
+$('vDeleteBtn').addEventListener('click', async () => {
+  if (!confirm('Удалить машину вместе со всей историей обслуживания?')) return;
+  await api('/api/fleet/' + editVehicleId, 'DELETE');
+  close('vehicleModal'); await load();
+});
+
+// ── Напоминание ──
+function openReminder(r) {
+  editReminderId = r ? r.id : null;
+  $('rTitle').textContent = r ? 'Изменить напоминание' : 'Новое напоминание';
+  $('rKind').value = r?.kind || 'oil';
+  $('rIntKm').value = r?.interval_km || ''; $('rIntDays').value = r?.interval_days || '';
+  $('rDueDate').value = r?.due_date || ''; $('rDueKm').value = r?.due_km || '';
+  $('rWarnKm').value = r?.warn_km ?? 5000; $('rWarnDays').value = r?.warn_days ?? 30;
+  $('rDeleteBtn').style.display = r ? 'block' : 'none';
+  open('reminderModal');
+}
+$('addReminderBtn').addEventListener('click', () => openReminder(null));
+$('rSaveBtn').addEventListener('click', async () => {
+  const body = {
+    kind: $('rKind').value, interval_km: parseFloat($('rIntKm').value) || null,
+    interval_days: parseInt($('rIntDays').value) || null, due_date: $('rDueDate').value || null,
+    due_km: parseFloat($('rDueKm').value) || null, warn_km: parseFloat($('rWarnKm').value) || 5000,
+    warn_days: parseInt($('rWarnDays').value) || 30
+  };
+  if (editReminderId) await api('/api/fleet/reminders/' + editReminderId, 'PUT', body);
+  else await api('/api/fleet/' + current.id + '/reminders', 'POST', body);
+  close('reminderModal'); await load(); await openDetail(current.id);
+});
+$('rDeleteBtn').addEventListener('click', async () => {
+  if (!confirm('Удалить напоминание?')) return;
+  await api('/api/fleet/reminders/' + editReminderId, 'DELETE');
+  close('reminderModal'); await load(); await openDetail(current.id);
+});
+$('presetBtn').addEventListener('click', async () => {
+  const truck = [
+    { kind: 'oil', interval_km: 60000, interval_days: 365 },
+    { kind: 'filter_oil', interval_km: 60000, interval_days: 365 },
+    { kind: 'filter_fuel', interval_km: 60000, interval_days: 365 },
+    { kind: 'filter_air', interval_km: 90000, interval_days: 365 },
+    { kind: 'oil_gearbox', interval_km: 200000 },
+    { kind: 'belts', interval_km: 150000 },
+    { kind: 'to', interval_days: 365 },
+    { kind: 'insurance' }, { kind: 'inspection' }, { kind: 'tachograph', interval_days: 730 },
+  ];
+  const trailer = [{ kind: 'to', interval_days: 365 }, { kind: 'brakes', interval_km: 100000 }, { kind: 'insurance' }, { kind: 'inspection' }];
+  const have = new Set(current.reminders.map(r => r.kind));
+  const list = (current.type === 'trailer' ? trailer : truck).filter(p => !have.has(p.kind));
+  if (!list.length) { alert('Стандартный набор уже добавлен'); return; }
+  if (!confirm('Добавить ' + list.length + ' типовых напоминаний? Интервалы потом можно изменить под ваши машины.')) return;
+  for (const p of list) await api('/api/fleet/' + current.id + '/reminders', 'POST', p);
+  await load(); await openDetail(current.id);
+});
+
+// ── Обслуживание ──
+function openService(s) {
+  editServiceId = s ? s.id : null;
+  $('sTitle').textContent = s ? 'Изменить запись' : 'Новая запись обслуживания';
+  $('sKind').value = s?.kind || 'oil';
+  $('sDate').value = s?.date || new Date().toISOString().slice(0, 10);
+  $('sOdo').value = s?.odometer ?? Math.round(current.odometer || 0) || '';
+  $('sCost').value = s?.cost || ''; $('sCur').value = s?.currency || 'AMD';
+  $('sDesc').value = s?.description || '';
+  $('sNextDate').value = s?.next_date || ''; $('sNextKm').value = s?.next_km || '';
+  $('sDeleteBtn').style.display = s ? 'block' : 'none';
+  open('serviceModal');
+}
+$('addServiceBtn').addEventListener('click', () => openService(null));
+$('sSaveBtn').addEventListener('click', async () => {
+  const body = {
+    kind: $('sKind').value, date: $('sDate').value, odometer: parseFloat($('sOdo').value) || null,
+    cost: parseFloat($('sCost').value) || 0, currency: $('sCur').value, description: $('sDesc').value.trim(),
+    next_date: $('sNextDate').value || null, next_km: parseFloat($('sNextKm').value) || null, created_by: user
+  };
+  if (editServiceId) await api('/api/fleet/services/' + editServiceId, 'PUT', body);
+  else await api('/api/fleet/' + current.id + '/services', 'POST', body);
+  close('serviceModal'); await load(); await openDetail(current.id);
+});
+$('sDeleteBtn').addEventListener('click', async () => {
+  if (!confirm('Удалить запись?')) return;
+  await api('/api/fleet/services/' + editServiceId, 'DELETE');
+  close('serviceModal'); await load(); await openDetail(current.id);
+});
+
+// ── Wialon ──
+$('syncBtn').addEventListener('click', async () => {
+  const b = $('syncBtn'); b.disabled = true; b.textContent = 'Обновляю...';
+  const r = await api('/api/fleet/sync', 'POST').catch(() => ({ error: 'нет связи' }));
+  b.disabled = false; b.textContent = 'Обновить пробег из Wialon';
+  if (r.error) alert('Ошибка Wialon: ' + r.error);
+  await load();
+});
+
+load();
+</script>
+<script src="/js/nav-fleet.js"></script>
+</body>
+</html>
