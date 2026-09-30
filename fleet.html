@@ -158,7 +158,8 @@ td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
     <p class="hint" id="vWialonHint">Пробег будет подтягиваться автоматически каждый день.</p>
     <div class="fg" id="vAttachWrap" style="display:none"><label>Прицеплен к тягачу</label><select id="vAttach"><option value="">— нет —</option></select></div>
     <p class="hint" id="vAttachHint" style="display:none">Пробег прицепа будет расти вместе с пробегом тягача.</p>
-    <div class="fg"><label>Текущий пробег, км</label><input id="vOdo" type="number"></div>
+    <div class="fg"><label>Реальный пробег по одометру, км</label><input id="vOdo" type="number"></div>
+    <p class="hint" id="vOdoHint">Введите пробег с приборной панели. Если Wialon считает иначе, система запомнит разницу и будет учитывать её каждый день.</p>
     <div class="fg"><label>Заметки</label><textarea id="vNotes" rows="2"></textarea></div>
     <div class="mfooter">
       <button class="btn btn-danger" id="vDeleteBtn" style="margin-right:auto;display:none">Удалить</button>
@@ -276,6 +277,7 @@ $('logoutBtn').addEventListener('click', () => {
 
 const DATE_KINDS = ['insurance_am','insurance_ge','insurance_tr','insurance_ru','insurance_eu','insurance','inspection','tachograph'];
 const isDateKind = k => DATE_KINDS.includes(k);
+let wialonList = [];
 let vehicles = [], kinds = {}, current = null, editVehicleId = null, editReminderId = null, editServiceId = null;
 const statusText = { ok: 'В норме', soon: 'Скоро', overdue: 'Просрочено', unknown: 'Нет данных' };
 
@@ -399,6 +401,7 @@ async function openVehicle(v) {
   sel.innerHTML = '<option value="">Загрузка списка Wialon...</option>';
   const units = await api('/api/fleet/wialon-units').catch(() => ({ error: 'нет связи' }));
   if (Array.isArray(units)) {
+    wialonList = units;
     sel.innerHTML = '<option value="">— не привязан —</option>' +
       units.map(u => `<option value="${u.id}">${esc(u.name)} · ${fmt(u.mileage)} км</option>`).join('');
     sel.value = v?.wialon_unit_id || '';
@@ -411,10 +414,7 @@ function toggleType() {
   $('vAttachWrap').style.display = $('vAttachHint').style.display = trailer ? 'block' : 'none';
 }
 $('vType').addEventListener('change', toggleType);
-$('vWialon').addEventListener('change', e => {
-  const m = e.target.selectedOptions[0]?.textContent.match(/·\s([\d\s ]+)\sкм/);
-  if (m && !$('vOdo').value) $('vOdo').value = m[1].replace(/\s/g, '');
-});
+
 $('addVehicleBtn').addEventListener('click', () => openVehicle(null));
 $('dEditBtn').addEventListener('click', () => { close('detailModal'); openVehicle(current); });
 $('vSaveBtn').addEventListener('click', async () => {
@@ -425,6 +425,11 @@ $('vSaveBtn').addEventListener('click', async () => {
     attached_to: $('vType').value === 'trailer' ? (parseInt($('vAttach').value) || null) : null,
     odometer: parseFloat($('vOdo').value) || 0, notes: $('vNotes').value.trim()
   };
+  // Поправка: реальный одометр минус счётчик Wialon
+  const prev = editVehicleId ? vehicles.find(x => x.id === editVehicleId) : null;
+  body.odometer_offset = prev ? (prev.odometer_offset || 0) : 0;
+  const unit = wialonList.find(u => u.id === body.wialon_unit_id);
+  if (unit && body.odometer) body.odometer_offset = Math.round(body.odometer - unit.mileage);
   if (!body.plate) { alert('Укажите госномер'); return; }
   if (editVehicleId) await api('/api/fleet/' + editVehicleId, 'PUT', body);
   else await api('/api/fleet', 'POST', body);
