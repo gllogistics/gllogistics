@@ -22,11 +22,20 @@
       a.style.position = 'relative';
       nav.appendChild(a);
     }
-    const html = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICON + '"/></svg><span>Автопарк</span>' + badgeHtml();
-    if (a.innerHTML !== html) a.innerHTML = html;
+    // Перерисовываем только если изменилось число уведомлений (иначе бесконечный цикл)
+    const state = alerts ? String(alerts.length) : 'none';
+    if (a.dataset.state === state) return;
+    a.dataset.state = state;
+    a.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICON + '"/></svg><span>Автопарк</span>' + badgeHtml();
   }
 
+  let busy = false;
   function scan() {
+    if (busy) return;
+    busy = true;
+    try { scanInner(); } finally { busy = false; }
+  }
+  function scanInner() {
     document.querySelectorAll('.nav-links, #navLinks').forEach(nav => {
       if (nav.children.length > 3) addLink(nav); // только полное меню админа
     });
