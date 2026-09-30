@@ -472,7 +472,7 @@ function openService(s) {
   $('sTitle').textContent = s ? 'Изменить запись' : 'Новая запись обслуживания';
   $('sKind').value = s?.kind || 'oil';
   $('sDate').value = s?.date || new Date().toISOString().slice(0, 10);
-  $('sOdo').value = s?.odometer ?? Math.round(current.odometer || 0) || '';
+  $('sOdo').value = s ? (s.odometer ?? '') : (Math.round(current.odometer || 0) || '');
   $('sCost').value = s?.cost || ''; $('sCur').value = s?.currency || 'AMD';
   $('sDesc').value = s?.description || '';
   $('sNextDate').value = s?.next_date || ''; $('sNextKm').value = s?.next_km || '';
