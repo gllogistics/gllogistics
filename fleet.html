@@ -173,20 +173,26 @@ td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
   <div class="modal-box">
     <div class="modal-title" id="rTitle">Напоминание</div>
     <div class="fg"><label>Что отслеживать</label><select id="rKind"></select></div>
-    <div class="row2">
-      <div class="fg"><label>Каждые, км</label><input id="rIntKm" type="number" placeholder="60000"></div>
-      <div class="fg"><label>Каждые, дней</label><input id="rIntDays" type="number" placeholder="365"></div>
-    </div>
-    <p class="hint">Считается от последней записи обслуживания этого типа. Что наступит раньше — то и сработает.</p>
-    <div class="row2">
-      <div class="fg"><label>Или точная дата</label><input id="rDueDate" type="date"></div>
-      <div class="fg"><label>Или точный пробег, км</label><input id="rDueKm" type="number"></div>
-    </div>
-    <p class="hint">Для страховок и техосмотра удобнее указать дату окончания полиса.</p>
-    <div class="row2">
+    <div id="rKmBlock">
+      <div class="row2">
+        <div class="fg"><label>Каждые, км</label><input id="rIntKm" type="number" placeholder="60000"></div>
+        <div class="fg"><label>Каждые, дней</label><input id="rIntDays" type="number" placeholder="365"></div>
+      </div>
+      <p class="hint">Считается от последней записи обслуживания этого типа. Что наступит раньше — то и сработает.</p>
+      <div class="row2">
+        <div class="fg"><label>Или точная дата</label><input id="rDueDateKm" type="date"></div>
+        <div class="fg"><label>Или точный пробег, км</label><input id="rDueKm" type="number"></div>
+      </div>
       <div class="fg"><label>Предупредить за, км</label><input id="rWarnKm" type="number" value="5000"></div>
-      <div class="fg"><label>Предупредить за, дней</label><input id="rWarnDays" type="number" value="30"></div>
     </div>
+    <div id="rDateBlock" style="display:none">
+      <div class="row2">
+        <div class="fg"><label>Начало</label><input id="rStart" type="date"></div>
+        <div class="fg"><label>Окончание</label><input id="rDueDate" type="date"></div>
+      </div>
+      <p class="hint">При продлении просто поменяйте даты на новые.</p>
+    </div>
+    <div class="fg"><label>Предупредить за, дней</label><input id="rWarnDays" type="number" value="30"></div>
     <div class="mfooter">
       <button class="btn btn-danger" id="rDeleteBtn" style="margin-right:auto;display:none">Удалить</button>
       <button class="btn btn-secondary" data-close="reminderModal">Отмена</button>
@@ -201,10 +207,10 @@ td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
     <div class="modal-title" id="sTitle">Запись обслуживания</div>
     <div class="row2">
       <div class="fg"><label>Что сделано</label><select id="sKind"></select></div>
-      <div class="fg"><label>Дата</label><input id="sDate" type="date"></div>
+      <div class="fg"><label id="sDateLbl">Дата</label><input id="sDate" type="date"></div>
     </div>
     <div class="row2">
-      <div class="fg"><label>Пробег, км</label><input id="sOdo" type="number"></div>
+      <div class="fg" id="sOdoWrap"><label>Пробег, км</label><input id="sOdo" type="number"></div>
       <div class="fg"><label>Стоимость</label>
         <div style="display:flex;gap:4px"><input id="sCost" type="number" step="0.01" style="flex:1">
         <select id="sCur" style="width:80px"><option>AMD</option><option>EUR</option><option>USD</option><option>RUB</option></select></div>
@@ -212,8 +218,8 @@ td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
     </div>
     <div class="fg"><label>Комментарий (детали, марка масла, СТО)</label><textarea id="sDesc" rows="2"></textarea></div>
     <div class="row2">
-      <div class="fg"><label>Действует до / следующая дата</label><input id="sNextDate" type="date"></div>
-      <div class="fg"><label>Следующая замена на, км</label><input id="sNextKm" type="number"></div>
+      <div class="fg"><label id="sNextDateLbl">Действует до / следующая дата</label><input id="sNextDate" type="date"></div>
+      <div class="fg" id="sNextKmWrap"><label>Следующая замена на, км</label><input id="sNextKm" type="number"></div>
     </div>
     <p class="hint">Необязательно. Если заполнить, напоминание возьмёт эти значения вместо интервала. Для страховки укажите дату окончания полиса.</p>
     <div class="mfooter">
@@ -268,6 +274,8 @@ $('logoutBtn').addEventListener('click', () => {
   location.href = '/staff.html';
 });
 
+const DATE_KINDS = ['insurance_am','insurance_ge','insurance_tr','insurance_ru','insurance_eu','insurance','inspection','tachograph'];
+const isDateKind = k => DATE_KINDS.includes(k);
 let vehicles = [], kinds = {}, current = null, editVehicleId = null, editReminderId = null, editServiceId = null;
 const statusText = { ok: 'В норме', soon: 'Скоро', overdue: 'Просрочено', unknown: 'Нет данных' };
 
@@ -343,7 +351,7 @@ async function openDetail(id) {
 
   $('dReminders').innerHTML = v.reminders.length ? v.reminders.map(r => `<tr>
       <td><b>${esc(r.label)}</b></td>
-      <td>${r.last_date ? esc(r.last_date) : '—'}${r.last_km ? '<br><small>' + fmt(r.last_km) + ' км</small>' : ''}</td>
+      <td>${isDateKind(r.kind) ? (r.start_date ? 'с ' + esc(r.start_date) : (r.last_date ? 'с ' + esc(r.last_date) : '—')) : ((r.last_date ? esc(r.last_date) : '—') + (r.last_km ? '<br><small>' + fmt(r.last_km) + ' км</small>' : ''))}</td>
       <td>${nextText(r)}</td><td>${leftText(r)}</td>
       <td><span class="chip ${r.status}">${statusText[r.status]}</span></td>
       <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" data-rem="${r.id}">Изм.</button> <button class="btn btn-danger btn-sm" data-remdel="${r.id}" title="Удалить">✕</button></td></tr>`).join('')
@@ -429,24 +437,39 @@ $('vDeleteBtn').addEventListener('click', async () => {
 });
 
 // ── Напоминание ──
+function toggleReminderKind() {
+  const d = isDateKind($('rKind').value);
+  $('rKmBlock').style.display = d ? 'none' : 'block';
+  $('rDateBlock').style.display = d ? 'block' : 'none';
+}
+$('rKind').addEventListener('change', toggleReminderKind);
 function openReminder(r) {
   editReminderId = r ? r.id : null;
   $('rTitle').textContent = r ? 'Изменить напоминание' : 'Новое напоминание';
   $('rKind').value = r?.kind || 'oil';
   $('rIntKm').value = r?.interval_km || ''; $('rIntDays').value = r?.interval_days || '';
-  $('rDueDate').value = r?.due_date || ''; $('rDueKm').value = r?.due_km || '';
+  $('rDueDate').value = r?.due_date || ''; $('rDueDateKm').value = r?.due_date || '';
+  $('rStart').value = r?.start_date || '';
+  $('rDueKm').value = r?.due_km || '';
   $('rWarnKm').value = r?.warn_km ?? 5000; $('rWarnDays').value = r?.warn_days ?? 30;
   $('rDeleteBtn').style.display = r ? 'block' : 'none';
+  toggleReminderKind();
   open('reminderModal');
 }
 $('addReminderBtn').addEventListener('click', () => openReminder(null));
 $('rSaveBtn').addEventListener('click', async () => {
-  const body = {
+  const d = isDateKind($('rKind').value);
+  const body = d ? {
+    kind: $('rKind').value, start_date: $('rStart').value || null, due_date: $('rDueDate').value || null,
+    interval_km: null, interval_days: null, due_km: null, warn_km: null,
+    warn_days: parseInt($('rWarnDays').value) || 30
+  } : {
     kind: $('rKind').value, interval_km: parseFloat($('rIntKm').value) || null,
-    interval_days: parseInt($('rIntDays').value) || null, due_date: $('rDueDate').value || null,
+    interval_days: parseInt($('rIntDays').value) || null, due_date: $('rDueDateKm').value || null,
     due_km: parseFloat($('rDueKm').value) || null, warn_km: parseFloat($('rWarnKm').value) || 5000,
     warn_days: parseInt($('rWarnDays').value) || 30
   };
+  if (d && !body.due_date) { alert('Укажите дату окончания'); return; }
   if (editReminderId) await api('/api/fleet/reminders/' + editReminderId, 'PUT', body);
   else await api('/api/fleet/' + current.id + '/reminders', 'POST', body);
   close('reminderModal'); await load(); await openDetail(current.id);
@@ -482,6 +505,14 @@ $('presetBtn').addEventListener('click', async () => {
 });
 
 // ── Обслуживание ──
+function toggleServiceKind() {
+  const d = isDateKind($('sKind').value);
+  $('sOdoWrap').style.display = d ? 'none' : 'block';
+  $('sNextKmWrap').style.display = d ? 'none' : 'block';
+  $('sDateLbl').textContent = d ? 'Начало действия' : 'Дата';
+  $('sNextDateLbl').textContent = d ? 'Окончание' : 'Действует до / следующая дата';
+}
+$('sKind').addEventListener('change', toggleServiceKind);
 function openService(s) {
   editServiceId = s ? s.id : null;
   $('sTitle').textContent = s ? 'Изменить запись' : 'Новая запись обслуживания';
@@ -492,12 +523,13 @@ function openService(s) {
   $('sDesc').value = s?.description || '';
   $('sNextDate').value = s?.next_date || ''; $('sNextKm').value = s?.next_km || '';
   $('sDeleteBtn').style.display = s ? 'block' : 'none';
+  toggleServiceKind();
   open('serviceModal');
 }
 $('addServiceBtn').addEventListener('click', () => openService(null));
 $('sSaveBtn').addEventListener('click', async () => {
   const body = {
-    kind: $('sKind').value, date: $('sDate').value, odometer: parseFloat($('sOdo').value) || null,
+    kind: $('sKind').value, date: $('sDate').value, odometer: isDateKind($('sKind').value) ? null : (parseFloat($('sOdo').value) || null),
     cost: parseFloat($('sCost').value) || 0, currency: $('sCur').value, description: $('sDesc').value.trim(),
     next_date: $('sNextDate').value || null, next_km: parseFloat($('sNextKm').value) || null, created_by: user
   };
