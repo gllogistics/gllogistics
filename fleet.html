@@ -182,7 +182,7 @@ td { padding: 7px 8px; border-bottom: 1px solid #f0f5f5; vertical-align: top; }
       <div class="fg"><label>Или точная дата</label><input id="rDueDate" type="date"></div>
       <div class="fg"><label>Или точный пробег, км</label><input id="rDueKm" type="number"></div>
     </div>
-    <p class="hint">Для страховки и техосмотра удобнее указать дату окончания.</p>
+    <p class="hint">Для страховок и техосмотра удобнее указать дату окончания полиса.</p>
     <div class="row2">
       <div class="fg"><label>Предупредить за, км</label><input id="rWarnKm" type="number" value="5000"></div>
       <div class="fg"><label>Предупредить за, дней</label><input id="rWarnDays" type="number" value="30"></div>
@@ -346,7 +346,7 @@ async function openDetail(id) {
       <td>${r.last_date ? esc(r.last_date) : '—'}${r.last_km ? '<br><small>' + fmt(r.last_km) + ' км</small>' : ''}</td>
       <td>${nextText(r)}</td><td>${leftText(r)}</td>
       <td><span class="chip ${r.status}">${statusText[r.status]}</span></td>
-      <td><button class="btn btn-ghost btn-sm" data-rem="${r.id}">Изм.</button></td></tr>`).join('')
+      <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" data-rem="${r.id}">Изм.</button> <button class="btn btn-danger btn-sm" data-remdel="${r.id}" title="Удалить">✕</button></td></tr>`).join('')
     : '<tr><td colspan="6" style="color:#8fa8ab">Добавьте напоминания или нажмите «Стандартный набор»</td></tr>';
 
   $('dServices').innerHTML = v.services.length ? v.services.map(s => `<tr>
@@ -360,7 +360,17 @@ async function openDetail(id) {
   $('dTotalCost').textContent = total ? 'Всего потрачено: ֏' + fmt(total) : '';
   open('detailModal');
 }
-$('dReminders').addEventListener('click', e => { const b = e.target.closest('[data-rem]'); if (b) openReminder(current.reminders.find(r => r.id == b.dataset.rem)); });
+$('dReminders').addEventListener('click', async e => {
+  const del = e.target.closest('[data-remdel]');
+  if (del) {
+    const r = current.reminders.find(x => x.id == del.dataset.remdel);
+    if (!confirm('Удалить напоминание «' + (r ? r.label : '') + '»?')) return;
+    await api('/api/fleet/reminders/' + del.dataset.remdel, 'DELETE');
+    await load(); await openDetail(current.id); return;
+  }
+  const b = e.target.closest('[data-rem]');
+  if (b) openReminder(current.reminders.find(r => r.id == b.dataset.rem));
+});
 $('dServices').addEventListener('click', e => { const b = e.target.closest('[data-svc]'); if (b) openService(current.services.find(s => s.id == b.dataset.svc)); });
 
 // ── Машина ──
@@ -455,14 +465,17 @@ $('presetBtn').addEventListener('click', async () => {
     { kind: 'oil_gearbox', interval_km: 200000 },
     { kind: 'belts', interval_km: 150000 },
     { kind: 'to', interval_days: 365 },
-    { kind: 'insurance' }, { kind: 'inspection' }, { kind: 'tachograph', interval_days: 730 },
+    { kind: 'insurance_am' }, { kind: 'insurance_ge' }, { kind: 'insurance_tr' }, { kind: 'insurance_ru' }, { kind: 'insurance_eu' },
+    { kind: 'inspection' }, { kind: 'tachograph', interval_days: 730 },
   ];
-  const trailer = [{ kind: 'to', interval_days: 365 }, { kind: 'brakes', interval_km: 100000 }, { kind: 'insurance' }, { kind: 'inspection' }];
+  const trailer = [{ kind: 'to', interval_days: 365 }, { kind: 'brakes', interval_km: 100000 }, { kind: 'insurance_am' }, { kind: 'insurance_ge' }, { kind: 'insurance_tr' }, { kind: 'insurance_ru' }, { kind: 'insurance_eu' }, { kind: 'inspection' }];
   const have = new Set(current.reminders.map(r => r.kind));
   const list = (current.type === 'trailer' ? trailer : truck).filter(p => !have.has(p.kind));
   if (!list.length) { alert('Стандартный набор уже добавлен'); return; }
   if (!confirm('Добавить ' + list.length + ' типовых напоминаний? Интервалы потом можно изменить под ваши машины.')) return;
-  for (const p of list) await api('/api/fleet/' + current.id + '/reminders', 'POST', p);
+  const pb = $('presetBtn'); if (pb.disabled) return; pb.disabled = true;
+  try { for (const p of list) await api('/api/fleet/' + current.id + '/reminders', 'POST', p); }
+  finally { pb.disabled = false; }
   await load(); await openDetail(current.id);
 });
 
@@ -507,6 +520,6 @@ $('syncBtn').addEventListener('click', async () => {
 
 load();
 </script>
-<script src="/js/nav-fleet.js?v=2"></script>
+<script src="/js/nav-fleet.js"></script>
 </body>
 </html>
