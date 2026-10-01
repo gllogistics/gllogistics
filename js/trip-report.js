@@ -107,8 +107,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'Прочее' };
-const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
+const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', transit:'Транзитные карты', adblue:'AdBlue', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -120,7 +120,7 @@ function renderTripsList() {
     <div class="trip-card ${currentTrip?.id === t.id ? 'active' : ''}" data-id="${t.id}">
       <div class="trip-header">
         <div>
-          <div class="trip-truck">${esc(t.truck)}</div>
+          <div class="trip-truck">🚛 ${esc(t.truck)}</div>
           <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s => s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
           <div class="trip-dates">${t.date_start || ''} — ${t.date_end || ''}</div>
         </div>
@@ -158,17 +158,17 @@ async function openTrip(trip) {
   const segRoute = tripSegments.length
     ? ' → ' + tripSegments.map(s => s.route_to).filter(Boolean).join(' → ')
     : '';
-  document.getElementById('detailTitle').textContent = `${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
+  document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
   const segsSnapshot = [...tripSegments]; // снимок до любых изменений
   // Обновляем кнопку закрытия
   const closeBtn = document.getElementById('closeTripBtn');
   if (closeBtn) {
     if (full.status === 'closed') {
-      closeBtn.textContent = 'Открыть рейс';
+      closeBtn.textContent = '🔓 Открыть рейс';
       closeBtn.style.background = '#5a5a5a';
     } else {
-      closeBtn.textContent = 'Закрыть рейс';
+      closeBtn.textContent = '✅ Закрыть рейс';
       closeBtn.style.background = '#1E7A80';
     }
   }
@@ -203,7 +203,9 @@ function renderTripStats(trip, segs) {
   const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
   const parkingExpAMD = expenses.filter(e=>e.category==='parking').reduce((s,e)=>s+(e.amount_amd||0),0);
   const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  const transitExpAMD = expenses.filter(e=>e.category==='transit').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const adblueExpAMD  = expenses.filter(e=>e.category==='adblue').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
 
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
@@ -211,7 +213,7 @@ function renderTripStats(trip, segs) {
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
-  const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
+  const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + otherExpAMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD; // fuelCostAMD убран — топливо учитывается через чеки
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -222,15 +224,17 @@ function renderTripStats(trip, segs) {
       <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
       <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">Доход (все плечи)</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
     <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
     <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
-    ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">Топливо</div></div>`:''}
+    ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">⛽ Топливо</div></div>`:''}
     ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">🛣 Платные дороги</div></div>`:''}
     ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">🅿️ Стоянка</div></div>`:''}
     ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
+    ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
+    ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
-    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? 'Прибыль' : 'Убыток'}</div></div>
+    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
 
   // Wialon блок
@@ -268,7 +272,7 @@ function renderExpenses(expenses) {
       <span class="expense-date">${e.date || ''}</span>
       <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
       ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
-      <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✎</button>
+      <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✏️</button>
       <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button>
     </div>`).join('');
 
@@ -605,10 +609,10 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
   "amount": число (только цифры, без валюты),
   "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
   "date": "YYYY-MM-DD",
-  "category": "fuel" или "toll" или "parking" или "other",
+  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "other",
   "description": "краткое описание на русском (название места, тип расхода)"
 }
-Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, other=всё остальное.
+Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, other=всё остальное.
 Если не можешь определить поле — используй null.`
             }
           ]
@@ -707,16 +711,16 @@ window.toggleSegType = function() {
   const cur = parseInt(inp.value);
   const next = cur === 1 ? 2 : 1;
   inp.value = next;
-  lbl.textContent = next === 1 ? 'Доп. плечо' : 'Обратный';
-  btn.textContent = next === 1 ? '→ Обратный' : '→ Промежуточный';
+  lbl.textContent = next === 1 ? '🔀 Промежуточный рейс' : '🔄 Обратный рейс';
+  btn.textContent = next === 1 ? '→ Сделать обратным' : '→ Сделать промежуточным';
 };
 
 window.closeSeg = async function() {
   document.getElementById('seg1Block').style.display = 'none';
-  document.getElementById('toggleSeg1').textContent = '+ Доп. плечо';
+  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
   document.getElementById('fSeg1Type').value = '1';
-  document.getElementById('seg1Label').textContent = 'Доп. плечо';
-  document.getElementById('segTypeBtn').textContent = '→ Обратный';
+  document.getElementById('seg1Label').textContent = '🔀 Промежуточный рейс';
+  document.getElementById('segTypeBtn').textContent = '→ Сделать обратным';
   ['Client','Price','From','To'].forEach(f => {
     const el = document.getElementById('fSeg1' + f);
     if (el) el.value = '';
@@ -728,7 +732,7 @@ window.closeSeg = async function() {
   tripSegments = [];
   if (currentTrip) {
     document.getElementById('detailTitle').textContent =
-      '' + currentTrip.truck + ': ' + currentTrip.route_from + ' → ' + currentTrip.route_to;
+      '🚛 ' + currentTrip.truck + ': ' + currentTrip.route_from + ' → ' + currentTrip.route_to;
   }
 };
 
@@ -737,7 +741,7 @@ document.getElementById('toggleSeg1')?.addEventListener('click', () => {
   const isOpen = block.style.display !== 'none';
   block.style.display = isOpen ? 'none' : 'block';
   document.getElementById('toggleSeg1').textContent =
-    isOpen ? '+ Доп. плечо' : '− Доп. плечо';
+    isOpen ? '🔀 + Промежуточный / Обратный рейс' : '🔀 − Промежуточный / Обратный рейс';
   if (isOpen) {
     document.getElementById('fSeg1Type').value = '1';
     ['Client','Price','From','To'].forEach(f => {
@@ -748,13 +752,13 @@ document.getElementById('toggleSeg1')?.addEventListener('click', () => {
 
 function resetSegForms() {
   document.getElementById('seg1Block').style.display = 'none';
-  document.getElementById('toggleSeg1').textContent = '+ Доп. плечо';
+  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
   const inp = document.getElementById('fSeg1Type');
   if (inp) inp.value = '1';
   const lbl = document.getElementById('seg1Label');
-  if (lbl) lbl.textContent = 'Доп. плечо';
+  if (lbl) lbl.textContent = '🔀 Промежуточный рейс';
   const btn = document.getElementById('segTypeBtn');
-  if (btn) btn.textContent = '→ Обратный';
+  if (btn) btn.textContent = '→ Сделать обратным';
   ['Client','Price','From','To'].forEach(f => {
     const el = document.getElementById('fSeg1' + f); if (el) el.value = '';
   });
@@ -777,13 +781,13 @@ function fillSegForm(seg) {
   if (!seg) return;
   const segNum = seg.segment_num || 1;
   document.getElementById('seg1Block').style.display = 'block';
-  document.getElementById('toggleSeg1').textContent = '− Доп. плечо';
+  document.getElementById('toggleSeg1').textContent = '🔀 − Промежуточный / Обратный рейс';
   const inp = document.getElementById('fSeg1Type');
   if (inp) inp.value = segNum;
   const lbl = document.getElementById('seg1Label');
-  if (lbl) lbl.textContent = segNum === 2 ? 'Обратный' : 'Доп. плечо';
+  if (lbl) lbl.textContent = segNum === 2 ? '🔄 Обратный рейс' : '🔀 Промежуточный рейс';
   const btn = document.getElementById('segTypeBtn');
-  if (btn) btn.textContent = segNum === 2 ? '→ Промежуточный' : '→ Обратный';
+  if (btn) btn.textContent = segNum === 2 ? '→ Сделать промежуточным' : '→ Сделать обратным';
   document.getElementById('fSeg1Client').value   = seg.client_name || '';
   document.getElementById('fSeg1Price').value    = seg.client_price || '';
   document.getElementById('fSeg1Currency').value = seg.client_currency || 'EUR';
@@ -830,12 +834,12 @@ document.getElementById('closeTripBtn')?.addEventListener('click', async () => {
   if (currentTrip.status === 'closed') {
     if (!confirm('Открыть рейс снова?')) return;
     await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'open' });
-    btn.textContent = 'Закрыть рейс';
+    btn.textContent = '✅ Закрыть рейс';
     btn.style.background = '#1E7A80';
   } else {
     if (!confirm('Закрыть рейс? Все данные будут зафиксированы.')) return;
     await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'closed' });
-    btn.textContent = 'Открыть рейс';
+    btn.textContent = '🔓 Открыть рейс';
     btn.style.background = '#5a5a5a';
   }
   await loadTrips();
