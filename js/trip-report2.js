@@ -205,6 +205,9 @@ function renderTripStats(trip, segs) {
   const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
   const transitExpAMD = expenses.filter(e=>e.category==='transit').reduce((s,e)=>s+(e.amount_amd||0),0);
   const adblueExpAMD  = expenses.filter(e=>e.category==='adblue').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const realExp = expenses.filter(e=>!['advance','salary','bank'].includes(e.category));
+  const cashExpAMD = realExp.filter(e=>e.paid_by==='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const cardExpAMD = realExp.filter(e=>e.paid_by!=='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
   const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
 
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
@@ -233,6 +236,8 @@ function renderTripStats(trip, segs) {
     ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
     ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
     ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
+    ${cardExpAMD>0?`<div class="stat"><div class="val">֏${fmt(cardExpAMD)}</div><div class="lbl">Оплачено картой фирмы</div></div>`:''}
+    ${cashExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(cashExpAMD)}</div><div class="lbl">Наличные водителя</div></div>`:''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
@@ -270,6 +275,7 @@ function renderExpenses(expenses) {
       <span class="expense-cat ${catClass[e.category]}">${catLabel[e.category]}</span>
       <span class="expense-desc">${esc(e.description || '')}</span>
       <span class="expense-date">${e.date || ''}</span>
+      ${['advance','salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}
       <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
       ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
       <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✏️</button>
@@ -416,6 +422,7 @@ async function addExpense() {
     date: document.getElementById('eDate').value,
     description: document.getElementById('eDesc').value,
     receipt_key,
+    paid_by: document.getElementById('ePaidBy')?.value || 'card',
   };
   if (editId) {
     await api('/api/trips/expenses/' + editId, 'PUT', expBody);
@@ -441,6 +448,7 @@ window.editExpense = function(id) {
   document.getElementById('eCurrency').value = exp.currency || 'AMD';
   document.getElementById('eDate').value = exp.date || '';
   document.getElementById('eDesc').value = exp.description || '';
+  if (document.getElementById('ePaidBy')) document.getElementById('ePaidBy').value = exp.paid_by || 'card';
   // Помечаем что редактируем
   document.getElementById('expenseModal')._editId = id;
   const _t = document.getElementById('expModalTitle'); if(_t) _t.textContent = 'Редактировать расход';
