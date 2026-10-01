@@ -70,6 +70,9 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 .cat-advance{background:#FCE4EC;color:#C62828}
 .cat-bank{background:#E8EAF6;color:#283593}
 .cat-ferry{background:#E3F2FD;color:#01579B}
+.pay-tag{font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap}
+.pay-card{background:#E3F2FD;color:#1565C0}
+.pay-cash{background:#FFF3E0;color:#E65100}
 .cat-transit{background:#FFF8E1;color:#8D6E00}
 .cat-adblue{background:#E1F5FE;color:#0277BD}
 .cat-other{background:#FAFAFA;color:#424242;border:1px solid #ddd}
@@ -301,6 +304,11 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       <div><label>Сумма</label><input type="number" id="eAmount" placeholder="0" step="0.01"></div>
       <div><label>Валюта</label>
         <select id="eCurrency"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option><option value="USD">USD $</option><option value="GEL">GEL ₾</option><option value="TRY">TRY ₺</option><option value="RUB">RUB ₽</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Кто оплатил</label>
+        <select id="ePaidBy"><option value="card">Карта фирмы</option><option value="cash">Наличные водителя</option></select>
       </div>
     </div>
     <div class="form-row">
