@@ -345,7 +345,7 @@ function renderAll() {
                      <button class="btn-pay ${c.carrier_paid?'paid':''}" onclick="togglePaid(${c.id},'carrier_paid')">${c.carrier_paid?'✓':'✗'}</button>`;
     }
     return `<tr>
-      <td data-label="#">${idx+1}</td><td data-label="Клиент">${esc(c.client_name)}</td><td data-label="Перевозчик">${esc(c.carrier_name)}</td><td data-label="Товар">${esc(c.product)}</td>
+      <td data-label="#">${idx+1}</td><td data-label="Клиент">${(isAdmin && /Վալան/i.test(c.client_name||'') && (c.load_date||'') >= '2026-10-01') ? `<span class="my-check ${c.my_check?'on':''}" onclick="togglePaid(${c.id},'my_check')" title="Моя отметка"></span>` : ''}${esc(c.client_name)}</td><td data-label="Перевозчик">${esc(c.carrier_name)}</td><td data-label="Товар">${esc(c.product)}</td>
       <td data-label="Откуда">${load}</td><td data-label="Куда">${unload}</td><td data-label="Дата">${c.load_date||'-'}</td>
       <td data-label="Статус"><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
       <td data-label="Клиент ₴">${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
@@ -656,3 +656,11 @@ async function exportToExcel() {
   a.download = `GL_${year}_${new Date().toISOString().slice(0,10)}.xlsx`;
   a.click();
 }
+
+// Маленькая личная отметка (только админ, только Վալան Գրուպ с 01.10.2026)
+(function(){
+  const st = document.createElement('style');
+  st.textContent = '.my-check{display:inline-block;width:13px;height:13px;border:1.5px solid #55B7BD;border-radius:3px;margin-right:6px;vertical-align:-2px;cursor:pointer;background:#fff}' +
+                   '.my-check.on{background:#2E7D32;border-color:#2E7D32;box-shadow:inset 0 0 0 2px #fff}';
+  document.head.appendChild(st);
+})();
