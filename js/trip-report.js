@@ -217,7 +217,9 @@ function renderTripStats(trip, segs) {
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + otherExpAMD;
-  const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD; // fuelCostAMD убран — топливо учитывается через чеки
+  // Наличные чеки водитель оплачивает из аванса, поэтому аванс считаем только в части, не покрытой чеками
+  const advanceLeftAMD = advanceAMD - cashExpAMD;
+  const allCostsAMD = expensesOnlyAMD + salaryAMD + Math.max(advanceLeftAMD, 0);
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
@@ -237,7 +239,10 @@ function renderTripStats(trip, segs) {
     ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
     ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
     ${cardExpAMD>0?`<div class="stat"><div class="val">֏${fmt(cardExpAMD)}</div><div class="lbl">Оплачено картой фирмы</div></div>`:''}
-    ${cashExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(cashExpAMD)}</div><div class="lbl">Наличные водителя</div></div>`:''}
+    ${cashExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(cashExpAMD)}</div><div class="lbl">Наличные из аванса</div></div>`:''}
+    ${(advanceAMD>0||cashExpAMD>0)?(advanceLeftAMD>=0
+      ?`<div class="stat orange"><div class="val">֏${fmt(advanceLeftAMD)}</div><div class="lbl">Остаток аванса у водителя</div></div>`
+      :`<div class="stat red"><div class="val">֏${fmt(-advanceLeftAMD)}</div><div class="lbl">Водитель доложил своих</div></div>`):''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
