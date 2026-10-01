@@ -238,11 +238,6 @@ function renderTripStats(trip, segs) {
     ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
     ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
     ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
-    ${cardExpAMD>0?`<div class="stat"><div class="val">֏${fmt(cardExpAMD)}</div><div class="lbl">Оплачено картой фирмы</div></div>`:''}
-    ${cashExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(cashExpAMD)}</div><div class="lbl">Наличные из аванса</div></div>`:''}
-    ${(advanceAMD>0||cashExpAMD>0)?(advanceLeftAMD>=0
-      ?`<div class="stat orange"><div class="val">֏${fmt(advanceLeftAMD)}</div><div class="lbl">Остаток аванса у водителя</div></div>`
-      :`<div class="stat red"><div class="val">֏${fmt(-advanceLeftAMD)}</div><div class="lbl">Водитель доложил своих</div></div>`):''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
