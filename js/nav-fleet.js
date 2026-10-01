@@ -1,6 +1,20 @@
 // GL Logistics — пункт «Автопарк» в меню, счётчик уведомлений и блок на главной
 (function () {
-  if (localStorage.getItem('gl_staff_user') !== 'TigranMetspagyan') return;
+  // ── Логисты: только Сделки, Заявки, Инвойс ──
+  const staffUser = localStorage.getItem('gl_staff_user');
+  if (staffUser && staffUser !== 'TigranMetspagyan') {
+    const ADMIN_ONLY = ['/trip-report', '/staff-dashboard', '/clients', '/files', '/expenses', '/dispatch', '/fleet'];
+    const isAdminPage = p => ADMIN_ONLY.some(a => p.indexOf(a) === 0);
+    if (isAdminPage(location.pathname)) { location.replace('/staff-cargo.html'); return; }
+    const hide = () => document.querySelectorAll('.nav-links a, #navLinks a').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      if (isAdminPage(href)) a.remove();
+    });
+    const go = () => { hide(); new MutationObserver(hide).observe(document.body, { childList: true, subtree: true }); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+    return;
+  }
+  if (staffUser !== 'TigranMetspagyan') return;
   const WORKER = 'https://gl-api.gltransam.workers.dev';
   const ICON = 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z';
   const onFleet = location.pathname.indexOf('fleet') !== -1;
