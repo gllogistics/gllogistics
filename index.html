@@ -314,6 +314,13 @@ setTimeout(function() {
   @media (max-width: 480px) {
     .partners-grid { grid-template-columns: repeat(2, 1fr); }
   }
+  /* Кнопка входа для телефона (основное меню на телефоне скрыто) */
+  .mobile-login { display: none; }
+  @media (max-width: 900px) {
+    .mobile-login { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; padding: 6px 10px;
+      border: 1px solid #55B7BD; border-radius: 6px; color: #55B7BD; text-decoration: none;
+      font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+  }
 
   /* Индивидуальные размеры логотипов */
   .partner-logo[alt="Honeyst"]     { max-height: 80px; max-width: 95%; }
@@ -433,6 +440,7 @@ setTimeout(function() {
     </div>
   </div>
   <div class="lang-buttons">
+<a href="/staff" class="mobile-login" aria-label="Login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg><span data-lang="am" class="li">Մուտք</span><span data-lang="ru" class="li">Вход</span><span data-lang="en" class="li">Login</span></a>
 <button class="lang-btn active" data-setlang="en">EN</button>
 <button class="lang-btn" data-setlang="ru">RU</button>
 <button class="lang-btn" data-setlang="am">HAY</button>
