@@ -240,7 +240,7 @@ function renderTripStats(trip, segs) {
     ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
-    <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
+`;
 
   // Wialon блок
   if (trip.wialon_mileage > 0) {
