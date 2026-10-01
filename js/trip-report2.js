@@ -107,8 +107,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
-const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
+const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', transit:'Транзитные карты', adblue:'AdBlue', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -203,7 +203,9 @@ function renderTripStats(trip, segs) {
   const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
   const parkingExpAMD = expenses.filter(e=>e.category==='parking').reduce((s,e)=>s+(e.amount_amd||0),0);
   const ferryExpAMD   = expenses.filter(e=>e.category==='ferry').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  const transitExpAMD = expenses.filter(e=>e.category==='transit').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const adblueExpAMD  = expenses.filter(e=>e.category==='adblue').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
 
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
@@ -211,7 +213,7 @@ function renderTripStats(trip, segs) {
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
-  const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + otherExpAMD;
+  const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + otherExpAMD;
   const allCostsAMD = expensesOnlyAMD + advanceAMD + salaryAMD; // fuelCostAMD убран — топливо учитывается через чеки
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
@@ -229,6 +231,8 @@ function renderTripStats(trip, segs) {
     ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">🛣 Платные дороги</div></div>`:''}
     ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">🅿️ Стоянка</div></div>`:''}
     ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
+    ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
+    ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
     ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
     <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
     <div class="stat"><div class="val">${expenses.length}</div><div class="lbl">Документов</div></div>`;
@@ -605,10 +609,10 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
   "amount": число (только цифры, без валюты),
   "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
   "date": "YYYY-MM-DD",
-  "category": "fuel" или "toll" или "parking" или "other",
+  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "other",
   "description": "краткое описание на русском (название места, тип расхода)"
 }
-Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, other=всё остальное.
+Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, other=всё остальное.
 Если не можешь определить поле — используй null.`
             }
           ]
