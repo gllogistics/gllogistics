@@ -1,0 +1,28 @@
+/* GL Logistics — спокойное деловое оформление (вариант B) */
+body.gl-shell { background: #F6F7F8 !important; color: #14202B; }
+body.gl-shell, body.gl-shell button, body.gl-shell input, body.gl-shell select, body.gl-shell textarea, body.gl-shell table {
+  font-family: 'IBM Plex Sans', 'Noto Sans Armenian', system-ui, sans-serif !important; }
+body.gl-shell .app-wrapper { max-width: 1320px !important; padding-top: 24px !important; }
+body.gl-shell .top-bar:not(.gl-empty) { background: transparent !important; box-shadow: none !important; border: none !important; }
+/* Карточки показателей: белые, без пёстрых фонов */
+body.gl-shell .stat-card, body.gl-shell .stat {
+  background: #fff !important; border: 1px solid #E4E7EA !important; border-radius: 8px !important; box-shadow: none !important; }
+body.gl-shell .stat-card .num, body.gl-shell .stat .val {
+  color: #14202B !important; font-weight: 600 !important; letter-spacing: -.2px !important; font-variant-numeric: tabular-nums; }
+body.gl-shell .stat-card .lbl, body.gl-shell .stat .lbl {
+  color: #5B6670 !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+body.gl-shell .stat-card.stat-danger .num, body.gl-shell .stat.red .val { color: #B3261E !important; }
+/* Блоки и таблицы */
+body.gl-shell .table-wrap, body.gl-shell .card, body.gl-shell .vcard, body.gl-shell .file-card, body.gl-shell .trip-card,
+body.gl-shell .alerts, body.gl-shell .upload-zone, body.gl-shell .fin-summary {
+  border-radius: 8px !important; box-shadow: none !important; }
+body.gl-shell .modal-box { border-radius: 10px !important; }
+body.gl-shell th { font-weight: 600 !important; }
+/* Кнопки: одна главная, остальные второстепенные */
+body.gl-shell .btn-primary, body.gl-shell .action-btn, body.gl-shell .btn-success {
+  background: #146C72 !important; border-color: #146C72 !important; color: #fff !important; border-radius: 6px !important; box-shadow: none !important; }
+body.gl-shell .btn-primary:hover, body.gl-shell .action-btn:hover, body.gl-shell .btn-success:hover { background: #0F5A60 !important; }
+body.gl-shell .btn-ghost, body.gl-shell .btn-secondary {
+  background: #fff !important; border: 1px solid #D5DADF !important; color: #14202B !important; border-radius: 6px !important; }
+body.gl-shell .btn-danger { border-radius: 6px !important; }
+body.gl-shell input, body.gl-shell select, body.gl-shell textarea { border-radius: 6px !important; }
