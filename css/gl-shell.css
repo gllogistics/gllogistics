@@ -1,0 +1,49 @@
+/* GL Logistics — оболочка: тёмное боковое меню (вариант B) */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Armenian:wght@400;500;600&display=swap');
+:root { --gl-side: #10262A; --gl-side-text: #C6D3D5; --gl-side-muted: #8FA5A8; --gl-side-active: #1E3B40; --gl-accent: #146C72; }
+body.gl-shell { padding-left: 240px !important; }
+/* старое верхнее меню больше не нужно */
+body.gl-shell .nav-links, body.gl-shell #navLinks,
+body.gl-shell .top-bar .brand, body.gl-shell .top-bar .btn-logout,
+body.gl-shell .top-bar .user-info, body.gl-shell .top-bar .admin-badge { display: none !important; }
+body.gl-shell .top-bar.gl-empty { display: none !important; }
+#glSide { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; box-sizing: border-box; z-index: 900;
+  background: var(--gl-side); color: var(--gl-side-text); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px;
+  font-family: 'IBM Plex Sans', 'Noto Sans Armenian', system-ui, sans-serif; overflow-y: auto; }
+#glSide .gl-brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; text-decoration: none; }
+#glSide .gl-mark { width: 30px; height: 30px; border-radius: 7px; background: var(--gl-accent); color: #fff; display: flex;
+  align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+#glSide .gl-brand span { font-size: 16px; font-weight: 600; color: #fff; }
+#glSide nav { display: flex; flex-direction: column; gap: 2px; }
+#glSide .gl-group { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gl-side-muted); padding: 14px 10px 6px; }
+#glSide .gl-group:first-child { padding-top: 0; }
+#glSide nav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; color: var(--gl-side-text);
+  text-decoration: none; font-size: 14px; font-weight: 500; }
+#glSide nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
+#glSide nav a.active { background: var(--gl-side-active); color: #fff; font-weight: 600; }
+#glSide nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+#glSide .gl-badge { margin-left: auto; min-width: 20px; padding: 1px 6px; border-radius: 10px; background: #B45309; color: #fff;
+  font-size: 11px; font-weight: 600; text-align: center; box-sizing: border-box; }
+#glSide .gl-badge.red { background: #B3261E; }
+#glSide .gl-user { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 6px 0; border-top: 1px solid #1E3B40; }
+#glSide .gl-ava { width: 32px; height: 32px; border-radius: 16px; background: #DCE7E8; color: #0F5A60; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+#glSide .gl-uname { font-size: 13px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#glSide .gl-urole { font-size: 12px; color: var(--gl-side-muted); }
+#glSide .gl-logout { margin-left: auto; background: none; border: 1px solid #2C4A50; color: var(--gl-side-text); border-radius: 6px;
+  padding: 5px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+#glSide .gl-logout:hover { color: #fff; border-color: #4A6A70; }
+#glTop { display: none; }
+/* Телефон: меню прячется, сверху полоса с кнопкой */
+@media (max-width: 960px) {
+  body.gl-shell { padding-left: 0 !important; padding-top: 56px !important; }
+  #glSide { transform: translateX(-100%); transition: transform .2s; box-shadow: none; }
+  body.gl-menu-open #glSide { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.4); }
+  #glTop { display: flex; position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 899; align-items: center; gap: 12px;
+    padding: 0 12px; background: var(--gl-side); color: #fff; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box; }
+  #glTop button { width: 44px; height: 44px; background: none; border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #glTop span { font-size: 16px; font-weight: 600; }
+  #glShade { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 898; }
+  body.gl-menu-open #glShade { display: block; }
+}
+@media print { #glSide, #glTop, #glShade { display: none !important; } body.gl-shell { padding: 0 !important; } }
