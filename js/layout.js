@@ -61,7 +61,6 @@
       if (!useful) tb.classList.add('gl-empty');
     });
     if (isAdmin) {
-      const s = document.createElement('script'); s.src = '/js/assistant.js?v=1'; document.body.appendChild(s);
       fetch('https://gl-api.gltransam.workers.dev/api/fleet/alerts').then(r => r.json()).then(a => {
         if (!Array.isArray(a) || !a.length) return;
         const b = document.getElementById('glFleetBadge');
