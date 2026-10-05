@@ -79,6 +79,6 @@ body.gl-ask-open #glAskPanel { display: flex; }
 @media (max-width: 960px) { #glAskPanel { right: 12px; left: 12px; width: auto; bottom: 80px; } #glAsk { right: 14px; bottom: 14px; } }
 @media print { #glAsk, #glAskPanel { display: none !important; } }
 
-/* ассистент рейсов: правее бокового меню */
-body.gl-shell #aiPanel { left: 264px !important; border-radius: 10px !important; }
-@media (max-width: 960px) { body.gl-shell #aiPanel { left: 1.5rem !important; } }
+/* ассистент рейсов: справа */
+body.gl-shell #aiPanel { left: auto !important; right: 1.5rem !important; border-radius: 10px !important; }
+@media (max-width: 960px) { body.gl-shell #aiPanel { left: 1.5rem !important; right: 1.5rem !important; } }
