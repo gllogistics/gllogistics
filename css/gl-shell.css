@@ -83,3 +83,7 @@ body.gl-ask-open #glAskPanel { display: flex; }
 /* ассистент рейсов: справа */
 body.gl-shell #aiPanel { left: auto !important; right: 1.5rem !important; border-radius: 10px !important; }
 @media (max-width: 960px) { body.gl-shell #aiPanel { left: 1.5rem !important; right: 1.5rem !important; } }
+
+/* рейсы: отступ от бокового меню */
+body.gl-shell > .two-col { margin-left: 20px; }
+@media (max-width: 960px) { body.gl-shell > .two-col { margin-left: 0; } }
