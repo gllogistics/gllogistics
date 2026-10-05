@@ -3,11 +3,11 @@
 <head>
 <script src="/js/auth-fetch.js"></script>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://hst-api.wialon.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://gl-api.gltransam.workers.dev https://hst-api.wialon.com https://hosting.wialon.com; object-src 'none'; base-uri 'self';">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy"content="default-src 'self'; script-src 'self' 'unsafe-inline'https://hst-api.wialon.com; style-src 'self' 'unsafe-inline'https://fonts.googleapis.com; font-src 'self'https://fonts.gstatic.com; img-src 'self'data: blob:; connect-src 'self'https://gl-api.gltransam.workers.dev https://hst-api.wialon.com https://hosting.wialon.com; object-src 'none'; base-uri 'self';">
+<meta name="viewport"content="width=device-width, initial-scale=1.0">
 <title>GL Logistics | Рейсы</title>
-<link rel="icon" type="image/png" href="images/GL_LOGISTICs_line_-09.jpg.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon"type="image/png"href="images/GL_LOGISTICs_line_-09.jpg.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap"rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#EDF4F4;font-family:'Inter',sans-serif;color:#1a1a1a;min-height:100vh;padding:1.5rem}
@@ -129,22 +129,22 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 .dropzone-chip{background:#E0F4F5;color:#1E3B42;border-radius:6px;padding:3px 8px;font-size:.72rem;display:flex;align-items:center;gap:4px}
 .dropzone-chip button{background:none;border:none;cursor:pointer;color:#C62828;font-size:.8rem;padding:0;line-height:1}
 </style>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#55B7BD">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="GL Logistics">
-  <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
+  <link rel="manifest"href="/manifest.json">
+  <meta name="theme-color"content="#55B7BD">
+  <meta name="mobile-web-app-capable"content="yes">
+  <meta name="apple-mobile-web-app-capable"content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style"content="default">
+  <meta name="apple-mobile-web-app-title"content="GL Logistics">
+  <link rel="apple-touch-icon"href="/images/gl_logo_icon.png">
 <script src="/js/emoji-remover.js"></script>
-<link rel="stylesheet" href="/css/gl-shell.css?v=6">
-<link rel="stylesheet" href="/css/gl-theme.css?v=1">
+<link rel="stylesheet"href="/css/gl-shell.css?v=6">
+<link rel="stylesheet"href="/css/gl-theme.css?v=1">
 </head>
 <body>
 <div class="top-bar">
-  <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">GL Logistics · Рейсы</a>
-  <div class="nav-links" id="navLinks"></div>
-  <button class="btn-logout" id="logoutBtn">Выйти</button>
+  <a href="/"class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png"alt="GL">GL Logistics · Рейсы</a>
+  <div class="nav-links"id="navLinks"></div>
+  <button class="btn-logout"id="logoutBtn">Выйти</button>
 </div>
 
 <div class="two-col">
@@ -152,29 +152,29 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
   <div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
       <h2>Рейсы</h2>
-      <button class="btn btn-primary btn-sm" id="newTripBtn">+ Новый рейс</button>
+      <button class="btn btn-primary btn-sm"id="newTripBtn">+ Новый рейс</button>
     </div>
-    <div class="trips-grid" id="tripsList"><p style="color:#8fa8ab;font-size:.8rem">Загрузка...</p></div>
+    <div class="trips-grid"id="tripsList"><p style="color:#8fa8ab;font-size:.8rem">Загрузка...</p></div>
   </div>
 
   <!-- Детали рейса -->
-  <div id="tripDetail" style="display:none">
+  <div id="tripDetail"style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
-      <h2 id="detailTitle">📋 Детали рейса</h2>
+      <h2 id="detailTitle">Детали рейса</h2>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" id="editTripBtn">Изменить</button>
-        <button class="btn btn-ghost btn-sm" id="wialonSyncBtn">🛰 Wialon</button>
-        <button class="btn btn-ghost btn-sm" id="uploadBankBtn">🏦 Выписка</button>
-        <input type="file" id="bankFileInput" accept="image/*,application/pdf" style="display:none">
-        <button class="btn btn-danger btn-sm" id="deleteTripBtn">Удалить рейс</button>
+        <button class="btn btn-ghost btn-sm"id="editTripBtn">Изменить</button>
+        <button class="btn btn-ghost btn-sm"id="wialonSyncBtn">Wialon</button>
+        <button class="btn btn-ghost btn-sm"id="uploadBankBtn">Выписка</button>
+        <input type="file"id="bankFileInput"accept="image/*,application/pdf"style="display:none">
+        <button class="btn btn-danger btn-sm"id="deleteTripBtn">Удалить рейс</button>
       </div>
     </div>
 
     <!-- Статистика -->
-    <div class="stats-row" id="tripStats"></div>
+    <div class="stats-row"id="tripStats"></div>
 
     <!-- Данные Wialon -->
-    <div class="wialon-block" id="wialonBlock" style="display:none">
+    <div class="wialon-block"id="wialonBlock"style="display:none">
       <div class="wialon-title">Данные GPS (Wialon)</div>
       <div id="wialonData"></div>
     </div>
@@ -183,23 +183,23 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
         <h2 style="margin:0;font-size:.85rem">Расходы и чеки</h2>
-        <button class="btn btn-primary btn-sm" id="addExpenseBtn">+ Добавить</button>
+        <button class="btn btn-primary btn-sm"id="addExpenseBtn">+ Добавить</button>
       </div>
       <div id="expensesList"><p style="color:#8fa8ab;font-size:.75rem">Нет расходов</p></div>
-      <div style="margin-top:.8rem;padding-top:.8rem;border-top:1px solid #1a3a42" id="expensesTotals"></div>
+      <div style="margin-top:.8rem;padding-top:.8rem;border-top:1px solid #1a3a42"id="expensesTotals"></div>
     </div>
   </div>
 </div>
 
 <!-- Modal: Новый/редактировать рейс -->
-<div class="modal" id="tripModal">
+<div class="modal"id="tripModal">
   <div class="modal-box">
-    <div class="modal-title" id="tripModalTitle">Новый рейс</div>
+    <div class="modal-title"id="tripModalTitle">Новый рейс</div>
     <div class="form-row cols-2">
       <div><label>Фура</label>
         <select id="fTruck">
-          <option value="284 HT 61" data-wid="28629144">284 HT 61</option>
-          <option value="927 HS 61" data-wid="30121499">927 HS 61</option>
+          <option value="284 HT 61"data-wid="28629144">284 HT 61</option>
+          <option value="927 HS 61"data-wid="30121499">927 HS 61</option>
         </select>
       </div>
       <div><label>Привязать к сделке</label>
@@ -207,19 +207,19 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       </div>
     </div>
     <div class="form-row cols-2">
-      <div><label>Откуда</label><input id="fFrom" placeholder="Ереван"></div>
-      <div><label>Куда</label><input id="fTo" placeholder="Милан"></div>
+      <div><label>Откуда</label><input id="fFrom"placeholder="Ереван"></div>
+      <div><label>Куда</label><input id="fTo"placeholder="Милан"></div>
     </div>
     <div class="form-row cols-2">
-      <div><label>Дата начала</label><input type="date" id="fDateStart"></div>
-      <div><label>Дата конца</label><input type="date" id="fDateEnd"></div>
+      <div><label>Дата начала</label><input type="date"id="fDateStart"></div>
+      <div><label>Дата конца</label><input type="date"id="fDateEnd"></div>
     </div>
     <div class="form-row cols-2">
-      <div><label>Топливо на начало (л)</label><input type="number" id="fFuelStart" placeholder="400"></div>
-      <div><label>Плановый расход (л/100км)</label><input type="number" id="fFuelRate" placeholder="30" value="30"></div>
+      <div><label>Топливо на начало (л)</label><input type="number"id="fFuelStart"placeholder="400"></div>
+      <div><label>Плановый расход (л/100км)</label><input type="number"id="fFuelRate"placeholder="30"value="30"></div>
     </div>
     <div class="form-row cols-2">
-      <div><label>💵 Цена рейса (доход)</label><input type="number" id="fClientPrice" placeholder="0" step="0.01"></div>
+      <div><label>Цена рейса (доход)</label><input type="number"id="fClientPrice"placeholder="0"step="0.01"></div>
       <div><label>Валюта дохода</label>
         <select id="fClientCurrency"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
       </div>
@@ -227,77 +227,77 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 
     <!-- Промежуточный рейс -->
     <div style="margin:.5rem 0 .3rem">
-      <button type="button" id="toggleSeg1" style="background:none;border:none;color:#55B7BD;font-size:.75rem;cursor:pointer;font-weight:600;padding:2px 0">🔀 + Промежуточный рейс</button>
+      <button type="button"id="toggleSeg1"style="background:none;border:none;color:#55B7BD;font-size:.75rem;cursor:pointer;font-weight:600;padding:2px 0"> + Промежуточный рейс</button>
     </div>
-    <input type="hidden" id="fSeg1Type" value="1">
-    <div id="seg1Block" style="display:none;background:#F0F9F9;border-radius:12px;padding:.8rem;border:1.5px solid rgba(85,183,189,.2);margin-bottom:.5rem;position:relative">
+    <input type="hidden"id="fSeg1Type"value="1">
+    <div id="seg1Block"style="display:none;background:#F0F9F9;border-radius:12px;padding:.8rem;border:1.5px solid rgba(85,183,189,.2);margin-bottom:.5rem;position:relative">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
         <div style="display:flex;gap:6px;align-items:center">
-          <span id="seg1Label" style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px">Доп. плечо</span>
-          <button type="button" id="segTypeBtn" onclick="toggleSegType()" style="background:#E0F4F5;color:#1E7A80;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.7rem">→ Сделать обратным</button>
+          <span id="seg1Label"style="font-size:.7rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px">Доп. плечо</span>
+          <button type="button"id="segTypeBtn"onclick="toggleSegType()"style="background:#E0F4F5;color:#1E7A80;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.7rem">→ Сделать обратным</button>
         </div>
-        <button type="button" onclick="closeSeg(1)" style="background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.75rem">✕ Убрать</button>
+        <button type="button"onclick="closeSeg(1)"style="background:#FEF2F2;color:#C62828;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:.75rem">✕ Убрать</button>
       </div>
       <div class="form-row cols-2">
-        <div><label>Клиент</label><input type="text" id="fSeg1Client" placeholder="Клиент"></div>
+        <div><label>Клиент</label><input type="text"id="fSeg1Client"placeholder="Клиент"></div>
         <div style="display:flex;gap:6px">
-          <div style="flex:1"><label>Цена</label><input type="number" id="fSeg1Price" placeholder="0" step="0.01"></div>
+          <div style="flex:1"><label>Цена</label><input type="number"id="fSeg1Price"placeholder="0"step="0.01"></div>
           <div><label>Валюта</label>
             <select id="fSeg1Currency"><option value="EUR">EUR</option><option value="AMD">AMD</option><option value="USD">USD</option></select>
           </div>
         </div>
       </div>
       <div class="form-row cols-2">
-        <div><label>Откуда</label><input type="text" id="fSeg1From" placeholder="Откуда"></div>
-        <div><label>Куда</label><input type="text" id="fSeg1To" placeholder="Куда"></div>
+        <div><label>Откуда</label><input type="text"id="fSeg1From"placeholder="Откуда"></div>
+        <div><label>Куда</label><input type="text"id="fSeg1To"placeholder="Куда"></div>
       </div>
     </div>
-    <div id="segmentsContainer" style="display:none"></div>
+    <div id="segmentsContainer"style="display:none"></div>
 
     <div class="form-row cols-2">
-      <div><label>💵 Аванс водителю (наличные)</label><input type="number" id="fAdvance" placeholder="0" step="0.01"></div>
+      <div><label>Аванс водителю (наличные)</label><input type="number"id="fAdvance"placeholder="0"step="0.01"></div>
       <div><label>Валюта аванса</label>
         <select id="fAdvanceCur"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option></select>
       </div>
     </div>
     <div class="form-row cols-2">
-      <div><label>👷 Зарплата водителю</label><input type="number" id="fSalary" placeholder="0" step="0.01"></div>
+      <div><label>Зарплата водителю</label><input type="number"id="fSalary"placeholder="0"step="0.01"></div>
       <div><label>Валюта зарплаты</label>
         <select id="fSalaryCur"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option></select>
       </div>
     </div>
     <div class="form-row">
-      <div><label>Заметки</label><textarea id="fNotes" rows="2" placeholder="Дополнительная информация..."></textarea></div>
+      <div><label>Заметки</label><textarea id="fNotes"rows="2"placeholder="Дополнительная информация..."></textarea></div>
     </div>
     <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.8rem">
-      <button class="btn btn-ghost" id="cancelTripModal">Отмена</button>
-      <button class="btn btn-primary" id="saveTripBtn">Сохранить</button>
+      <button class="btn btn-ghost"id="cancelTripModal">Отмена</button>
+      <button class="btn btn-primary"id="saveTripBtn">Сохранить</button>
     </div>
   </div>
 </div>
 
 <!-- Modal: Добавить расход -->
-<div class="modal" id="expenseModal">
+<div class="modal"id="expenseModal">
   <div class="modal-box">
-    <div class="modal-title" id="expModalTitle">Добавить расход</div>
+    <div class="modal-title"id="expModalTitle">Добавить расход</div>
     <div style="background:#F0F9F9;border-radius:12px;padding:.8rem;margin-bottom:.8rem;border:1.5px dashed rgba(85,183,189,.4)">
-      <label style="font-size:.72rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">📎 Загрузить скан / фото чека</label>
+      <label style="font-size:.72rem;font-weight:700;color:#1E7A80;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Загрузить скан / фото чека</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <div id="eScanDropzone" data-dropzone data-multiple="false" data-accept="image/*,application/pdf" data-label="Перетащите скан или нажмите"></div>
-        <button type="button" id="btnScanReceipt" style="background:#55B7BD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">🤖 Распознать</button>
+        <div id="eScanDropzone"data-dropzone data-multiple="false"data-accept="image/*,application/pdf"data-label="Перетащите скан или нажмите"></div>
+        <button type="button"id="btnScanReceipt"style="background:#55B7BD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">Распознать</button>
       </div>
-      <div id="scanStatus" style="font-size:.72rem;color:#8fa8ab;margin-top:4px"></div>
+      <div id="scanStatus"style="font-size:.72rem;color:#8fa8ab;margin-top:4px"></div>
     </div>
     <div class="form-row cols-2">
       <div><label>Категория</label>
         <select id="eCat">
-          <option value="fuel">⛽ Топливо</option>
-          <option value="toll">🛣 Платная дорога</option>
-          <option value="parking">🅿️ Стоянка</option>
-          <option value="advance">💵 Аванс водителю</option>
-          <option value="salary">👷 Зарплата водителю</option>
-          <option value="bank">🏦 Банковская выписка</option>
-          <option value="ferry">🚢 Паром</option>
+          <option value="fuel">Топливо</option>
+          <option value="toll">Платная дорога</option>
+          <option value="parking">Стоянка</option>
+          <option value="advance">Аванс водителю</option>
+          <option value="salary">Зарплата водителю</option>
+          <option value="bank">Банковская выписка</option>
+          <option value="ferry">Паром</option>
           <option value="transit">Транзитные карты</option>
           <option value="adblue">AdBlue</option>
           <option value="parts">Запчасти</option>
@@ -305,10 +305,10 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
           <option value="other">Прочее</option>
         </select>
       </div>
-      <div><label>Дата</label><input type="date" id="eDate"></div>
+      <div><label>Дата</label><input type="date"id="eDate"></div>
     </div>
     <div class="form-row cols-2">
-      <div><label>Сумма</label><input type="number" id="eAmount" placeholder="0" step="0.01"></div>
+      <div><label>Сумма</label><input type="number"id="eAmount"placeholder="0"step="0.01"></div>
       <div><label>Валюта</label>
         <select id="eCurrency"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option><option value="USD">USD $</option><option value="RUB">RUB ₽</option></select>
       </div>
@@ -319,52 +319,50 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
       </div>
     </div>
     <div class="form-row">
-      <div><label>Описание</label><input id="eDesc" placeholder="Заправка в Грузии, Shell..."></div>
+      <div><label>Описание</label><input id="eDesc"placeholder="Заправка в Грузии, Shell..."></div>
     </div>
     <div class="form-row">
       <div>
         <label>Чек (для сохранения)</label>
-        <div id="eReceiptDropzone" data-dropzone data-multiple="true" data-accept="image/*,application/pdf" data-label="Перетащите чеки или нажмите — можно несколько"></div>
+        <div id="eReceiptDropzone"data-dropzone data-multiple="true"data-accept="image/*,application/pdf"data-label="Перетащите чеки или нажмите — можно несколько"></div>
       </div>
     </div>
     <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.8rem">
-      <button class="btn btn-ghost" id="cancelExpenseModal">Отмена</button>
-      <button class="btn btn-primary" id="saveExpenseBtn">Сохранить</button>
+      <button class="btn btn-ghost"id="cancelExpenseModal">Отмена</button>
+      <button class="btn btn-primary"id="saveExpenseBtn">Сохранить</button>
     </div>
   </div>
 </div>
 
 <!-- AI Чат -->
-<div class="ai-panel" id="aiPanel">
-  <div class="ai-header" id="aiToggle">
+<div class="ai-panel"id="aiPanel">
+  <div class="ai-header"id="aiToggle">
     <span class="dot"></span>
     <span class="ai-title">Claude · Ассистент</span>
-    <span class="ai-toggle" id="aiToggleIcon">▼</span>
+    <span class="ai-toggle"id="aiToggleIcon">▼</span>
   </div>
-  <div class="ai-body" id="aiBody">
+  <div class="ai-body"id="aiBody">
     <div class="ai-msg assistant">Привет! Я помогу анализировать ваши рейсы. Выберите рейс слева и спросите что-нибудь — например: «Сравни плановый и фактический расход» или «Сколько потрачено на топливо?»</div>
   </div>
-  <div class="ai-input-row" id="aiInputRow">
-    <textarea class="ai-input" id="aiInput" placeholder="Спросите о рейсе..."></textarea>
-    <button class="ai-send" id="aiSendBtn">→</button>
+  <div class="ai-input-row"id="aiInputRow">
+    <textarea class="ai-input"id="aiInput"placeholder="Спросите о рейсе..."></textarea>
+    <button class="ai-send"id="aiSendBtn">→</button>
   </div>
 </div>
 
 <script src="js/trip-report2.js"></script>
 <script src="js/dropzone.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
+  <script>if ('serviceWorker'in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+<script>document.addEventListener('DOMContentLoaded', function() {
   var user = localStorage.getItem('gl_staff_user');
   var isAdm = user === 'TigranMetspagyan';
   var el = document.getElementById('navLinks');
   if (!el) return;
-  el.innerHTML = isAdm ? `<a href="/staff-dashboard.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3,3h7v7H3V3zm11,0h7v7h-7V3zM3,14h7v7H3v-7zm11,0h7v7h-7v-7z"/></svg><span>Главная</span></a><a href="/staff-cargo.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7zM16,3l-4,4-4-4"/></svg><span>Сделки</span></a><a href="/rateconfirmation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8zM14,2V8H20M16,13H8M16,17H8"/></svg><span>Заявки</span></a><a href="/invoice"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2,5H22a0,0,0,0,1,2,2v14a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V7A2,2,0,0,1,2,5zM2,10H22"/></svg><span>Инвойс</span></a><a href="/trip-report" class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3zM16,8H20l3,3v5H16zM5.5,16A2.5,2.5,0,1,1,5.5,21A2.5,2.5,0,0,1,5.5,16zM18.5,16A2.5,2.5,0,1,1,18.5,21A2.5,2.5,0,0,1,18.5,16z"/></svg><span>Рейсы</span></a><a href="/clients"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17,21v-2a4,4,0,0,0-4-4H5a4,4,0,0,0-4,4v2M9,7a4,4,0,1,1,0,8A4,4,0,0,1,9,7z"/></svg><span>Клиенты</span></a><a href="/files"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2h5l2,3h9a2,2,0,0,1,2,2z"/></svg><span>Файлы</span></a><a href="/expenses.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12,1V23M17,5H9.5a3.5,3.5,0,0,0,0,7h5a3.5,3.5,0,0,1,0,7H6"/></svg><span>Расходы</span></a><a href="/dispatch.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12,2A10,10,0,1,0,12,22A10,10,0,0,0,12,2zM2,12H22M12,2a15.3,15.3,0,0,1,4,10,15.3,15.3,0,0,1-4,10,15.3,15.3,0,0,1-4-10,15.3,15.3,0,0,1,4-10z"/></svg><span>Диспатчинг</span></a>` : `<a href="/staff-cargo.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7zM16,3l-4,4-4-4"/></svg><span>Сделки</span></a><a href="/rateconfirmation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8zM14,2V8H20M16,13H8M16,17H8"/></svg><span>Заявки</span></a><a href="/invoice"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2,5H22a0,0,0,0,1,2,2v14a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V7A2,2,0,0,1,2,5zM2,10H22"/></svg><span>Инвойс</span></a><a href="/trip-report" class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3zM16,8H20l3,3v5H16zM5.5,16A2.5,2.5,0,1,1,5.5,21A2.5,2.5,0,0,1,5.5,16zM18.5,16A2.5,2.5,0,1,1,18.5,21A2.5,2.5,0,0,1,18.5,16z"/></svg><span>Рейсы</span></a>`;
+  el.innerHTML = isAdm ? `<a href="/staff-dashboard.html"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M3,3h7v7H3V3zm11,0h7v7h-7V3zM3,14h7v7H3v-7zm11,0h7v7h-7v-7z"/></svg><span>Главная</span></a><a href="/staff-cargo.html"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7zM16,3l-4,4-4-4"/></svg><span>Сделки</span></a><a href="/rateconfirmation"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8zM14,2V8H20M16,13H8M16,17H8"/></svg><span>Заявки</span></a><a href="/invoice"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M2,5H22a0,0,0,0,1,2,2v14a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V7A2,2,0,0,1,2,5zM2,10H22"/></svg><span>Инвойс</span></a><a href="/trip-report"class="active"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3zM16,8H20l3,3v5H16zM5.5,16A2.5,2.5,0,1,1,5.5,21A2.5,2.5,0,0,1,5.5,16zM18.5,16A2.5,2.5,0,1,1,18.5,21A2.5,2.5,0,0,1,18.5,16z"/></svg><span>Рейсы</span></a><a href="/clients"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M17,21v-2a4,4,0,0,0-4-4H5a4,4,0,0,0-4,4v2M9,7a4,4,0,1,1,0,8A4,4,0,0,1,9,7z"/></svg><span>Клиенты</span></a><a href="/files"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2h5l2,3h9a2,2,0,0,1,2,2z"/></svg><span>Файлы</span></a><a href="/expenses.html"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M12,1V23M17,5H9.5a3.5,3.5,0,0,0,0,7h5a3.5,3.5,0,0,1,0,7H6"/></svg><span>Расходы</span></a><a href="/dispatch.html"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M12,2A10,10,0,1,0,12,22A10,10,0,0,0,12,2zM2,12H22M12,2a15.3,15.3,0,0,1,4,10,15.3,15.3,0,0,1-4,10,15.3,15.3,0,0,1-4-10,15.3,15.3,0,0,1,4-10z"/></svg><span>Диспатчинг</span></a>` : `<a href="/staff-cargo.html"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M20,7H4a2,2,0,0,0-2,2v6a2,2,0,0,0,2,2h16a2,2,0,0,0,2-2V9A2,2,0,0,0,20,7zM16,3l-4,4-4-4"/></svg><span>Сделки</span></a><a href="/rateconfirmation"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8zM14,2V8H20M16,13H8M16,17H8"/></svg><span>Заявки</span></a><a href="/invoice"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M2,5H22a0,0,0,0,1,2,2v14a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V7A2,2,0,0,1,2,5zM2,10H22"/></svg><span>Инвойс</span></a><a href="/trip-report"class="active"><svg width="18"height="18"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="1.75"stroke-linecap="round"stroke-linejoin="round"><path d="M1,3H16a2,2,0,0,1,2,2v13H-1V5A2,2,0,0,1,1,3zM16,8H20l3,3v5H16zM5.5,16A2.5,2.5,0,1,1,5.5,21A2.5,2.5,0,0,1,5.5,16zM18.5,16A2.5,2.5,0,1,1,18.5,21A2.5,2.5,0,0,1,18.5,16z"/></svg><span>Рейсы</span></a>`;
 });
 </script>
 <script src="/js/nav-fleet.js?v=3"></script>
