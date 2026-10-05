@@ -113,10 +113,36 @@ const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', fer
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
 
+let tripTab = 'active'; // active | archive
+function renderTripTabs() {
+  const el = document.getElementById('tripsList');
+  let tabs = document.getElementById('tripTabs');
+  if (!tabs) {
+    tabs = document.createElement('div');
+    tabs.id = 'tripTabs';
+    tabs.style.cssText = 'display:flex;gap:6px;margin-bottom:.8rem';
+    el.parentNode.insertBefore(tabs, el);
+    tabs.addEventListener('click', e => {
+      const b = e.target.closest('[data-tab]');
+      if (!b) return;
+      tripTab = b.dataset.tab;
+      renderTripsList();
+    });
+  }
+  const nActive = trips.filter(t => t.status !== 'closed').length;
+  const nArch = trips.length - nActive;
+  const st = on => 'border:1px solid ' + (on ? '#146C72' : '#D5DADF') + ';background:' + (on ? '#146C72' : '#fff') + ';color:' + (on ? '#fff' : '#14202B') +
+    ';border-radius:6px;padding:6px 14px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer';
+  tabs.innerHTML = `<button type="button" data-tab="active" style="${st(tripTab === 'active')}">Активные (${nActive})</button>` +
+                   `<button type="button" data-tab="archive" style="${st(tripTab === 'archive')}">Архив (${nArch})</button>`;
+}
 function renderTripsList() {
   const el = document.getElementById('tripsList');
+  renderTripTabs();
+  const list = trips.filter(t => tripTab === 'archive' ? t.status === 'closed' : t.status !== 'closed');
   if (!trips.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.8rem">Нет рейсов. Создайте первый!</p>'; return; }
-  el.innerHTML = trips.map(t => `
+  if (!list.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.8rem">' + (tripTab === 'archive' ? 'В архиве пока нет рейсов. Закрытые рейсы попадают сюда автоматически.' : 'Нет активных рейсов.') + '</p>'; return; }
+  el.innerHTML = list.map(t => `
     <div class="trip-card ${currentTrip?.id === t.id ? 'active' : ''}" data-id="${t.id}">
       <div class="trip-header">
         <div>
