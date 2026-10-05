@@ -13,6 +13,7 @@ body.gl-shell .top-bar.gl-empty { display: none !important; }
 #glSide .gl-brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; text-decoration: none; }
 #glSide .gl-mark { width: 30px; height: 30px; border-radius: 7px; background: var(--gl-accent); color: #fff; display: flex;
   align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+#glSide .gl-logo { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; }
 #glSide .gl-brand span { font-size: 16px; font-weight: 600; color: #fff; }
 #glSide nav { display: flex; flex-direction: column; gap: 2px; }
 #glSide .gl-group { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gl-side-muted); padding: 14px 10px 6px; }
