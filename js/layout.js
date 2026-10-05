@@ -36,7 +36,7 @@
     document.body.classList.add('gl-shell');
     const side = document.createElement('aside');
     side.id = 'glSide';
-    side.innerHTML = '<a class="gl-brand" href="' + (isAdmin ? '/staff-dashboard.html' : '/staff-cargo.html') + '"><div class="gl-mark">GL</div><span>GL Logistics</span></a>' +
+    side.innerHTML = '<a class="gl-brand" href="' + (isAdmin ? '/staff-dashboard.html' : '/staff-cargo.html') + '"><img class="gl-logo" src="/images/GL_LOGISTICs_line_-09.jpg.png" alt=""><span>GL Logistics</span></a>' +
       '<nav aria-label="Основное меню">' + navHtml + '</nav>' +
       '<div class="gl-user"><div class="gl-ava">' + initials + '</div><div style="min-width:0"><div class="gl-uname">' + user.replace(/[<>&"]/g, '') + '</div>' +
       '<div class="gl-urole">' + (isAdmin ? 'Администратор' : 'Логист') + '</div></div><button type="button" class="gl-logout" id="glLogout">Выйти</button></div>';
