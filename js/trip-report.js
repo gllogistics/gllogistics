@@ -10,7 +10,7 @@ const WIALON_REP_ID = 1;
 // ── Auth ─────────────────────────────────────────────────────────────────────
 const user = localStorage.getItem('gl_staff_user');
 const loginTime = parseInt(localStorage.getItem('gl_staff_login_time') || '0');
-if (!user || !loginTime || (Date.now() - loginTime) > SESSION_MAX || user !== ADMIN_USER) {
+if (!user || !loginTime || (Date.now() - loginTime) >SESSION_MAX || user !== ADMIN_USER) {
   localStorage.removeItem('gl_staff_user');
   window.location.href = 'staff.html';
 }
@@ -20,11 +20,11 @@ function api(path, method = 'GET', body = null) {
   const token = localStorage.getItem('gl_staff_token');
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body) opts.body = JSON.stringify(body);
-  return fetch(WORKER + path, opts).then(r => r.json());
+  return fetch(WORKER + path, opts).then(r =>r.json());
 }
 
 function doLogout() {
-  ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k => localStorage.removeItem(k));
+  ['gl_staff_user','gl_staff_login_time','gl_staff_token'].forEach(k =>localStorage.removeItem(k));
   window.location.href = 'staff.html';
 }
 
@@ -84,8 +84,8 @@ async function fetchWialonData(trip) {
   let totalMileage = 0, totalFuel = 0;
   (summaryR || []).forEach(row => {
     const cols = row.c || [];
-    const km = parseFloat((cols[2] || '0').replace(' km', '').replace(',', '.')) || 0;
-    const fuel = parseFloat((cols[4] || '0').replace(' l', '').replace(',', '.')) || 0;
+    const km = parseFloat((cols[2] || '0').replace('km', '').replace(',', '.')) || 0;
+    const fuel = parseFloat((cols[4] || '0').replace('l', '').replace(',', '.')) || 0;
     totalMileage += km;
     totalFuel += fuel;
   });
@@ -95,9 +95,9 @@ async function fetchWialonData(trip) {
     return {
       time: typeof c[0] === 'object' ? c[0].t : c[0],
       location: typeof c[1] === 'object' ? (c[1].a || '') : c[1],
-      before: parseFloat((c[2] || '0').replace(' l', '')) || 0,
-      filled: parseFloat((c[3] || '0').replace(' l', '')) || 0,
-      after: parseFloat((c[4] || '0').replace(' l', '')) || 0,
+      before: parseFloat((c[2] || '0').replace('l', '')) || 0,
+      filled: parseFloat((c[3] || '0').replace('l', '')) || 0,
+      after: parseFloat((c[4] || '0').replace('l', '')) || 0,
     };
   });
 
@@ -107,7 +107,7 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'⛽ Топливо', toll:'🛣 Платная дорога', parking:'🅿️ Стоянка', ferry:'🚢 Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', advance:'💵 Аванс', salary:'👷 Зарплата', bank:'🏦 Выписка', other:'📦 Прочее' };
+const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', advance:'Аванс', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
 const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
@@ -129,25 +129,25 @@ function renderTripTabs() {
       renderTripsList();
     });
   }
-  const nActive = trips.filter(t => t.status !== 'closed').length;
+  const nActive = trips.filter(t =>t.status !== 'closed').length;
   const nArch = trips.length - nActive;
   const st = on => 'border:1px solid ' + (on ? '#146C72' : '#D5DADF') + ';background:' + (on ? '#146C72' : '#fff') + ';color:' + (on ? '#fff' : '#14202B') +
     ';border-radius:6px;padding:6px 14px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer';
-  tabs.innerHTML = `<button type="button" data-tab="active" style="${st(tripTab === 'active')}">Активные (${nActive})</button>` +
-                   `<button type="button" data-tab="archive" style="${st(tripTab === 'archive')}">Архив (${nArch})</button>`;
+  tabs.innerHTML = `<button type="button"data-tab="active"style="${st(tripTab === 'active')}">Активные (${nActive})</button>` +
+                   `<button type="button"data-tab="archive"style="${st(tripTab === 'archive')}">Архив (${nArch})</button>`;
 }
 function renderTripsList() {
   const el = document.getElementById('tripsList');
   renderTripTabs();
-  const list = trips.filter(t => tripTab === 'archive' ? t.status === 'closed' : t.status !== 'closed');
+  const list = trips.filter(t =>tripTab === 'archive' ? t.status === 'closed' : t.status !== 'closed');
   if (!trips.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.8rem">Нет рейсов. Создайте первый!</p>'; return; }
   if (!list.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.8rem">' + (tripTab === 'archive' ? 'В архиве пока нет рейсов. Закрытые рейсы попадают сюда автоматически.' : 'Нет активных рейсов.') + '</p>'; return; }
   el.innerHTML = list.map(t => `
-    <div class="trip-card ${currentTrip?.id === t.id ? 'active' : ''}" data-id="${t.id}">
+    <div class="trip-card ${currentTrip?.id === t.id ? 'active' : ''}"data-id="${t.id}">
       <div class="trip-header">
         <div>
-          <div class="trip-truck">🚛 ${esc(t.truck)}</div>
-          <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s => s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
+          <div class="trip-truck"> ${esc(t.truck)}</div>
+          <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s =>s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
           <div class="trip-dates">${t.date_start || ''} — ${t.date_end || ''}</div>
         </div>
         <div style="text-align:right">
@@ -160,7 +160,7 @@ function renderTripsList() {
   document.querySelectorAll('.trip-card').forEach(card => {
     card.addEventListener('click', () => {
       const id = parseInt(card.dataset.id);
-      openTrip(trips.find(t => t.id === id));
+      openTrip(trips.find(t =>t.id === id));
     });
   });
 }
@@ -182,19 +182,19 @@ async function openTrip(trip) {
 
   document.getElementById('tripDetail').style.display = 'block';
   const segRoute = tripSegments.length
-    ? ' → ' + tripSegments.map(s => s.route_to).filter(Boolean).join(' → ')
+    ? ' → ' + tripSegments.map(s =>s.route_to).filter(Boolean).join(' → ')
     : '';
-  document.getElementById('detailTitle').textContent = `🚛 ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
+  document.getElementById('detailTitle').textContent = ` ${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
 
   const segsSnapshot = [...tripSegments]; // снимок до любых изменений
   // Обновляем кнопку закрытия
   const closeBtn = document.getElementById('closeTripBtn');
   if (closeBtn) {
     if (full.status === 'closed') {
-      closeBtn.textContent = '🔓 Открыть рейс';
+      closeBtn.textContent = 'Открыть рейс';
       closeBtn.style.background = '#5a5a5a';
     } else {
-      closeBtn.textContent = '✅ Закрыть рейс';
+      closeBtn.textContent = 'Закрыть рейс';
       closeBtn.style.background = '#1E7A80';
     }
   }
@@ -212,18 +212,18 @@ async function openTrip(trip) {
     wialon_fuel_used: full.wialon_fuel_used,
     wialon_fuel_rate: full.wialon_fuel_rate,
     expenses: (full.expenses || []).map(e => ({ cat: e.category, amount: e.amount, currency: e.currency, desc: e.description, receipt_key: e.receipt_key })),
-    total_expenses_amd: (full.expenses || []).reduce((s, e) => s + (e.amount_amd || 0), 0),
+    total_expenses_amd: (full.expenses || []).reduce((s, e) =>s + (e.amount_amd || 0), 0),
   };
 }
 
 function renderTripStats(trip, segs) {
   const segments = segs || tripSegments || [];
   const expenses = trip.expenses || [];
-  const totalAMD = expenses.reduce((s, e) => s + (e.amount_amd || 0), 0);
+  const totalAMD = expenses.reduce((s, e) =>s + (e.amount_amd || 0), 0);
   // Курсы из глобального объекта или дефолт
   const EUR_RATE = window._eurRate || 418;
   const USD_RATE = window._usdRate || 367;
-  const getRate = cur => cur === 'AMD' ? 1 : cur === 'EUR' ? EUR_RATE : cur === 'USD' ? USD_RATE : EUR_RATE;
+  const getRate = cur =>cur === 'AMD' ? 1 : cur === 'EUR' ? EUR_RATE : cur === 'USD' ? USD_RATE : EUR_RATE;
 
   const fuelExpAMD    = expenses.filter(e=>e.category==='fuel').reduce((s,e)=>s+(e.amount_amd||0),0);
   const tollExpAMD    = expenses.filter(e=>e.category==='toll').reduce((s,e)=>s+(e.amount_amd||0),0);
@@ -242,7 +242,7 @@ function renderTripStats(trip, segs) {
   const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
+  const segmentsRevenueAMD = segments.reduce((s,sg) =>s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + partsExpAMD + insurExpAMD + otherExpAMD;
   // Наличные чеки водитель оплачивает из аванса, поэтому аванс считаем только в части, не покрытой чеками
@@ -252,24 +252,24 @@ function renderTripStats(trip, segs) {
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
   document.getElementById('tripStats').innerHTML = `
-    <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
-    <div class="stat ${trip.wialon_fuel_rate > trip.fuel_rate_plan ? 'red' : 'green'}">
-      <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
+    <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem">км</span></div><div class="lbl">Пробег GPS</div></div>
+    <div class="stat ${trip.wialon_fuel_rate >trip.fuel_rate_plan ? 'red' : 'green'}">
+      <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem">л/100</span></div><div class="lbl">Расход факт</div></div>
     <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
-      <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">💰 Доход (все плечи)</div></div>
-    <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">💵 Аванс</div></div>
-    <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">👷 Зарплата</div></div>
-    ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">⛽ Топливо</div></div>`:''}
-    ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">🛣 Платные дороги</div></div>`:''}
-    ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">🅿️ Стоянка</div></div>`:''}
-    ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">🚢 Паром</div></div>`:''}
+      <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem">л</span></div><div class="lbl">Перерасход</div></div>
+    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">Доход (все плечи)</div></div>
+    <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">Аванс</div></div>
+    <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">Зарплата</div></div>
+    ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">Топливо</div></div>`:''}
+    ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">Платные дороги</div></div>`:''}
+    ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">Стоянка</div></div>`:''}
+    ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">Паром</div></div>`:''}
     ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
     ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
     ${partsExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(partsExpAMD)}</div><div class="lbl">Запчасти</div></div>`:''}
     ${insurExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(insurExpAMD)}</div><div class="lbl">Страховки</div></div>`:''}
-    ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">📦 Прочие расходы</div></div>`:''}
-    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? '✅ Прибыль' : '❌ Убыток'}</div></div>
+    ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">Прочие расходы</div></div>`:''}
+    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? 'Прибыль' : 'Убыток'}</div></div>
 `;
 
   // Wialon блок
@@ -279,12 +279,12 @@ function renderTripStats(trip, segs) {
     document.getElementById('wialonBlock').style.display = 'block';
     document.getElementById('wialonData').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.6rem">
-        <div class="stat"><div class="val">${fmt(trip.wialon_fuel_used)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Потрачено</div></div>
+        <div class="stat"><div class="val">${fmt(trip.wialon_fuel_used)}<span style="font-size:.6rem">л</span></div><div class="lbl">Потрачено</div></div>
         <div class="stat"><div class="val">${fillings.length}</div><div class="lbl">Заправок</div></div>
-        <div class="stat"><div class="val">${fmt(fillings.reduce((s,f)=>s+f.filled,0))}<span style="font-size:.6rem"> л</span></div><div class="lbl">Заправлено</div></div>
+        <div class="stat"><div class="val">${fmt(fillings.reduce((s,f)=>s+f.filled,0))}<span style="font-size:.6rem">л</span></div><div class="lbl">Заправлено</div></div>
       </div>
       <div style="font-size:.72rem;color:#8fa8ab;margin-bottom:.3rem">Расход топлива:</div>
-      <div class="fuel-bar"><div class="fuel-bar-fill" style="width:${fuelPct}%;background:${fuelPct>80?'#ef4444':'#55B7BD'}"></div></div>
+      <div class="fuel-bar"><div class="fuel-bar-fill"style="width:${fuelPct}%;background:${fuelPct>80?'#ef4444':'#55B7BD'}"></div></div>
       ${fillings.length ? `<div style="margin-top:.6rem;font-size:.72rem;color:#8fa8ab">Заправки:</div>
         ${fillings.map(f=>`<div style="font-size:.75rem;padding:.3rem 0;border-bottom:1px solid #1a3a42;display:flex;justify-content:space-between">
           <span>${f.time || ''} ${f.location ? '· ' + f.location.substring(0,30) : ''}</span>
@@ -301,15 +301,15 @@ function renderExpenses(expenses) {
   if (!expenses.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.75rem">Нет расходов</p>'; totEl.innerHTML = ''; return; }
 
   el.innerHTML = expenses.map(e => `
-    <div class="expense-row" data-id="${e.id}">
+    <div class="expense-row"data-id="${e.id}">
       <span class="expense-cat ${catClass[e.category]}">${catLabel[e.category]}</span>
       <span class="expense-desc">${esc(e.description || '')}</span>
       <span class="expense-date">${e.date || ''}</span>
       ${['advance','salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}
       <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
-      ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
-      <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✏️</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button>
+      ${e.receipt_key ? `<img class="receipt-thumb"src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}"alt="чек"onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
+      <button class="btn btn-sm"onclick="editExpense(${e.id})"style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✎</button>
+      <button class="btn btn-danger btn-sm"onclick="deleteExpense(${e.id})">✕</button>
     </div>`).join('');
 
   // Итоги по категориям
@@ -382,7 +382,7 @@ async function saveTrip() {
     salary_currency: document.getElementById('fSalaryCur').value,
   };
   if (editingTripId) {
-    const existing = trips.find(t => t.id === editingTripId);
+    const existing = trips.find(t =>t.id === editingTripId);
     await api('/api/trips/' + editingTripId, 'PUT', { ...existing, ...body });
     await saveTripSegments(editingTripId);
   } else {
@@ -404,17 +404,17 @@ async function deleteTrip() {
 async function syncWialon() {
   if (!currentTrip) return;
   const btn = document.getElementById('wialonSyncBtn');
-  btn.textContent = '⏳ Загрузка...'; btn.disabled = true;
+  btn.textContent = 'Загрузка...'; btn.disabled = true;
   try {
     const data = await api('/api/trips/' + currentTrip.id + '/wialon-sync', 'POST');
     if (data.error) { alert('Ошибка Wialon: ' + data.error); return; }
     await openTrip({ id: currentTrip.id });
     await loadTrips();
-    alert(`✅ Данные Wialon загружены!\nПробег: ${fmt(data.mileage)} км\nРасход: ${fmt(data.fuelUsed)} л\nЗаправок: ${data.fillings?.length || 0}`);
+    alert(`Данные Wialon загружены!\nПробег: ${fmt(data.mileage)} км\nРасход: ${fmt(data.fuelUsed)} л\nЗаправок: ${data.fillings?.length || 0}`);
   } catch (e) {
     alert('Ошибка: ' + e.message);
   } finally {
-    btn.textContent = '🛰 Wialon'; btn.disabled = false;
+    btn.textContent = 'Wialon'; btn.disabled = false;
   }
 }
 
@@ -470,7 +470,7 @@ async function addExpense() {
 
 
 window.editExpense = function(id) {
-  const exp = (currentTrip?.expenses || []).find(e => e.id === id);
+  const exp = (currentTrip?.expenses || []).find(e =>e.id === id);
   if (!exp) return;
   // Заполняем форму
   document.getElementById('eCat').value = exp.category || 'fuel';
@@ -502,12 +502,12 @@ async function sendAI() {
   const aiBody = document.getElementById('aiBody');
 
   if (!aiTripContext) {
-    aiBody.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">⚠️ Сначала выберите рейс слева!</div>`;
+    aiBody.innerHTML += `<div class="ai-msg assistant"style="color:#ef4444">Сначала выберите рейс слева!</div>`;
     aiBody.scrollTop = aiBody.scrollHeight;
     return;
   }
 
-  const hasBankDocs = aiTripContext.expenses?.some(e => e.cat === 'bank' && e.receipt_key);
+  const hasBankDocs = aiTripContext.expenses?.some(e =>e.cat === 'bank' && e.receipt_key);
 
   const body = document.getElementById('aiBody');
 
@@ -516,7 +516,7 @@ async function sendAI() {
   aiBody.innerHTML += `<div class="ai-msg user">${esc(text)}</div>`;
 
   const loadId = 'ai-load-' + Date.now();
-  aiBody.innerHTML += `<div class="ai-msg loading" id="${loadId}">...</div>`;
+  aiBody.innerHTML += `<div class="ai-msg loading"id="${loadId}">...</div>`;
   aiBody.scrollTop = aiBody.scrollHeight;
 
   try {
@@ -531,7 +531,7 @@ async function sendAI() {
     aiBody.innerHTML += `<div class="ai-msg assistant">${esc(reply)}</div>`;
   } catch (e) {
     document.getElementById(loadId)?.remove();
-    aiBody.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">Ошибка: ${e.message}</div>`;
+    aiBody.innerHTML += `<div class="ai-msg assistant"style="color:#ef4444">Ошибка: ${e.message}</div>`;
   }
   aiBody.scrollTop = aiBody.scrollHeight;
 }
@@ -558,12 +558,12 @@ async function loadCargo() {
 }
 
 // Events
-document.getElementById('uploadBankBtn').addEventListener('click', () => document.getElementById('bankFileInput').click());
+document.getElementById('uploadBankBtn').addEventListener('click', () =>document.getElementById('bankFileInput').click());
 document.getElementById('bankFileInput').addEventListener('change', async (e) => {
   if (!currentTrip || !e.target.files[0]) return;
   const file = e.target.files[0];
   const btn = document.getElementById('uploadBankBtn');
-  btn.textContent = '⏳...'; btn.disabled = true;
+  btn.textContent = '...'; btn.disabled = true;
   try {
     const uploadR = await fetch(WORKER + '/api/trips/upload-receipt', {
       method: 'POST',
@@ -582,19 +582,19 @@ document.getElementById('bankFileInput').addEventListener('change', async (e) =>
     await api('/api/trips/' + currentTrip.id + '/expenses', 'POST', body2);
     await openTrip({ id: currentTrip.id });
     e.target.value = '';
-    alert('✅ Выписка загружена!');
+    alert('Выписка загружена!');
   } catch(err) {
     alert('Ошибка: ' + err.message);
   } finally {
-    btn.textContent = '🏦 Выписка'; btn.disabled = false;
+    btn.textContent = 'Выписка'; btn.disabled = false;
   }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
-document.getElementById('newTripBtn').addEventListener('click', () => openTripModal());
+document.getElementById('newTripBtn').addEventListener('click', () =>openTripModal());
 document.getElementById('saveTripBtn').addEventListener('click', saveTrip);
-document.getElementById('cancelTripModal').addEventListener('click', () => document.getElementById('tripModal').classList.remove('open'));
-document.getElementById('editTripBtn').addEventListener('click', () => currentTrip && openTripModal(currentTrip));
+document.getElementById('cancelTripModal').addEventListener('click', () =>document.getElementById('tripModal').classList.remove('open'));
+document.getElementById('editTripBtn').addEventListener('click', () =>currentTrip && openTripModal(currentTrip));
 document.getElementById('wialonSyncBtn').addEventListener('click', syncWialon);
 document.getElementById('deleteTripBtn').addEventListener('click', deleteTrip);
 
@@ -607,7 +607,7 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
   const btn = document.getElementById('btnScanReceipt');
   const status = document.getElementById('scanStatus');
   btn.disabled = true;
-  btn.textContent = '⏳ Распознаю...';
+  btn.textContent = 'Распознаю...';
   status.textContent = 'Claude читает документ...';
   status.style.color = '#55B7BD';
 
@@ -615,7 +615,7 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
     // Конвертируем файл в base64
     const base64 = await new Promise((res, rej) => {
       const reader = new FileReader();
-      reader.onload = () => res(reader.result.split(',')[1]);
+      reader.onload = () =>res(reader.result.split(',')[1]);
       reader.onerror = rej;
       reader.readAsDataURL(file);
     });
@@ -645,9 +645,9 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
               text: `Это чек или счёт за расход. Извлеки данные и верни ТОЛЬКО JSON без markdown:
 {
   "amount": число (только цифры, без валюты),
-  "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
+  "currency": "EUR"или "AMD"или "USD"или "GEL"или "TRY"или "RUB",
   "date": "YYYY-MM-DD",
-  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "parts" или "insurance" или "other",
+  "category": "fuel"или "toll"или "parking"или "transit"или "adblue"или "parts"или "insurance"или "other",
   "description": "краткое описание на русском (название места, тип расхода)"
 }
 Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, parts=запчасти/детали/ремонт/шиномонтаж/автосервис, insurance=страховка/полис/зелёная карта, other=всё остальное.
@@ -698,21 +698,21 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
 
     // Копируем файл в dropzone чека
     const receiptDZ = document.getElementById('eReceiptDropzone');
-    if (receiptDZ?.getFiles && !receiptDZ.getFiles().find(f => f.name === file.name)) {
+    if (receiptDZ?.getFiles && !receiptDZ.getFiles().find(f =>f.name === file.name)) {
       receiptDZ.getFiles().push(file);
       receiptDZ.querySelector('.dropzone-files').innerHTML += `
-        <div class="dropzone-chip">🖼 ${file.name}</div>`;
+        <div class="dropzone-chip"> ${file.name}</div>`;
     }
 
-    status.textContent = '✅ Распознано! Проверьте и сохраните.';
+    status.textContent = 'Распознано! Проверьте и сохраните.';
     status.style.color = '#1a6b3c';
 
   } catch(e) {
-    status.textContent = '❌ Ошибка: ' + e.message;
+    status.textContent = 'Ошибка: ' + e.message;
     status.style.color = '#C62828';
   } finally {
     btn.disabled = false;
-    btn.textContent = '🤖 Распознать';
+    btn.textContent = 'Распознать';
   }
 });
 
@@ -720,7 +720,7 @@ document.getElementById('addExpenseBtn').addEventListener('click', () => {
   document.getElementById('eDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('expenseModal').classList.add('open');
 });
-document.getElementById('cancelExpenseModal').addEventListener('click', () => document.getElementById('expenseModal').classList.remove('open'));
+document.getElementById('cancelExpenseModal').addEventListener('click', () =>document.getElementById('expenseModal').classList.remove('open'));
 document.getElementById('saveExpenseBtn').addEventListener('click', addExpense);
 
 // AI
@@ -749,15 +749,15 @@ window.toggleSegType = function() {
   const cur = parseInt(inp.value);
   const next = cur === 1 ? 2 : 1;
   inp.value = next;
-  lbl.textContent = next === 1 ? '🔀 Промежуточный рейс' : '🔄 Обратный рейс';
+  lbl.textContent = next === 1 ? 'Промежуточный рейс' : 'Обратный рейс';
   btn.textContent = next === 1 ? '→ Сделать обратным' : '→ Сделать промежуточным';
 };
 
 window.closeSeg = async function() {
   document.getElementById('seg1Block').style.display = 'none';
-  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
+  document.getElementById('toggleSeg1').textContent = ' + Промежуточный / Обратный рейс';
   document.getElementById('fSeg1Type').value = '1';
-  document.getElementById('seg1Label').textContent = '🔀 Промежуточный рейс';
+  document.getElementById('seg1Label').textContent = 'Промежуточный рейс';
   document.getElementById('segTypeBtn').textContent = '→ Сделать обратным';
   ['Client','Price','From','To'].forEach(f => {
     const el = document.getElementById('fSeg1' + f);
@@ -770,7 +770,7 @@ window.closeSeg = async function() {
   tripSegments = [];
   if (currentTrip) {
     document.getElementById('detailTitle').textContent =
-      '🚛 ' + currentTrip.truck + ': ' + currentTrip.route_from + ' → ' + currentTrip.route_to;
+      ' ' + currentTrip.truck + ': ' + currentTrip.route_from + ' → ' + currentTrip.route_to;
   }
 };
 
@@ -779,7 +779,7 @@ document.getElementById('toggleSeg1')?.addEventListener('click', () => {
   const isOpen = block.style.display !== 'none';
   block.style.display = isOpen ? 'none' : 'block';
   document.getElementById('toggleSeg1').textContent =
-    isOpen ? '🔀 + Промежуточный / Обратный рейс' : '🔀 − Промежуточный / Обратный рейс';
+    isOpen ? ' + Промежуточный / Обратный рейс' : ' − Промежуточный / Обратный рейс';
   if (isOpen) {
     document.getElementById('fSeg1Type').value = '1';
     ['Client','Price','From','To'].forEach(f => {
@@ -790,11 +790,11 @@ document.getElementById('toggleSeg1')?.addEventListener('click', () => {
 
 function resetSegForms() {
   document.getElementById('seg1Block').style.display = 'none';
-  document.getElementById('toggleSeg1').textContent = '🔀 + Промежуточный / Обратный рейс';
+  document.getElementById('toggleSeg1').textContent = ' + Промежуточный / Обратный рейс';
   const inp = document.getElementById('fSeg1Type');
   if (inp) inp.value = '1';
   const lbl = document.getElementById('seg1Label');
-  if (lbl) lbl.textContent = '🔀 Промежуточный рейс';
+  if (lbl) lbl.textContent = 'Промежуточный рейс';
   const btn = document.getElementById('segTypeBtn');
   if (btn) btn.textContent = '→ Сделать обратным';
   ['Client','Price','From','To'].forEach(f => {
@@ -819,11 +819,11 @@ function fillSegForm(seg) {
   if (!seg) return;
   const segNum = seg.segment_num || 1;
   document.getElementById('seg1Block').style.display = 'block';
-  document.getElementById('toggleSeg1').textContent = '🔀 − Промежуточный / Обратный рейс';
+  document.getElementById('toggleSeg1').textContent = ' − Промежуточный / Обратный рейс';
   const inp = document.getElementById('fSeg1Type');
   if (inp) inp.value = segNum;
   const lbl = document.getElementById('seg1Label');
-  if (lbl) lbl.textContent = segNum === 2 ? '🔄 Обратный рейс' : '🔀 Промежуточный рейс';
+  if (lbl) lbl.textContent = segNum === 2 ? 'Обратный рейс' : 'Промежуточный рейс';
   const btn = document.getElementById('segTypeBtn');
   if (btn) btn.textContent = segNum === 2 ? '→ Сделать промежуточным' : '→ Сделать обратным';
   document.getElementById('fSeg1Client').value   = seg.client_name || '';
@@ -861,7 +861,7 @@ fetch(WORKER + '/api/rates').then(r=>r.json()).then(d=>{
 }).catch(()=>{ window._eurRate = 418; window._usdRate = 367; });
 
 // Wialon логин в фоне
-wialonLogin().then(ok => console.log('Wialon:', ok ? 'connected' : 'failed'));
+wialonLogin().then(ok =>console.log('Wialon:', ok ? 'connected' : 'failed'));
 
 // Загрузка данных
 
@@ -872,12 +872,12 @@ document.getElementById('closeTripBtn')?.addEventListener('click', async () => {
   if (currentTrip.status === 'closed') {
     if (!confirm('Открыть рейс снова?')) return;
     await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'open' });
-    btn.textContent = '✅ Закрыть рейс';
+    btn.textContent = 'Закрыть рейс';
     btn.style.background = '#1E7A80';
   } else {
     if (!confirm('Закрыть рейс? Все данные будут зафиксированы.')) return;
     await api('/api/trips/' + currentTrip.id, 'PUT', { ...currentTrip, status: 'closed' });
-    btn.textContent = '🔓 Открыть рейс';
+    btn.textContent = 'Открыть рейс';
     btn.style.background = '#5a5a5a';
   }
   await loadTrips();
