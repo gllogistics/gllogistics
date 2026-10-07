@@ -36,6 +36,8 @@ table { width: 100%; border-collapse: collapse; min-width: 1100px; }
 th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; }
 td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
 tr:hover td { background: #FAFCFC; }
+tr.noname td { background: #FFFBF2; }
+.b[aria-pressed="true"] { background: #FDF1E3; border-color: #E0B07A; color: #8A4B00; }
 .name { font-weight: 600; }
 .muted { color: #5B6670; font-size: 13px; }
 .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; background: #F0F2F4; color: #3D4852; font-size: 12px; margin: 2px 4px 0 0; }
@@ -75,6 +77,7 @@ tr:hover td { background: #FAFCFC; }
   <div class="tabs" id="tabs" role="tablist" aria-label="Разделы"></div>
   <div class="filters">
     <input type="search" id="q" placeholder="Поиск в разделе: компания, маршрут, телефон" aria-label="Поиск">
+    <button type="button" class="b" id="noNameBtn" aria-pressed="false" style="display:none"></button>
   </div>
   <div class="card"><div class="scroll"><table>
     <thead id="thead"></thead>
@@ -120,7 +123,8 @@ const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 
 // Порядок разделов как в вашей таблице
 const ORDER = ['Украина', 'Европа-СНГ', 'Европа-АМ', 'Турция-СНГ', 'Китай', 'Belorus-AM', 'KZ-AM', 'Негабарит', 'INDIA', 'International Brokers', 'RU-AM', 'IRAN'];
 const PROSPECT = '__prospect';
-let all = [], tab = decodeURIComponent(location.hash.slice(1)) || ORDER[0], editId = null;
+let all = [], tab = decodeURIComponent(location.hash.slice(1)) || ORDER[0], editId = null, noName = false;
+const countryOf = c => ((c.notes || '').match(/Страна:\s*([^;]+)/) || [])[1] || '';
 
 function waDigits(phone) {
   let d = '';
@@ -152,14 +156,22 @@ function render() {
     + `<button type="button" role="tab" class="tab ${tab === PROSPECT ? 'on' : ''}" data-tab="${PROSPECT}" aria-selected="${tab === PROSPECT}">Потенциальные<span class="n">${nP}</span></button>`;
 
   const q = $('q').value.trim().toLowerCase();
-  const list = all.filter(c => tab === PROSPECT ? c.status === 'prospect' : (c.status !== 'prospect' && (c.direction || 'Без раздела') === tab))
+  let list = all.filter(c => tab === PROSPECT ? c.status === 'prospect' : (c.status !== 'prospect' && (c.direction || 'Без раздела') === tab))
     .filter(c => !q || [c.name, c.route, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
+  const secAll = all.filter(c => tab !== PROSPECT && c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
+  const nNo = secAll.filter(c => !c.name).length;
+  const nb = $('noNameBtn');
+  nb.style.display = tab !== PROSPECT && nNo ? '' : 'none';
+  if (!nNo) noName = false;
+  nb.textContent = noName ? 'Показать всех' : 'Без названия: ' + nNo;
+  nb.setAttribute('aria-pressed', String(noName));
+  if (noName) list.splice(0, list.length, ...list.filter(c => !c.name));
   $('sub').textContent = (tab === PROSPECT ? 'Потенциальные' : tab) + ': ' + list.length;
 
   if (tab !== PROSPECT) {
     $('thead').innerHTML = '<tr><th>Компания</th><th>FTL / LTL</th><th>Откуда нашли</th><th>Маршрут</th><th>Прицеп</th><th>Телефон (WhatsApp)</th><th>Email</th><th>Заметки</th><th></th></tr>';
-    $('tbody').innerHTML = list.length ? list.map(c => `<tr>
-      <td class="name">${esc(c.name) || '<span class="muted">—</span>'}</td>
+    $('tbody').innerHTML = list.length ? list.map(c => `<tr class="${c.name ? '' : 'noname'}">
+      <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}</td>
       <td>${esc(c.load_type)}</td>
       <td>${esc(c.source)}</td>
       <td>${esc(c.route)}</td>
@@ -182,10 +194,11 @@ function render() {
 
 $('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
-  tab = t.dataset.tab; $('q').value = '';
+  tab = t.dataset.tab; $('q').value = ''; noName = false;
   history.replaceState(null, '', '#' + encodeURIComponent(tab));
   render();
 });
+$('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
 
 $('tbody').addEventListener('click', async e => {
