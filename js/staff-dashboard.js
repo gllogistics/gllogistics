@@ -183,13 +183,13 @@ async function loadUsers() {
 function renderLogists() {
   document.getElementById('logistListTable').innerHTML = usersList.map((u, i) =>
     `<tr><td>${esc(u.username)}</td><td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
-    <td><span id="pwd_${i}">••••••</span> <button class="show-pwd" data-idx="${i}">Показать</button></td>
+    <td><span style="color:#8fa8ab">зашифрован</span> <button class="show-pwd pwd-change" data-idx="${i}">Сменить пароль</button></td>
     <td>${u.email ? esc((u.display_name ? u.display_name + ' · ' : '') + u.email) : '<span style="color:#8fa8ab">не задан</span>'}${u.sig_title ? '<br><small style="color:#8fa8ab">' + esc(u.sig_title) + '</small>' : ''} <button class="show-pwd set-mail" data-idx="${i}">Подпись</button></td>
     <td>${u.role !== 'admin' ? `<button class="btn-sm-del" data-name="${esc(u.username)}">Удалить</button>` : ''}</td></tr>`
   ).join('');
 
-  document.querySelectorAll('.show-pwd').forEach(btn => {
-    btn.addEventListener('click', () => toggleShowPwd(parseInt(btn.dataset.idx), btn));
+  document.querySelectorAll('.pwd-change').forEach(btn => {
+    btn.addEventListener('click', () => changePwd(usersList[parseInt(btn.dataset.idx)]));
   });
   document.querySelectorAll('.set-mail').forEach(btn => {
     btn.addEventListener('click', () => openSigModal(usersList[parseInt(btn.dataset.idx)]));
@@ -200,19 +200,17 @@ function renderLogists() {
 }
 
 let pwdCache = {};
-async function toggleShowPwd(i, btn) {
-  const el = document.getElementById('pwd_' + i);
-  if (el.textContent === '••••••') {
-    if (!pwdCache[usersList[i].username]) {
-      const data = await api('/api/user-pwd/' + usersList[i].username);
-      pwdCache[usersList[i].username] = data.password;
-    }
-    el.textContent = pwdCache[usersList[i].username];
-    btn.textContent = 'Скрыть';
-  } else {
-    el.textContent = '••••••';
-    btn.textContent = 'Показать';
-  }
+// Пароли хранятся зашифрованными, их нельзя показать — только задать новый
+async function changePwd(u) {
+  const p1 = prompt('Новый пароль для ' + u.username + ' (не короче 6 символов):');
+  if (p1 === null) return;
+  if (p1.length < 6) return alert('Пароль должен быть не короче 6 символов');
+  const p2 = prompt('Повторите новый пароль:');
+  if (p2 === null) return;
+  if (p1 !== p2) return alert('Пароли не совпадают');
+  const r = await api('/api/users', 'POST', { username: u.username, password: p1, role: u.role });
+  if (r && r.error) return alert(r.error);
+  alert('Пароль для ' + u.username + ' изменён');
 }
 
 async function addLogist() {
