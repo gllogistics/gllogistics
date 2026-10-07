@@ -20,6 +20,12 @@ body { margin: 0; background: #F6F7F8; color: #14202B; }
 .b.danger { background: #fff; border-color: #E8B4AF; color: #A3241B; }
 .b.sm { height: 30px; padding: 0 10px; font-size: 13px; }
 .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.fpanel { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 12px 14px; margin: -4px 0 12px; display: flex; flex-direction: column; gap: 10px; }
+.fpanel[hidden] { display: none; }
+.frow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.flabel { width: 70px; font-size: 13px; font-weight: 600; color: #5B6670; }
+.frow select { height: 34px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; }
+.fcount { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: #146C72; color: #fff; font-size: 12px; text-align: center; }
 .tab .n { opacity: .7; font-weight: 500; margin-left: 4px; }
 .phone { color: #146C72; font-weight: 500; text-decoration: none; white-space: nowrap; }
 .phone:hover { text-decoration: underline; }
@@ -77,11 +83,13 @@ tr.noname td { background: #FFFBF2; }
   <div class="tabs" id="tabs" role="tablist" aria-label="Разделы"></div>
   <div class="filters">
     <input type="search" id="q" placeholder="Поиск в разделе: компания, маршрут, телефон" aria-label="Поиск">
-    <select id="country" aria-label="Страна"><option value="">Все страны</option></select>
-    <button type="button" class="b" id="noNameBtn" aria-pressed="false" style="display:none"></button>
+    <button type="button" class="b" id="filterBtn" aria-expanded="false" aria-controls="filterPanel">Фильтры</button>
   </div>
-  <div class="filters" id="chipsRow" style="margin-top:-4px">
-    <div id="chips" role="group" aria-label="Тип прицепа" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  <div class="fpanel" id="filterPanel" hidden>
+    <div class="frow"><span class="flabel">Страна</span><select id="country" aria-label="Страна"><option value="">Все страны</option></select></div>
+    <div class="frow"><span class="flabel">Прицеп</span><div id="chips" role="group" aria-label="Тип прицепа" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    <div class="frow" id="noNameRow"><span class="flabel">Прочее</span><button type="button" class="chip" id="noNameBtn" aria-pressed="false"></button></div>
+    <div class="frow" style="justify-content:flex-end;gap:8px"><button type="button" class="b sm" id="resetF">Сбросить</button><button type="button" class="b sm primary" id="closeF">Готово</button></div>
   </div>
   <div class="card"><div class="scroll"><table>
     <thead id="thead"></thead>
@@ -172,9 +180,10 @@ function render() {
   const secAll = all.filter(c => tab !== PROSPECT && c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
   const nNo = secAll.filter(c => !c.name).length;
   const nb = $('noNameBtn');
-  nb.style.display = tab !== PROSPECT && nNo ? '' : 'none';
+  $('noNameRow').style.display = nNo ? '' : 'none';
   if (!nNo) noName = false;
-  nb.textContent = noName ? 'Показать всех' : 'Без названия: ' + nNo;
+  nb.classList.toggle('on', noName);
+  nb.textContent = 'Только без названия (' + nNo + ')';
   nb.setAttribute('aria-pressed', String(noName));
   if (noName) list.splice(0, list.length, ...list.filter(c => !c.name));
   // страны раздела и кнопки прицепов
@@ -185,7 +194,10 @@ function render() {
     $('country').innerHTML = '<option value="">Все страны</option>' + cs.map(x => `<option${x === cur ? ' selected' : ''}>${esc(x)}</option>`).join('');
     $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}" aria-pressed="${trailer === k}">${l}</button>`).join('');
   }
-  $('country').style.display = $('chipsRow').style.display = tab === PROSPECT ? 'none' : '';
+  $('filterBtn').style.display = tab === PROSPECT ? 'none' : '';
+  if (tab === PROSPECT) closePanel();
+  const nf = (country ? 1 : 0) + (trailer ? 1 : 0) + (noName ? 1 : 0);
+  $('filterBtn').innerHTML = 'Фильтры' + (nf ? '<span class="fcount">' + nf + '</span>' : '');
   $('sub').textContent = (tab === PROSPECT ? 'Потенциальные' : tab) + ': ' + list.length;
 
   if (tab !== PROSPECT) {
@@ -214,10 +226,14 @@ function render() {
 
 $('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
-  tab = t.dataset.tab; $('q').value = ''; noName = false; trailer = ''; $('country').value = '';
+  tab = t.dataset.tab; $('q').value = ''; noName = false; trailer = ''; $('country').value = ''; closePanel();
   history.replaceState(null, '', '#' + encodeURIComponent(tab));
   render();
 });
+function closePanel() { $('filterPanel').hidden = true; $('filterBtn').setAttribute('aria-expanded', 'false'); }
+$('filterBtn').addEventListener('click', () => { const p = $('filterPanel'); p.hidden = !p.hidden; $('filterBtn').setAttribute('aria-expanded', String(!p.hidden)); });
+$('closeF').addEventListener('click', closePanel);
+$('resetF').addEventListener('click', () => { trailer = ''; noName = false; $('country').value = ''; render(); });
 $('country').addEventListener('change', render);
 $('chips').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { trailer = b.dataset.tr; render(); } });
 $('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
