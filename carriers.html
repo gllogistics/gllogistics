@@ -154,7 +154,8 @@ tr.noname td { background: #FFFBF2; }
         <div class="fg full"><div class="rq-sum" id="rqSum" style="margin:0"></div></div>
         <div class="fg"><label for="rqLang">Язык</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
         <div class="fg"><label for="rqSubject">Тема письма</label><input id="rqSubject"></div>
-        <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="9"></textarea></div>
+        <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="9"></textarea>
+          <div class="muted" style="font-size:12px">Ваша подпись добавится автоматически: в письме полная, с логотипом, в WhatsApp короткая.</div></div>
       </div>
       <div class="mfoot">
         <button type="button" class="b" id="rqCancel" style="margin-right:auto">Отмена</button>
@@ -257,6 +258,7 @@ function sections() {
 let lastReq = {}, me = {};
 const sigName = () => me.display_name || user;
 const sigMail = () => me.email || 'info@gllogistics.org';
+const waSig = () => '\n' + sigName() + '\nGL Logistics LLC\n' + (String(me.sig_phones || '+37493661454').split(/[,;]+/)[0].trim());
 const fmtD = s => { const d = new Date(String(s).replace(' ', 'T') + 'Z'); return isNaN(d) ? '' : d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' }); };
 async function loadLastReq() {
   const r = await api('/api/carrier-requests/last').catch(() => []);
@@ -360,12 +362,12 @@ const TPL = {
     text: `Здравствуйте!\n\nИщем транспорт:\nМаршрут: ${f.from || '…'} → ${f.to || '…'}` +
       (f.cargo ? `\nГруз: ${f.cargo}` : '') + (f.weight ? `\nВес / объём: ${f.weight}` : '') + (f.trailer ? `\nПрицеп: ${f.trailer}` : '') +
       (f.date ? `\nДата загрузки: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
-      `\n\nПожалуйста, пришлите вашу ставку и возможную дату подачи машины.\n\nС уважением,\n${sigName()}\nGL Logistics LLC\n+374 93 66 14 54 · ${sigMail()}` }),
+      `\n\nПожалуйста, пришлите вашу ставку и возможную дату подачи машины.\n\nС уважением,` }),
   en: f => ({ subject: `Rate request: ${f.from || '…'} → ${f.to || '…'}${f.date ? ', ' + f.date : ''}`,
     text: `Hello,\n\nWe are looking for a truck:\nRoute: ${f.from || '…'} → ${f.to || '…'}` +
       (f.cargo ? `\nCargo: ${f.cargo}` : '') + (f.weight ? `\nWeight / volume: ${f.weight}` : '') + (f.trailer ? `\nTrailer: ${f.trailer}` : '') +
       (f.date ? `\nLoading date: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
-      `\n\nPlease send us your rate and the earliest available truck date.\n\nBest regards,\n${sigName()}\nGL Logistics LLC\n+374 93 66 14 54 · ${sigMail()}` })
+      `\n\nPlease send us your rate and the earliest available truck date.\n\nBest regards,` })
 };
 let textEdited = false;
 function rqFields() { return { from: $('rqFrom').value.trim(), to: $('rqTo').value.trim(), cargo: $('rqCargo').value.trim(), weight: $('rqWeight').value.trim(),
@@ -441,7 +443,7 @@ function waShow() {
   const c = waQueue[waIdx];
   $('waProgress').textContent = `${waIdx + 1} из ${waQueue.length}`;
   $('waWho').textContent = (c.name || 'Без названия') + ' · ' + (phonesOf(c.phone).find(p => p.wa) || {}).text;
-  $('waOpen').href = 'https://wa.me/' + firstWa(c) + '?text=' + encodeURIComponent($('rqText').value);
+  $('waOpen').href = 'https://wa.me/' + firstWa(c) + '?text=' + encodeURIComponent($('rqText').value + waSig());
   $('waOpen').style.display = ''; $('waSkip').style.display = '';
 }
 $('waOpen').addEventListener('click', () => {
