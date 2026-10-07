@@ -424,14 +424,25 @@ function openSigModal(u) {
       <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgPhones">Телефоны (через запятую)</label>
       <input id="sgPhones" style="width:100%;margin-bottom:10px" placeholder="+37493661454, +37496664454">
       <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgEmail">Рабочий email</label>
-      <input id="sgEmail" type="email" style="width:100%;margin-bottom:16px" placeholder="armen@gllogistics.org">
+      <input id="sgEmail" type="email" style="width:100%;margin-bottom:12px" placeholder="armen@gllogistics.org">
+      <div style="font-size:12px;font-weight:600;color:#5B6670;margin-bottom:6px">Так подпись будет выглядеть в письме</div>
+      <div id="sgPreview" style="border:1px solid #E4E7EA;border-radius:8px;padding:10px 12px;margin-bottom:14px;background:#fff;overflow-x:auto"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn-sm" id="sgTest" style="background:#fff;color:#14202B;border:1px solid #D5DADF;margin-right:auto">Отправить тест себе</button>
         <button type="button" class="btn-sm" id="sgCancel" style="background:#fff;color:#14202B;border:1px solid #D5DADF">Отмена</button>
         <button type="button" class="btn-sm" id="sgSave">Сохранить</button>
       </div></div>`;
     document.body.appendChild(m);
     m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
     document.getElementById('sgCancel').addEventListener('click', () => { m.style.display = 'none'; });
+    ['sgName', 'sgTitle', 'sgPhones', 'sgEmail'].forEach(id => document.getElementById(id).addEventListener('input', sigPreview));
+    document.getElementById('sgTest').addEventListener('click', async () => {
+      if (m.dataset.user !== localStorage.getItem('gl_staff_user')) return alert('Тест можно отправить только себе. Откройте свою подпись.');
+      document.getElementById('sgSave').click();
+      await new Promise(r => setTimeout(r, 800));
+      const r = await api('/api/signature-test', 'POST', {});
+      alert(r && r.sent ? 'Тестовое письмо отправлено на ' + r.sent : 'Не отправлено: ' + ((r && r.error) || 'ошибка'));
+    });
     document.getElementById('sgSave').addEventListener('click', async () => {
       const uname = m.dataset.user;
       const r = await api('/api/users/' + encodeURIComponent(uname) + '/email', 'PUT', {
@@ -451,6 +462,44 @@ function openSigModal(u) {
   document.getElementById('sgTitle').value = u.sig_title || '';
   document.getElementById('sgPhones').value = u.sig_phones || '';
   document.getElementById('sgEmail').value = u.email || '';
+  document.getElementById('sgTest').style.display = u.username === localStorage.getItem('gl_staff_user') ? '' : 'none';
+  sigPreview();
   m.style.display = 'flex';
   document.getElementById('sgName').focus();
+}
+
+function glEmailSignature(me) {
+  const e = s => String(s || '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  const name = me.display_name || me.username || 'GLL Team';
+  const title = me.sig_title || 'GL Logistics LLC';
+  const phones = String(me.sig_phones || '+37493661454, +37496664454').split(/[,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 3);
+  const mail = me.email || 'info@gllogistics.org';
+  const wa = (phones[0] || '').replace(/\D/g, '');
+  const a = 'color:#222222;text-decoration:underline';
+  const html = `<br><div style="color:#888">--</div>
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#555555;margin-top:8px">
+<tr>
+<td style="vertical-align:top;padding:4px 16px 4px 0;text-align:center">
+<img src="https://gllogistics.org/images/gl_logo_email.png" width="64" alt="GL Logistics" style="display:block;margin:0 auto 4px;border:0">
+<div style="font-size:11px;font-weight:bold;color:#222222">GL Logistics</div>
+<div style="font-size:8px;color:#888888">Your supply chain partner everywhere.</div>
+</td>
+<td style="vertical-align:top;border-left:1px solid #cccccc;padding:2px 0 2px 16px">
+<div style="font-size:16px;font-weight:bold;color:#555555">${e(name)}</div>
+<div style="font-size:13px;font-weight:bold;color:#555555;margin-bottom:10px">${e(title)}</div>
+<div style="margin-bottom:8px"><a href="https://www.gllogistics.org" style="color:#1a0dab">www.gllogistics.org</a></div>
+<div style="margin-bottom:8px">${phones.map(p => `<a href="tel:${e(p.replace(/[^\d+]/g, ''))}" style="${a}">${e(p)}</a>`).join(' &nbsp;|&nbsp; ')} &nbsp;|&nbsp; <a href="mailto:${e(mail)}" style="${a}">${e(mail)}</a></div>
+<div style="margin-bottom:8px"><span style="text-decoration:underline;color:#222222">Sevan ST 86/2</span></div>
+${wa ? `<div><a href="https://wa.me/${wa}" style="color:#1B6B3F;font-weight:bold;text-decoration:none">WhatsApp</a></div>` : ''}
+</td>
+</tr>
+</table>`;
+  const text = `\n--\n${name}\n${title}\nwww.gllogistics.org\n${phones.join(' | ')} | ${mail}\nSevan ST 86/2`;
+  return { html, text };
+}
+
+function sigPreview() {
+  const v = id => document.getElementById(id).value.trim();
+  document.getElementById('sgPreview').innerHTML = glEmailSignature({ username: document.getElementById('sigModal').dataset.user,
+    display_name: v('sgName'), sig_title: v('sgTitle'), sig_phones: v('sgPhones'), email: v('sgEmail') }).html;
 }
