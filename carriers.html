@@ -150,6 +150,29 @@ function waDigits(phone) {
   if (d.length === 11 && d[0] === '8') d = '7' + d.slice(1);
   return d.length >= 9 && d.length <= 15 ? d : '';
 }
+// Несколько номеров в одной ячейке → отдельная ссылка WhatsApp на каждый
+function phonesOf(phone) {
+  const out = [];
+  let digits = '', text = '';
+  for (const part of String(phone || '').split(/,\s+|;|\/|\n|\s{3,}/)) {
+    const p = part.trim(); if (!p) continue;
+    digits += p.replace(/\D/g, ''); text += (text ? ' ' : '') + p;
+    if (digits.length >= 9) {       // код страны мог быть отделён запятой — тогда склеиваем
+      let d = digits.length === 11 && digits[0] === '8' ? '7' + digits.slice(1) : digits;
+      out.push({ text, wa: d.length <= 15 ? d : '' });
+      digits = ''; text = '';
+    }
+  }
+  if (text) out.push({ text, wa: '' });
+  return out;
+}
+function phoneCell(c) {
+  const list = phonesOf(c.phone);
+  if (!list.length) return '';
+  return list.map(p => p.wa
+    ? `<a class="phone" href="https://wa.me/${p.wa}" target="_blank" rel="noopener" title="Открыть в WhatsApp">${esc(p.text)}</a>`
+    : esc(p.text)).join('<br>');
+}
 function sections() {
   const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(dirOf))];
   return ORDER.filter(d => dirs.includes(d)).concat(dirs.filter(d => !ORDER.includes(d)).sort());
@@ -216,7 +239,7 @@ function render() {
       <td>${esc(c.source)}</td>
       <td>${esc(c.route)}</td>
       <td>${esc(c.trailer)}</td>
-      <td>${c.phone_wa ? `<a class="phone" href="https://wa.me/${c.phone_wa}" target="_blank" rel="noopener" title="Открыть в WhatsApp">${esc(c.phone)}</a>` : esc(c.phone)}</td>
+      <td>${phoneCell(c)}</td>
       <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
