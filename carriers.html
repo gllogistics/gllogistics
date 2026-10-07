@@ -68,6 +68,20 @@ tr.noname td { background: #FFFBF2; }
 .fg input:focus, .fg select:focus, .fg textarea:focus { outline: 2px solid #146C72; outline-offset: -1px; border-color: #146C72; }
 .mfoot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 @media (max-width: 640px) { .wrap { padding: 16px 12px 32px; } .grid2 { grid-template-columns: 1fr; } }
+
+/* Таблица целиком по ширине экрана (компьютер) */
+@media (min-width: 901px) {
+  .scroll { overflow-x: visible; }
+  table.fit { min-width: 0; table-layout: fixed; }
+  table.fit th, table.fit td { padding: 8px 8px; font-size: 13px; overflow-wrap: anywhere; word-break: normal; }
+  table.fit th { font-size: 11.5px; }
+  table.fit .notes { max-width: none; font-size: 12.5px; }
+  table.fit .tag { font-size: 11px; padding: 1px 6px; white-space: normal; }
+  table.fit .phone { white-space: normal; }
+  table.fit td:last-child, table.fit th:last-child { padding-left: 4px; padding-right: 8px; }
+  table.fit .b.sm { padding: 0 8px; }
+}
+.wrap { max-width: none; }
 </style>
 <link rel="stylesheet" href="/css/gl-shell.css?v=7">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
@@ -92,7 +106,7 @@ tr.noname td { background: #FFFBF2; }
     <div class="frow" id="noNameRow"><span class="flabel">Прочее</span><button type="button" class="chip" id="noNameBtn" aria-pressed="false"></button></div>
     <div class="frow" style="justify-content:flex-end;gap:8px"><button type="button" class="b sm" id="resetF">Сбросить</button><button type="button" class="b sm primary" id="closeF">Показать</button></div>
   </div>
-  <div class="card"><div class="scroll"><table>
+  <div class="card"><div class="scroll"><table id="tbl">
     <thead id="thead"></thead>
     <tbody id="tbody"></tbody>
   </table></div></div>
@@ -231,7 +245,8 @@ function render() {
   $('sub').textContent = label + ': найдено ' + list.length;
 
   if (!isP) {
-    $('thead').innerHTML = '<tr><th>Компания</th><th>Раздел</th><th>FTL / LTL</th><th>Откуда нашли</th><th>Маршрут</th><th>Прицеп</th><th>Телефон (WhatsApp)</th><th>Email</th><th>Заметки</th><th></th></tr>';
+    $('tbl').classList.add('fit');
+    $('thead').innerHTML = '<tr><th style="width:13%">Компания</th><th style="width:8%">Раздел</th><th style="width:6%">FTL / LTL</th><th style="width:7%">Откуда нашли</th><th style="width:11%">Маршрут</th><th style="width:8%">Прицеп</th><th style="width:12%">Телефон (WhatsApp)</th><th style="width:13%">Email</th><th style="width:17%">Заметки</th><th style="width:5%"></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr class="${c.name ? '' : 'noname'}">
       <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}</td>
       <td><span class="tag">${esc(dirOf(c))}</span></td>
@@ -245,6 +260,7 @@ function render() {
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
       : '<tr><td class="empty" colspan="10">Ничего не найдено. Измените фильтры.</td></tr>';
   } else {
+    $('tbl').classList.remove('fit');
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr>
       <td><input type="checkbox" class="check" data-contacted="${c.id}" ${c.contacted ? 'checked' : ''} aria-label="Написали"></td>
