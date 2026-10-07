@@ -143,7 +143,7 @@ const dirOf = c => c.direction || 'Без раздела';
 
 function waDigits(phone) {
   let d = '';
-  for (const chunk of String(phone || '').split(/,\s*|;|\/|\n|\s{3,}/)) {
+  for (const chunk of String(phone || '').split(/,\s*|;|\/|\n|\s{3,}|\s+(?=\+)/)) {
     d += chunk.replace(/\D/g, '');
     if (d.length >= 9) break;
   }
@@ -154,7 +154,7 @@ function waDigits(phone) {
 function phonesOf(phone) {
   const out = [];
   let digits = '', text = '';
-  for (const part of String(phone || '').split(/,\s+|;|\/|\n|\s{3,}/)) {
+  for (const part of String(phone || '').split(/,\s+|;|\/|\n|\s{3,}|\s+(?=\+)/)) {
     const p = part.trim(); if (!p) continue;
     digits += p.replace(/\D/g, ''); text += (text ? ' ' : '') + p;
     if (digits.length >= 9) {       // код страны мог быть отделён запятой — тогда склеиваем
