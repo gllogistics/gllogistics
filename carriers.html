@@ -38,7 +38,7 @@ body { margin: 0; background: #F6F7F8; color: #14202B; }
 .chip.on { border-color: #146C72; background: #E8F1F2; color: #0F5A60; font-weight: 600; }
 .card { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow: hidden; }
 .scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+table { width: 100%; border-collapse: collapse; min-width: 1200px; }
 th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; }
 td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
 tr:hover td { background: #FAFCFC; }
@@ -52,7 +52,8 @@ tr.noname td { background: #FFFBF2; }
 .wa:hover { background: #D3EEDC; }
 .mail { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 14px; background: #E8F1F2; color: #0F5A60; font-size: 13px; font-weight: 600; text-decoration: none; }
 .notes { max-width: 280px; color: #3D4852; font-size: 13px; white-space: pre-wrap; }
-.empty { padding: 40px; text-align: center; color: #5B6670; }
+.empty { padding: 48px 20px; text-align: center; color: #5B6670; }
+#thead:empty + tbody table, table:has(#thead:empty) { min-width: 0; }
 .check { width: 18px; height: 18px; accent-color: #146C72; cursor: pointer; }
 .modal { display: none; position: fixed; inset: 0; background: rgba(16,38,42,.45); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 32px 12px; }
 .modal.open { display: flex; }
@@ -80,20 +81,20 @@ tr.noname td { background: #FFFBF2; }
       <button type="button" class="b primary" id="addBtn">+ Перевозчик</button>
     </div>
   </div>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Разделы"></div>
   <div class="filters">
-    <input type="search" id="q" placeholder="Поиск в разделе: компания, маршрут, телефон" aria-label="Поиск">
+    <input type="search" id="q" placeholder="Поиск по всем перевозчикам: компания, маршрут, телефон" aria-label="Поиск">
     <button type="button" class="b" id="filterBtn" aria-expanded="false" aria-controls="filterPanel">Фильтры</button>
   </div>
   <div class="fpanel" id="filterPanel" hidden>
-    <div class="frow"><span class="flabel">Страна</span><select id="country" aria-label="Страна"><option value="">Все страны</option></select></div>
-    <div class="frow"><span class="flabel">Прицеп</span><div id="chips" role="group" aria-label="Тип прицепа" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    <div class="frow"><span class="flabel">Раздел</span><select id="section" aria-label="Раздел"></select></div>
+    <div class="frow" id="countryRow"><span class="flabel">Страна</span><select id="country" aria-label="Страна"><option value="">Все страны</option></select></div>
+    <div class="frow" id="chipsRow"><span class="flabel">Прицеп</span><div id="chips" role="group" aria-label="Тип прицепа" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
     <div class="frow" id="noNameRow"><span class="flabel">Прочее</span><button type="button" class="chip" id="noNameBtn" aria-pressed="false"></button></div>
-    <div class="frow" style="justify-content:flex-end;gap:8px"><button type="button" class="b sm" id="resetF">Сбросить</button><button type="button" class="b sm primary" id="closeF">Готово</button></div>
+    <div class="frow" style="justify-content:flex-end;gap:8px"><button type="button" class="b sm" id="resetF">Сбросить</button><button type="button" class="b sm primary" id="closeF">Показать</button></div>
   </div>
   <div class="card"><div class="scroll"><table>
     <thead id="thead"></thead>
-    <tbody id="tbody"><tr><td class="empty" colspan="6">Загрузка…</td></tr></tbody>
+    <tbody id="tbody"></tbody>
   </table></div></div>
 </div>
 
@@ -134,11 +135,11 @@ const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 
 
 // Порядок разделов как в вашей таблице
 const ORDER = ['Украина', 'Европа-СНГ', 'Европа-АМ', 'Турция-СНГ', 'Китай', 'Belorus-AM', 'KZ-AM', 'Негабарит', 'INDIA', 'International Brokers', 'RU-AM', 'IRAN'];
-const PROSPECT = '__prospect';
-let all = [], tab = decodeURIComponent(location.hash.slice(1)) || ORDER[0], editId = null, noName = false;
+const PROSPECT = '__prospect', ALL = '__all';
 const TRAILERS = [['', 'Все прицепы'], ['реф|ref', 'Реф'], ['тент|tent', 'Тент'], ['контейн|contain|fcl|lcl', 'Контейнер'], ['трал|tral|негабар|площад', 'Трал / негабарит'], ['adr|адр', 'ADR']];
-let trailer = '';
-const countryOf = c => ((c.notes || '').match(/Страна:\s*([^;]+)/) || [])[1] || '';
+let all = [], tab = '', trailer = '', noName = false, editId = null;
+const countryOf = c => (((c.notes || '').match(/Страна:\s*([^;]+)/) || [])[1] || '').trim();
+const dirOf = c => c.direction || 'Без раздела';
 
 function waDigits(phone) {
   let d = '';
@@ -150,7 +151,7 @@ function waDigits(phone) {
   return d.length >= 9 && d.length <= 15 ? d : '';
 }
 function sections() {
-  const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(c => c.direction || 'Без раздела'))];
+  const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(dirOf))];
   return ORDER.filter(d => dirs.includes(d)).concat(dirs.filter(d => !ORDER.includes(d)).sort());
 }
 
@@ -162,48 +163,55 @@ async function load() {
 }
 
 function render() {
-  const secs = sections();
-  if (tab !== PROSPECT && !secs.includes(tab)) tab = secs[0] || PROSPECT;
-  const count = d => all.filter(c => c.status !== 'prospect' && (c.direction || 'Без раздела') === d).length;
-  const nP = all.filter(c => c.status === 'prospect').length;
-  $('tabs').innerHTML = secs.map(d => `<button type="button" role="tab" class="tab ${tab === d ? 'on' : ''}" data-tab="${esc(d)}" aria-selected="${tab === d}">${esc(d)}<span class="n">${count(d)}</span></button>`).join('')
-    + `<button type="button" role="tab" class="tab ${tab === PROSPECT ? 'on' : ''}" data-tab="${PROSPECT}" aria-selected="${tab === PROSPECT}">Потенциальные<span class="n">${nP}</span></button>`;
+  const active = all.filter(c => c.status !== 'prospect');
+  const nP = all.length - active.length;
+  const cnt = d => active.filter(c => dirOf(c) === d).length;
+  $('section').innerHTML = `<option value="">— выберите раздел —</option><option value="${ALL}">Все разделы (${active.length})</option>`
+    + sections().map(d => `<option value="${esc(d)}">${esc(d)} (${cnt(d)})</option>`).join('')
+    + `<option value="${PROSPECT}">Потенциальные (${nP})</option>`;
+  $('section').value = tab;
 
   const q = $('q').value.trim().toLowerCase();
-  let list = all.filter(c => tab === PROSPECT ? c.status === 'prospect' : (c.status !== 'prospect' && (c.direction || 'Без раздела') === tab))
-    .filter(c => !q || [c.name, c.route, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
   const country = $('country').value;
-  const re = trailer ? new RegExp(trailer, 'i') : null;
-  if (tab !== PROSPECT) list = list
-    .filter(c => !country || countryOf(c).trim() === country)
-    .filter(c => !re || re.test([c.trailer, c.load_type, c.notes].join(' ')));
-  const secAll = all.filter(c => tab !== PROSPECT && c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
-  const nNo = secAll.filter(c => !c.name).length;
-  const nb = $('noNameBtn');
-  $('noNameRow').style.display = nNo ? '' : 'none';
-  if (!nNo) noName = false;
-  nb.classList.toggle('on', noName);
-  nb.textContent = 'Только без названия (' + nNo + ')';
-  nb.setAttribute('aria-pressed', String(noName));
-  if (noName) list.splice(0, list.length, ...list.filter(c => !c.name));
-  // страны раздела и кнопки прицепов
-  if (tab !== PROSPECT) {
-    const sec = all.filter(c => c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
-    const cs = [...new Set(sec.map(c => countryOf(c).trim()).filter(Boolean))].sort();
-    const cur = $('country').value;
-    $('country').innerHTML = '<option value="">Все страны</option>' + cs.map(x => `<option${x === cur ? ' selected' : ''}>${esc(x)}</option>`).join('');
-    $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}" aria-pressed="${trailer === k}">${l}</button>`).join('');
-  }
-  $('filterBtn').style.display = tab === PROSPECT ? 'none' : '';
-  if (tab === PROSPECT) closePanel();
-  const nf = (country ? 1 : 0) + (trailer ? 1 : 0) + (noName ? 1 : 0);
-  $('filterBtn').innerHTML = 'Фильтры' + (nf ? '<span class="fcount">' + nf + '</span>' : '');
-  $('sub').textContent = (tab === PROSPECT ? 'Потенциальные' : tab) + ': ' + list.length;
+  const isP = tab === PROSPECT;
+  // база текущего выбора
+  let base = isP ? all.filter(c => c.status === 'prospect') : active.filter(c => !tab || tab === ALL || dirOf(c) === tab);
 
-  if (tab !== PROSPECT) {
-    $('thead').innerHTML = '<tr><th>Компания</th><th>FTL / LTL</th><th>Откуда нашли</th><th>Маршрут</th><th>Прицеп</th><th>Телефон (WhatsApp)</th><th>Email</th><th>Заметки</th><th></th></tr>';
+  // страны и прицепы — по выбранному разделу
+  const cs = [...new Set(base.map(countryOf).filter(Boolean))].sort();
+  $('country').innerHTML = '<option value="">Все страны</option>' + cs.map(x => `<option${x === country ? ' selected' : ''}>${esc(x)}</option>`).join('');
+  $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}" aria-pressed="${trailer === k}">${l}</button>`).join('');
+  const nNo = isP ? 0 : base.filter(c => !c.name).length;
+  if (!nNo) noName = false;
+  $('noNameBtn').classList.toggle('on', noName);
+  $('noNameBtn').setAttribute('aria-pressed', String(noName));
+  $('noNameBtn').textContent = 'Только без названия (' + nNo + ')';
+  $('countryRow').style.display = $('chipsRow').style.display = isP ? 'none' : '';
+  $('noNameRow').style.display = nNo ? '' : 'none';
+  const nf = (tab ? 1 : 0) + (country ? 1 : 0) + (trailer ? 1 : 0) + (noName ? 1 : 0);
+  $('filterBtn').innerHTML = 'Фильтры' + (nf ? '<span class="fcount">' + nf + '</span>' : '');
+
+  // ничего не выбрано — ничего не показываем
+  if (!tab && !q && !country && !trailer) {
+    $('sub').textContent = 'Откройте «Фильтры» или начните поиск';
+    $('thead').innerHTML = '';
+    $('tbody').innerHTML = '<tr><td class="empty"><div style="margin-bottom:10px">Выберите раздел, страну или тип прицепа в «Фильтрах», либо введите название или телефон в поиск.</div><button type="button" class="b primary" id="openF2">Открыть фильтры</button></td></tr>';
+    return;
+  }
+  const re = trailer ? new RegExp(trailer, 'i') : null;
+  let list = base
+    .filter(c => !q || [c.name, c.route, c.phone, c.email, c.notes, c.trailer, c.source, c.direction].join(' ').toLowerCase().includes(q))
+    .filter(c => isP || !country || countryOf(c) === country)
+    .filter(c => isP || !re || re.test([c.trailer, c.load_type, c.notes].join(' ')))
+    .filter(c => !noName || !c.name);
+  const label = isP ? 'Потенциальные' : (!tab || tab === ALL ? 'Все разделы' : tab);
+  $('sub').textContent = label + ': найдено ' + list.length;
+
+  if (!isP) {
+    $('thead').innerHTML = '<tr><th>Компания</th><th>Раздел</th><th>FTL / LTL</th><th>Откуда нашли</th><th>Маршрут</th><th>Прицеп</th><th>Телефон (WhatsApp)</th><th>Email</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr class="${c.name ? '' : 'noname'}">
       <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}</td>
+      <td><span class="tag">${esc(dirOf(c))}</span></td>
       <td>${esc(c.load_type)}</td>
       <td>${esc(c.source)}</td>
       <td>${esc(c.route)}</td>
@@ -212,7 +220,7 @@ function render() {
       <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
-      : '<tr><td class="empty" colspan="9">' + (q ? 'Ничего не найдено.' : 'В этом разделе пока никого.') + '</td></tr>';
+      : '<tr><td class="empty" colspan="10">Ничего не найдено. Измените фильтры.</td></tr>';
   } else {
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr>
@@ -220,23 +228,20 @@ function render() {
       <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.name)}</a>` : esc(c.name)}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
-      : '<tr><td class="empty" colspan="4">Список пуст.</td></tr>';
+      : '<tr><td class="empty" colspan="4">Ничего не найдено.</td></tr>';
   }
 }
 
-$('tabs').addEventListener('click', e => {
-  const t = e.target.closest('.tab'); if (!t) return;
-  tab = t.dataset.tab; $('q').value = ''; noName = false; trailer = ''; $('country').value = ''; closePanel();
-  history.replaceState(null, '', '#' + encodeURIComponent(tab));
-  render();
-});
+function openPanel() { $('filterPanel').hidden = false; $('filterBtn').setAttribute('aria-expanded', 'true'); $('section').focus(); }
 function closePanel() { $('filterPanel').hidden = true; $('filterBtn').setAttribute('aria-expanded', 'false'); }
-$('filterBtn').addEventListener('click', () => { const p = $('filterPanel'); p.hidden = !p.hidden; $('filterBtn').setAttribute('aria-expanded', String(!p.hidden)); });
+$('filterBtn').addEventListener('click', () => $('filterPanel').hidden ? openPanel() : closePanel());
 $('closeF').addEventListener('click', closePanel);
-$('resetF').addEventListener('click', () => { trailer = ''; noName = false; $('country').value = ''; render(); });
+$('resetF').addEventListener('click', () => { tab = ''; trailer = ''; noName = false; $('country').value = ''; render(); });
+$('section').addEventListener('change', () => { tab = $('section').value; trailer = ''; noName = false; $('country').value = ''; render(); });
 $('country').addEventListener('change', render);
 $('chips').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { trailer = b.dataset.tr; render(); } });
 $('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
+$('tbody').addEventListener('click', e => { if (e.target.id === 'openF2') openPanel(); });
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
 
 $('tbody').addEventListener('click', async e => {
@@ -253,7 +258,7 @@ $('tbody').addEventListener('click', async e => {
 async function openModal(c) {
   editId = c ? c.id : null;
   $('mTitle').textContent = c ? (c.name || 'Перевозчик') : 'Новый перевозчик';
-  $('fName').value = c?.name || ''; $('fDir').value = c ? (c.direction || '') : (tab === PROSPECT ? '' : tab); $('fRoute').value = c?.route || '';
+  $('fName').value = c?.name || ''; $('fDir').value = c ? (c.direction || '') : ([PROSPECT, ALL, ''].includes(tab) ? '' : tab); $('fRoute').value = c?.route || '';
   $('fTrailer').value = c?.trailer || ''; $('fLoad').value = c?.load_type || ''; $('fPhone').value = c?.phone || '';
   $('fEmail').value = c?.email || ''; $('fSource').value = c?.source || ''; $('fNotes').value = c?.notes || '';
   $('fStatus').value = c?.status || (tab === PROSPECT ? 'prospect' : 'active'); $('fContacted').checked = !!c?.contacted;
