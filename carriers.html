@@ -19,7 +19,10 @@ body { margin: 0; background: #F6F7F8; color: #14202B; }
 .b.primary:hover { background: #0F5A60; }
 .b.danger { background: #fff; border-color: #E8B4AF; color: #A3241B; }
 .b.sm { height: 30px; padding: 0 10px; font-size: 13px; }
-.tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab .n { opacity: .7; font-weight: 500; margin-left: 4px; }
+.phone { color: #146C72; font-weight: 500; text-decoration: none; white-space: nowrap; }
+.phone:hover { text-decoration: underline; }
 .tab { border: 1px solid #D5DADF; background: #fff; color: #14202B; border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .tab.on { background: #146C72; border-color: #146C72; color: #fff; }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
@@ -29,7 +32,7 @@ body { margin: 0; background: #F6F7F8; color: #14202B; }
 .chip.on { border-color: #146C72; background: #E8F1F2; color: #0F5A60; font-weight: 600; }
 .card { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow: hidden; }
 .scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+table { width: 100%; border-collapse: collapse; min-width: 1100px; }
 th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; }
 td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
 tr:hover td { background: #FAFCFC; }
@@ -69,14 +72,9 @@ tr:hover td { background: #FAFCFC; }
       <button type="button" class="b primary" id="addBtn">+ Перевозчик</button>
     </div>
   </div>
-  <div class="tabs">
-    <button type="button" class="tab on" data-tab="active" id="tabActive">Перевозчики</button>
-    <button type="button" class="tab" data-tab="prospect" id="tabProspect">Потенциальные</button>
-  </div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Разделы"></div>
   <div class="filters">
-    <input type="search" id="q" placeholder="Поиск: компания, маршрут, телефон, заметки" aria-label="Поиск">
-    <select id="dir" aria-label="Направление"><option value="">Все направления</option></select>
-    <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <input type="search" id="q" placeholder="Поиск в разделе: компания, маршрут, телефон" aria-label="Поиск">
   </div>
   <div class="card"><div class="scroll"><table>
     <thead id="thead"></thead>
@@ -119,8 +117,10 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const api = (p, m = 'GET', b) => fetch(WORKER + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
 const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 });
 
-const TRAILERS = [['', 'Все'], ['реф|ref', 'Реф'], ['тент|tent', 'Тент'], ['контейн|contain|fcl|lcl', 'Контейнер'], ['трал|негабар|площад', 'Трал / негабарит'], ['adr|адр', 'ADR']];
-let all = [], tab = 'active', trailer = '', editId = null;
+// Порядок разделов как в вашей таблице
+const ORDER = ['Украина', 'Европа-СНГ', 'Европа-АМ', 'Турция-СНГ', 'Китай', 'Belorus-AM', 'KZ-AM', 'Негабарит', 'INDIA', 'International Brokers', 'RU-AM', 'IRAN'];
+const PROSPECT = '__prospect';
+let all = [], tab = decodeURIComponent(location.hash.slice(1)) || ORDER[0], editId = null;
 
 function waDigits(phone) {
   let d = '';
@@ -131,60 +131,62 @@ function waDigits(phone) {
   if (d.length === 11 && d[0] === '8') d = '7' + d.slice(1);
   return d.length >= 9 && d.length <= 15 ? d : '';
 }
+function sections() {
+  const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(c => c.direction || 'Без раздела'))];
+  return ORDER.filter(d => dirs.includes(d)).concat(dirs.filter(d => !ORDER.includes(d)).sort());
+}
 
 async function load() {
   all = await api('/api/carrier-base').catch(() => []);
   if (!Array.isArray(all)) all = [];
-  const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(c => c.direction).filter(Boolean))].sort();
-  $('dir').innerHTML = '<option value="">Все направления</option>' + dirs.map(d => `<option>${esc(d)}</option>`).join('');
-  $('dirList').innerHTML = dirs.map(d => `<option value="${esc(d)}">`).join('');
+  $('dirList').innerHTML = sections().map(d => `<option value="${esc(d)}">`).join('');
   render();
 }
 
 function render() {
-  const nA = all.filter(c => c.status !== 'prospect').length, nP = all.length - nA;
-  $('tabActive').textContent = `Перевозчики (${nA})`; $('tabProspect').textContent = `Потенциальные (${nP})`;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
-  $('dir').style.display = $('chips').style.display = tab === 'active' ? '' : 'none';
-  $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}">${l}</button>`).join('');
+  const secs = sections();
+  if (tab !== PROSPECT && !secs.includes(tab)) tab = secs[0] || PROSPECT;
+  const count = d => all.filter(c => c.status !== 'prospect' && (c.direction || 'Без раздела') === d).length;
+  const nP = all.filter(c => c.status === 'prospect').length;
+  $('tabs').innerHTML = secs.map(d => `<button type="button" role="tab" class="tab ${tab === d ? 'on' : ''}" data-tab="${esc(d)}" aria-selected="${tab === d}">${esc(d)}<span class="n">${count(d)}</span></button>`).join('')
+    + `<button type="button" role="tab" class="tab ${tab === PROSPECT ? 'on' : ''}" data-tab="${PROSPECT}" aria-selected="${tab === PROSPECT}">Потенциальные<span class="n">${nP}</span></button>`;
 
-  const q = $('q').value.trim().toLowerCase(), dir = $('dir').value;
-  const re = trailer ? new RegExp(trailer, 'i') : null;
-  const list = all.filter(c => (tab === 'prospect') === (c.status === 'prospect'))
-    .filter(c => !dir || tab !== 'active' || c.direction === dir)
-    .filter(c => !re || tab !== 'active' || re.test((c.trailer || '') + ' ' + (c.load_type || '') + ' ' + (c.notes || '')))
-    .filter(c => !q || [c.name, c.route, c.direction, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
-  $('sub').textContent = `Показано ${list.length} из ${tab === 'active' ? nA : nP}`;
+  const q = $('q').value.trim().toLowerCase();
+  const list = all.filter(c => tab === PROSPECT ? c.status === 'prospect' : (c.status !== 'prospect' && (c.direction || 'Без раздела') === tab))
+    .filter(c => !q || [c.name, c.route, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
+  $('sub').textContent = (tab === PROSPECT ? 'Потенциальные' : tab) + ': ' + list.length;
 
-  if (tab === 'active') {
-    $('thead').innerHTML = '<tr><th>Компания</th><th>Направление / маршрут</th><th>Прицеп</th><th>Контакты</th><th>Заметки</th><th></th></tr>';
+  if (tab !== PROSPECT) {
+    $('thead').innerHTML = '<tr><th>Компания</th><th>FTL / LTL</th><th>Откуда нашли</th><th>Маршрут</th><th>Прицеп</th><th>Телефон (WhatsApp)</th><th>Email</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr>
-      <td><div class="name">${esc(c.name) || '<span class="muted">Без названия</span>'}</div>
-        <div class="muted">${[c.load_type, c.source].filter(Boolean).map(esc).join(' · ')}</div></td>
-      <td><div>${esc(c.route) || '—'}</div><span class="tag">${esc(c.direction)}</span></td>
-      <td>${esc(c.trailer) || '—'}</td>
-      <td><div class="contact">
-        ${c.phone_wa ? `<a class="wa" href="https://wa.me/${c.phone_wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-        ${c.email ? `<a class="mail" href="mailto:${esc(c.email)}">Email</a>` : ''}
-        </div><div class="muted" style="margin-top:4px">${esc(c.phone)}</div></td>
+      <td class="name">${esc(c.name) || '<span class="muted">—</span>'}</td>
+      <td>${esc(c.load_type)}</td>
+      <td>${esc(c.source)}</td>
+      <td>${esc(c.route)}</td>
+      <td>${esc(c.trailer)}</td>
+      <td>${c.phone_wa ? `<a class="phone" href="https://wa.me/${c.phone_wa}" target="_blank" rel="noopener" title="Открыть в WhatsApp">${esc(c.phone)}</a>` : esc(c.phone)}</td>
+      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
-      : '<tr><td class="empty" colspan="6">Никого не нашлось. Измените фильтр или добавьте перевозчика.</td></tr>';
+      : '<tr><td class="empty" colspan="9">' + (q ? 'Ничего не найдено.' : 'В этом разделе пока никого.') + '</td></tr>';
   } else {
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr>
       <td><input type="checkbox" class="check" data-contacted="${c.id}" ${c.contacted ? 'checked' : ''} aria-label="Написали"></td>
-      <td><div class="name">${esc(c.name)}</div>${c.email ? `<a class="mail" style="margin-top:4px" href="mailto:${esc(c.email)}">Написать</a>` : ''}</td>
+      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.name)}</a>` : esc(c.name)}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
       : '<tr><td class="empty" colspan="4">Список пуст.</td></tr>';
   }
 }
 
-document.querySelector('.tabs').addEventListener('click', e => { const t = e.target.closest('.tab'); if (t) { tab = t.dataset.tab; render(); } });
-$('chips').addEventListener('click', e => { const c = e.target.closest('[data-tr]'); if (c) { trailer = c.dataset.tr; render(); } });
+$('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  tab = t.dataset.tab; $('q').value = '';
+  history.replaceState(null, '', '#' + encodeURIComponent(tab));
+  render();
+});
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
-$('dir').addEventListener('change', render);
 
 $('tbody').addEventListener('click', async e => {
   const ed = e.target.closest('[data-edit]');
@@ -200,10 +202,10 @@ $('tbody').addEventListener('click', async e => {
 async function openModal(c) {
   editId = c ? c.id : null;
   $('mTitle').textContent = c ? (c.name || 'Перевозчик') : 'Новый перевозчик';
-  $('fName').value = c?.name || ''; $('fDir').value = c?.direction || ''; $('fRoute').value = c?.route || '';
+  $('fName').value = c?.name || ''; $('fDir').value = c ? (c.direction || '') : (tab === PROSPECT ? '' : tab); $('fRoute').value = c?.route || '';
   $('fTrailer').value = c?.trailer || ''; $('fLoad').value = c?.load_type || ''; $('fPhone').value = c?.phone || '';
   $('fEmail').value = c?.email || ''; $('fSource').value = c?.source || ''; $('fNotes').value = c?.notes || '';
-  $('fStatus').value = c?.status || (tab === 'prospect' ? 'prospect' : 'active'); $('fContacted').checked = !!c?.contacted;
+  $('fStatus').value = c?.status || (tab === PROSPECT ? 'prospect' : 'active'); $('fContacted').checked = !!c?.contacted;
   $('delBtn').style.display = c && isAdmin ? '' : 'none';
   $('mStats').textContent = '';
   $('modal').classList.add('open'); $('fName').focus();
