@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script src="/js/auth-fetch.js"></script>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/images/GL_LOGISTICs_line_-09.jpg.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Перевозчики</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #F6F7F8; color: #14202B; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 28px 40px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.page-head h1 { margin: 0; font-size: 24px; font-weight: 600; }
+.page-head .sub { margin-top: 4px; font-size: 14px; color: #5B6670; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.b { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 6px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #D5DADF; background: #fff; color: #14202B; text-decoration: none; }
+.b.primary { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; }
+.b.primary:hover { background: #0F5A60; }
+.b.danger { background: #fff; border-color: #E8B4AF; color: #A3241B; }
+.b.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab { border: 1px solid #D5DADF; background: #fff; color: #14202B; border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.tab.on { background: #146C72; border-color: #146C72; color: #fff; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.filters input, .filters select { height: 38px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 12px; font: inherit; font-size: 14px; background: #fff; color: #14202B; }
+.filters input { flex: 1; min-width: 220px; }
+.chip { border: 1px solid #D5DADF; background: #fff; border-radius: 16px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; color: #14202B; }
+.chip.on { border-color: #146C72; background: #E8F1F2; color: #0F5A60; font-weight: 600; }
+.card { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow: hidden; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; }
+td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
+tr:hover td { background: #FAFCFC; }
+.name { font-weight: 600; }
+.muted { color: #5B6670; font-size: 13px; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 10px; background: #F0F2F4; color: #3D4852; font-size: 12px; margin: 2px 4px 0 0; }
+.contact { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.wa { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 14px; background: #E7F4EC; color: #1B6B3F; font-size: 13px; font-weight: 600; text-decoration: none; }
+.wa:hover { background: #D3EEDC; }
+.mail { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 14px; background: #E8F1F2; color: #0F5A60; font-size: 13px; font-weight: 600; text-decoration: none; }
+.notes { max-width: 280px; color: #3D4852; font-size: 13px; white-space: pre-wrap; }
+.empty { padding: 40px; text-align: center; color: #5B6670; }
+.check { width: 18px; height: 18px; accent-color: #146C72; cursor: pointer; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(16,38,42,.45); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 32px 12px; }
+.modal.open { display: flex; }
+.mbox { background: #fff; border-radius: 10px; width: 100%; max-width: 620px; padding: 20px; }
+.mbox h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+.stats { font-size: 13px; color: #5B6670; margin-bottom: 14px; min-height: 18px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.fg { display: flex; flex-direction: column; gap: 4px; }
+.fg.full { grid-column: 1 / -1; }
+.fg label { font-size: 12px; font-weight: 600; color: #5B6670; }
+.fg input, .fg select, .fg textarea { border: 1px solid #D5DADF; border-radius: 6px; padding: 9px 10px; font: inherit; font-size: 14px; color: #14202B; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { outline: 2px solid #146C72; outline-offset: -1px; border-color: #146C72; }
+.mfoot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+@media (max-width: 640px) { .wrap { padding: 16px 12px 32px; } .grid2 { grid-template-columns: 1fr; } }
+</style>
+<link rel="stylesheet" href="/css/gl-shell.css?v=7">
+<link rel="stylesheet" href="/css/gl-theme.css?v=1">
+</head>
+<body>
+<div class="wrap">
+  <div class="page-head">
+    <div><h1>Перевозчики</h1><div class="sub" id="sub">Загрузка…</div></div>
+    <div class="actions">
+      <button type="button" class="b" id="exportBtn">Скачать в Excel</button>
+      <button type="button" class="b primary" id="addBtn">+ Перевозчик</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button type="button" class="tab on" data-tab="active" id="tabActive">Перевозчики</button>
+    <button type="button" class="tab" data-tab="prospect" id="tabProspect">Потенциальные</button>
+  </div>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Поиск: компания, маршрут, телефон, заметки" aria-label="Поиск">
+    <select id="dir" aria-label="Направление"><option value="">Все направления</option></select>
+    <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div class="card"><div class="scroll"><table>
+    <thead id="thead"></thead>
+    <tbody id="tbody"><tr><td class="empty" colspan="6">Загрузка…</td></tr></tbody>
+  </table></div></div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mbox">
+    <h2 id="mTitle">Перевозчик</h2>
+    <div class="stats" id="mStats"></div>
+    <div class="grid2">
+      <div class="fg full"><label for="fName">Компания / контакт</label><input id="fName"></div>
+      <div class="fg"><label for="fDir">Направление</label><input id="fDir" list="dirList" placeholder="Европа-АМ"><datalist id="dirList"></datalist></div>
+      <div class="fg"><label for="fRoute">Маршрут</label><input id="fRoute" placeholder="Польша → Ереван"></div>
+      <div class="fg"><label for="fTrailer">Тип прицепа</label><input id="fTrailer" placeholder="реф, тент, контейнер"></div>
+      <div class="fg"><label for="fLoad">FTL / LTL</label><input id="fLoad" placeholder="FTL"></div>
+      <div class="fg"><label for="fPhone">Телефон / WhatsApp</label><input id="fPhone" placeholder="+374 93 000000"></div>
+      <div class="fg"><label for="fEmail">Email</label><input id="fEmail" type="email"></div>
+      <div class="fg"><label for="fSource">Откуда нашли</label><input id="fSource" placeholder="Lardi, ATI, контакт"></div>
+      <div class="fg"><label for="fStatus">Статус</label><select id="fStatus"><option value="active">Перевозчик</option><option value="prospect">Потенциальный</option></select></div>
+      <div class="fg full"><label for="fNotes">Заметки</label><textarea id="fNotes" rows="3" placeholder="Например: свободный реф 10.08 в Румынию"></textarea></div>
+      <div class="fg full" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" class="check" id="fContacted"><label for="fContacted" style="font-size:14px;color:#14202B;font-weight:500">Уже написали / связались</label></div>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="b danger" id="delBtn" style="margin-right:auto;display:none">Удалить</button>
+      <button type="button" class="b" id="cancelBtn">Отмена</button>
+      <button type="button" class="b primary" id="saveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER = 'https://gl-api.gltransam.workers.dev';
+const user = localStorage.getItem('gl_staff_user');
+if (!user) { location.replace('/staff.html'); throw ''; }
+const isAdmin = user === 'TigranMetspagyan';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const api = (p, m = 'GET', b) => fetch(WORKER + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
+const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 });
+
+const TRAILERS = [['', 'Все'], ['реф|ref', 'Реф'], ['тент|tent', 'Тент'], ['контейн|contain|fcl|lcl', 'Контейнер'], ['трал|негабар|площад', 'Трал / негабарит'], ['adr|адр', 'ADR']];
+let all = [], tab = 'active', trailer = '', editId = null;
+
+function waDigits(phone) {
+  let d = '';
+  for (const chunk of String(phone || '').split(/,\s*|;|\/|\n|\s{3,}/)) {
+    d += chunk.replace(/\D/g, '');
+    if (d.length >= 9) break;
+  }
+  if (d.length === 11 && d[0] === '8') d = '7' + d.slice(1);
+  return d.length >= 9 && d.length <= 15 ? d : '';
+}
+
+async function load() {
+  all = await api('/api/carrier-base').catch(() => []);
+  if (!Array.isArray(all)) all = [];
+  const dirs = [...new Set(all.filter(c => c.status !== 'prospect').map(c => c.direction).filter(Boolean))].sort();
+  $('dir').innerHTML = '<option value="">Все направления</option>' + dirs.map(d => `<option>${esc(d)}</option>`).join('');
+  $('dirList').innerHTML = dirs.map(d => `<option value="${esc(d)}">`).join('');
+  render();
+}
+
+function render() {
+  const nA = all.filter(c => c.status !== 'prospect').length, nP = all.length - nA;
+  $('tabActive').textContent = `Перевозчики (${nA})`; $('tabProspect').textContent = `Потенциальные (${nP})`;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+  $('dir').style.display = $('chips').style.display = tab === 'active' ? '' : 'none';
+  $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}">${l}</button>`).join('');
+
+  const q = $('q').value.trim().toLowerCase(), dir = $('dir').value;
+  const re = trailer ? new RegExp(trailer, 'i') : null;
+  const list = all.filter(c => (tab === 'prospect') === (c.status === 'prospect'))
+    .filter(c => !dir || tab !== 'active' || c.direction === dir)
+    .filter(c => !re || tab !== 'active' || re.test((c.trailer || '') + ' ' + (c.load_type || '') + ' ' + (c.notes || '')))
+    .filter(c => !q || [c.name, c.route, c.direction, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
+  $('sub').textContent = `Показано ${list.length} из ${tab === 'active' ? nA : nP}`;
+
+  if (tab === 'active') {
+    $('thead').innerHTML = '<tr><th>Компания</th><th>Направление / маршрут</th><th>Прицеп</th><th>Контакты</th><th>Заметки</th><th></th></tr>';
+    $('tbody').innerHTML = list.length ? list.map(c => `<tr>
+      <td><div class="name">${esc(c.name) || '<span class="muted">Без названия</span>'}</div>
+        <div class="muted">${[c.load_type, c.source].filter(Boolean).map(esc).join(' · ')}</div></td>
+      <td><div>${esc(c.route) || '—'}</div><span class="tag">${esc(c.direction)}</span></td>
+      <td>${esc(c.trailer) || '—'}</td>
+      <td><div class="contact">
+        ${c.phone_wa ? `<a class="wa" href="https://wa.me/${c.phone_wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+        ${c.email ? `<a class="mail" href="mailto:${esc(c.email)}">Email</a>` : ''}
+        </div><div class="muted" style="margin-top:4px">${esc(c.phone)}</div></td>
+      <td><div class="notes">${esc(c.notes)}</div></td>
+      <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
+      : '<tr><td class="empty" colspan="6">Никого не нашлось. Измените фильтр или добавьте перевозчика.</td></tr>';
+  } else {
+    $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
+    $('tbody').innerHTML = list.length ? list.map(c => `<tr>
+      <td><input type="checkbox" class="check" data-contacted="${c.id}" ${c.contacted ? 'checked' : ''} aria-label="Написали"></td>
+      <td><div class="name">${esc(c.name)}</div>${c.email ? `<a class="mail" style="margin-top:4px" href="mailto:${esc(c.email)}">Написать</a>` : ''}</td>
+      <td><div class="notes">${esc(c.notes)}</div></td>
+      <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
+      : '<tr><td class="empty" colspan="4">Список пуст.</td></tr>';
+  }
+}
+
+document.querySelector('.tabs').addEventListener('click', e => { const t = e.target.closest('.tab'); if (t) { tab = t.dataset.tab; render(); } });
+$('chips').addEventListener('click', e => { const c = e.target.closest('[data-tr]'); if (c) { trailer = c.dataset.tr; render(); } });
+let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
+$('dir').addEventListener('change', render);
+
+$('tbody').addEventListener('click', async e => {
+  const ed = e.target.closest('[data-edit]');
+  if (ed) return openModal(all.find(c => c.id == ed.dataset.edit));
+  const ck = e.target.closest('[data-contacted]');
+  if (ck) {
+    const c = all.find(x => x.id == ck.dataset.contacted);
+    c.contacted = ck.checked ? 1 : 0;
+    await api('/api/carrier-base/' + c.id, 'PUT', c);
+  }
+});
+
+async function openModal(c) {
+  editId = c ? c.id : null;
+  $('mTitle').textContent = c ? (c.name || 'Перевозчик') : 'Новый перевозчик';
+  $('fName').value = c?.name || ''; $('fDir').value = c?.direction || ''; $('fRoute').value = c?.route || '';
+  $('fTrailer').value = c?.trailer || ''; $('fLoad').value = c?.load_type || ''; $('fPhone').value = c?.phone || '';
+  $('fEmail').value = c?.email || ''; $('fSource').value = c?.source || ''; $('fNotes').value = c?.notes || '';
+  $('fStatus').value = c?.status || (tab === 'prospect' ? 'prospect' : 'active'); $('fContacted').checked = !!c?.contacted;
+  $('delBtn').style.display = c && isAdmin ? '' : 'none';
+  $('mStats').textContent = '';
+  $('modal').classList.add('open'); $('fName').focus();
+  if (c && c.name) {
+    const s = await api('/api/carrier-base/' + c.id + '/stats').catch(() => null);
+    if (s && editId === c.id) $('mStats').textContent = s.deals
+      ? `Сделок с этим перевозчиком: ${s.deals} на ֏${fmt(s.total_amd)}, последняя ${s.last_date || '—'}`
+      : 'Сделок с этим перевозчиком пока нет';
+  }
+}
+const close = () => $('modal').classList.remove('open');
+$('cancelBtn').addEventListener('click', close);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') close(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+$('addBtn').addEventListener('click', () => openModal(null));
+$('saveBtn').addEventListener('click', async () => {
+  const body = {
+    name: $('fName').value.trim(), direction: $('fDir').value.trim(), route: $('fRoute').value.trim(),
+    trailer: $('fTrailer').value.trim(), load_type: $('fLoad').value.trim(), phone: $('fPhone').value.trim(),
+    email: $('fEmail').value.trim(), source: $('fSource').value.trim(), notes: $('fNotes').value.trim(),
+    status: $('fStatus').value, contacted: $('fContacted').checked ? 1 : 0
+  };
+  body.phone_wa = waDigits(body.phone);
+  if (!body.name && !body.phone && !body.email) { alert('Укажите хотя бы название, телефон или email'); return; }
+  const b = $('saveBtn'); b.disabled = true;
+  try {
+    if (editId) await api('/api/carrier-base/' + editId, 'PUT', body);
+    else await api('/api/carrier-base', 'POST', body);
+    close(); await load();
+  } finally { b.disabled = false; }
+});
+$('delBtn').addEventListener('click', async () => {
+  if (!confirm('Удалить этого перевозчика из базы?')) return;
+  await api('/api/carrier-base/' + editId, 'DELETE');
+  close(); await load();
+});
+
+// Выгрузка в Excel: лист на каждое направление + потенциальные
+$('exportBtn').addEventListener('click', async () => {
+  const b = $('exportBtn'); b.disabled = true; b.textContent = 'Готовлю…';
+  try {
+    if (!window.XLSX) await new Promise((res, rej) => { const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+    const wb = XLSX.utils.book_new();
+    const groups = {};
+    all.filter(c => c.status !== 'prospect').forEach(c => { (groups[c.direction || 'Без направления'] ||= []).push(c); });
+    Object.keys(groups).sort().forEach(d => {
+      const rows = groups[d].map(c => ({ 'Компания': c.name, 'FTL/LTL': c.load_type, 'Откуда нашли': c.source, 'Маршрут': c.route,
+        'Прицеп': c.trailer, 'Телефон': c.phone, 'Email': c.email, 'Заметки': c.notes }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), d.replace(/[\\\/\?\*\[\]:]/g, '-').slice(0, 31));
+    });
+    const pros = all.filter(c => c.status === 'prospect').map(c => ({ 'Email / контакт': c.name, 'Написали': c.contacted ? 'да' : '', 'Заметки': c.notes }));
+    if (pros.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pros), 'Потенциальные');
+    XLSX.writeFile(wb, 'Перевозчики GL Logistics.xlsx');
+  } catch (e) { alert('Не удалось сформировать файл'); }
+  b.disabled = false; b.textContent = 'Скачать в Excel';
+});
+
+load();
+</script>
+<script src="/js/nav-fleet.js?v=3"></script>
+<script src="/js/layout.js?v=7"></script>
+</body>
+</html>
