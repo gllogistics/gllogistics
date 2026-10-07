@@ -155,7 +155,9 @@ tr.noname td { background: #FFFBF2; }
         <div class="fg"><label for="rqLang">Язык</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
         <div class="fg"><label for="rqSubject">Тема письма</label><input id="rqSubject"></div>
         <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="9"></textarea>
-          <div class="muted" style="font-size:12px">Ваша подпись добавится автоматически: в письме полная, с логотипом, в WhatsApp короткая.</div></div>
+          <div class="muted" style="font-size:12px">Ваша подпись добавится автоматически: в письме полная, с логотипом, в WhatsApp короткая.
+            <button type="button" class="b sm" id="rqPreviewBtn" style="margin-left:6px">Как выглядит письмо</button></div>
+          <div id="rqPreview" hidden style="border:1px solid #E4E7EA;border-radius:8px;padding:12px;margin-top:8px;background:#fff;overflow-x:auto"></div></div>
       </div>
       <div class="mfoot">
         <button type="button" class="b" id="rqCancel" style="margin-right:auto">Отмена</button>
@@ -417,6 +419,44 @@ $('reqBtn').addEventListener('click', () => {
   $('rqForm').hidden = false; $('rqWaBox').hidden = true;
   $('reqModal').classList.add('open'); $('rqFrom').focus();
 });
+function glEmailSignature(me) {
+  const e = s => String(s || '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  const name = me.display_name || me.username || 'GLL Team';
+  const title = me.sig_title || 'GL Logistics LLC';
+  const phones = String(me.sig_phones || '+37493661454, +37496664454').split(/[,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 3);
+  const mail = me.email || 'info@gllogistics.org';
+  const wa = (phones[0] || '').replace(/\D/g, '');
+  const a = 'color:#222222;text-decoration:underline';
+  const html = `<br><div style="color:#888">--</div>
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#555555;margin-top:8px">
+<tr>
+<td style="vertical-align:top;padding:4px 16px 4px 0;text-align:center">
+<img src="https://gllogistics.org/images/gl_logo_email.png" width="64" alt="GL Logistics" style="display:block;margin:0 auto 4px;border:0">
+<div style="font-size:11px;font-weight:bold;color:#222222">GL Logistics</div>
+<div style="font-size:8px;color:#888888">Your supply chain partner everywhere.</div>
+</td>
+<td style="vertical-align:top;border-left:1px solid #cccccc;padding:2px 0 2px 16px">
+<div style="font-size:16px;font-weight:bold;color:#555555">${e(name)}</div>
+<div style="font-size:13px;font-weight:bold;color:#555555;margin-bottom:10px">${e(title)}</div>
+<div style="margin-bottom:8px"><a href="https://www.gllogistics.org" style="color:#1a0dab">www.gllogistics.org</a></div>
+<div style="margin-bottom:8px">${phones.map(p => `<a href="tel:${e(p.replace(/[^\d+]/g, ''))}" style="${a}">${e(p)}</a>`).join(' &nbsp;|&nbsp; ')} &nbsp;|&nbsp; <a href="mailto:${e(mail)}" style="${a}">${e(mail)}</a></div>
+<div style="margin-bottom:8px"><span style="text-decoration:underline;color:#222222">Sevan ST 86/2</span></div>
+${wa ? `<div><a href="https://wa.me/${wa}" style="color:#1B6B3F;font-weight:bold;text-decoration:none">WhatsApp</a></div>` : ''}
+</td>
+</tr>
+</table>`;
+  const text = `\n--\n${name}\n${title}\nwww.gllogistics.org\n${phones.join(' | ')} | ${mail}\nSevan ST 86/2`;
+  return { html, text };
+}
+
+function rqPreview() {
+  const esc2 = s => String(s).replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+  $('rqPreview').innerHTML = '<div style="font-size:12px;color:#5B6670;margin-bottom:6px">Тема: <b>' + esc2($('rqSubject').value) + '</b></div>'
+    + '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#222">' + esc2($('rqText').value).replace(/\n/g, '<br>') + '</div>'
+    + glEmailSignature(Object.assign({ username: user }, me)).html;
+}
+$('rqPreviewBtn').addEventListener('click', () => { const p = $('rqPreview'); p.hidden = !p.hidden; if (!p.hidden) rqPreview(); });
+['rqText', 'rqSubject'].forEach(id => $(id).addEventListener('input', () => { if (!$('rqPreview').hidden) rqPreview(); }));
 $('rqCancel').addEventListener('click', () => $('reqModal').classList.remove('open'));
 $('reqModal').addEventListener('click', e => { if (e.target.id === 'reqModal') $('reqModal').classList.remove('open'); });
 $('rqSend').addEventListener('click', async () => {
