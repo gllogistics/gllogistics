@@ -249,7 +249,9 @@ function sections() {
 }
 
 const sel = new Set();
-let lastReq = {};
+let lastReq = {}, me = {};
+const sigName = () => me.display_name || user;
+const sigMail = () => me.email || 'info@gllogistics.org';
 const fmtD = s => { const d = new Date(String(s).replace(' ', 'T') + 'Z'); return isNaN(d) ? '' : d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' }); };
 async function loadLastReq() {
   const r = await api('/api/carrier-requests/last').catch(() => []);
@@ -260,6 +262,7 @@ function updSelbar() {
   $('selCount').textContent = 'Выбрано: ' + sel.size;
 }
 async function load() {
+  api('/api/me').then(m => { if (m && !m.error) me = m; }).catch(() => {});
   await loadLastReq();
   all = await api('/api/carrier-base').catch(() => []);
   if (!Array.isArray(all)) all = [];
@@ -366,12 +369,12 @@ const TPL = {
     text: `Здравствуйте!\n\nИщем транспорт:\nМаршрут: ${f.from || '…'} → ${f.to || '…'}` +
       (f.cargo ? `\nГруз: ${f.cargo}` : '') + (f.weight ? `\nВес / объём: ${f.weight}` : '') + (f.trailer ? `\nПрицеп: ${f.trailer}` : '') +
       (f.date ? `\nДата загрузки: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
-      `\n\nПожалуйста, пришлите вашу ставку и возможную дату подачи машины.\n\nС уважением,\n${user}\nGL Logistics LLC\n+374 93 66 14 54 · info@gllogistics.org` }),
+      `\n\nПожалуйста, пришлите вашу ставку и возможную дату подачи машины.\n\nС уважением,\n${sigName()}\nGL Logistics LLC\n+374 93 66 14 54 · ${sigMail()}` }),
   en: f => ({ subject: `Rate request: ${f.from || '…'} → ${f.to || '…'}${f.date ? ', ' + f.date : ''}`,
     text: `Hello,\n\nWe are looking for a truck:\nRoute: ${f.from || '…'} → ${f.to || '…'}` +
       (f.cargo ? `\nCargo: ${f.cargo}` : '') + (f.weight ? `\nWeight / volume: ${f.weight}` : '') + (f.trailer ? `\nTrailer: ${f.trailer}` : '') +
       (f.date ? `\nLoading date: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
-      `\n\nPlease send us your rate and the earliest available truck date.\n\nBest regards,\n${user}\nGL Logistics LLC\n+374 93 66 14 54 · info@gllogistics.org` })
+      `\n\nPlease send us your rate and the earliest available truck date.\n\nBest regards,\n${sigName()}\nGL Logistics LLC\n+374 93 66 14 54 · ${sigMail()}` })
 };
 let textEdited = false;
 function rqFields() { return { from: $('rqFrom').value.trim(), to: $('rqTo').value.trim(), cargo: $('rqCargo').value.trim(), weight: $('rqWeight').value.trim(),
@@ -398,7 +401,7 @@ $('rqCancel').addEventListener('click', () => $('reqModal').classList.remove('op
 $('reqModal').addEventListener('click', e => { if (e.target.id === 'reqModal') $('reqModal').classList.remove('open'); });
 $('rqEmail').addEventListener('click', async () => {
   const s = selected().filter(hasEmail);
-  if (!confirm(`Отправить письмо ${s.length} перевозчикам? Каждый получит отдельное письмо, ответы придут на info@gllogistics.org.`)) return;
+  if (!confirm(`Отправить письмо ${s.length} перевозчикам? Каждый получит отдельное письмо, ответы придут на ${sigMail()}.`)) return;
   const b = $('rqEmail'); b.disabled = true; b.textContent = 'Отправляю…';
   const r = await api('/api/carrier-requests/send-email', 'POST', { ids: s.map(c => c.id), subject: $('rqSubject').value, text: $('rqText').value }).catch(() => ({ error: 'нет связи' }));
   if (r.error) alert('Не отправлено: ' + r.error);
