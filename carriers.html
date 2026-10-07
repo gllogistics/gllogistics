@@ -167,12 +167,17 @@ tr.noname td { background: #FFFBF2; }
     <div id="rqWaBox" class="waq" hidden>
       <div class="muted" id="waProgress"></div>
       <div class="who" id="waWho"></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:13px">
+        <span style="color:#5B6670;font-weight:600">Открывать в:</span>
+        <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="waMode" value="web" checked> WhatsApp Web (браузер)</label>
+        <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="waMode" value="app"> Приложении WhatsApp</label>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a class="b primary" id="waOpen" target="_blank" rel="noopener">Открыть WhatsApp с готовым текстом</a>
+        <a class="b primary" id="waOpen" target="glwhatsapp" rel="noopener">Открыть WhatsApp с готовым текстом</a>
         <button type="button" class="b" id="waSkip">Пропустить</button>
         <button type="button" class="b" id="waStop" style="margin-left:auto">Закончить</button>
       </div>
-      <div class="muted" style="margin-top:10px">В открывшемся чате текст уже вставлен, нажмите «Отправить» и вернитесь сюда, откроется следующий.</div>
+      <div class="muted" style="margin-top:10px"><b>Важно:</b> сообщение уходит, только когда вы нажмёте «Отправить» в самом WhatsApp. Текст там уже вставлен. Потом вернитесь на эту вкладку, здесь уже будет следующий перевозчик.<br>Для WhatsApp Web нужно один раз войти на web.whatsapp.com по QR-коду с телефона.</div>
     </div>
   </div>
 </div>
@@ -484,7 +489,13 @@ function waShow() {
   const c = waQueue[waIdx];
   $('waProgress').textContent = `${waIdx + 1} из ${waQueue.length}`;
   $('waWho').textContent = (c.name || 'Без названия') + ' · ' + (phonesOf(c.phone).find(p => p.wa) || {}).text;
-  $('waOpen').href = 'https://wa.me/' + firstWa(c) + '?text=' + encodeURIComponent($('rqText').value + waSig());
+  const txt = encodeURIComponent($('rqText').value + waSig());
+  const mode = (document.querySelector('input[name="waMode"]:checked') || {}).value || 'web';
+  localStorage.setItem('gl_wa_mode', mode);
+  $('waOpen').href = mode === 'app'
+    ? 'whatsapp://send?phone=' + firstWa(c) + '&text=' + txt
+    : 'https://web.whatsapp.com/send?phone=' + firstWa(c) + '&text=' + txt;
+  $('waOpen').target = mode === 'app' ? '_self' : 'glwhatsapp';
   $('waOpen').style.display = ''; $('waSkip').style.display = '';
 }
 $('waOpen').addEventListener('click', () => {
@@ -492,6 +503,8 @@ $('waOpen').addEventListener('click', () => {
   api('/api/carrier-requests/log', 'POST', { ids: [c.id], channel: 'whatsapp', subject: $('rqSubject').value, text: $('rqText').value }).catch(() => {});
   setTimeout(() => { waIdx++; waShow(); }, 300);
 });
+document.addEventListener('change', e => { if (e.target.name === 'waMode' && waIdx < waQueue.length) waShow(); });
+(function () { const m = localStorage.getItem('gl_wa_mode'); if (m) { const r = document.querySelector('input[name="waMode"][value="' + m + '"]'); if (r) r.checked = true; } })();
 $('waSkip').addEventListener('click', () => { waIdx++; waShow(); });
 $('waStop').addEventListener('click', () => { $('reqModal').classList.remove('open'); loadLastReq().then(render); });
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
