@@ -106,7 +106,8 @@ tr.noname td { background: #FFFBF2; }
     <div><h1>Перевозчики</h1><div class="sub" id="sub">Загрузка…</div></div>
     <div class="actions">
       <button type="button" class="b" id="exportBtn">Скачать в Excel</button>
-      <button type="button" class="b primary" id="addBtn">+ Перевозчик</button>
+      <button type="button" class="b" id="addBtn">+ Перевозчик</button>
+      <button type="button" class="b primary" id="reqBtn">Запрос перевозчикам</button>
     </div>
   </div>
   <div class="filters">
@@ -126,33 +127,38 @@ tr.noname td { background: #FFFBF2; }
   </table></div></div>
 </div>
 
-<div class="selbar" id="selbar" role="region" aria-label="Выбранные перевозчики"><div>
-  <span id="selCount"></span>
-  <button type="button" class="b primary" id="reqBtn">Отправить запрос</button>
-  <button type="button" class="b ghost" id="selClear">Снять выбор</button>
-</div></div>
-
 <div class="modal" id="reqModal" role="dialog" aria-modal="true" aria-labelledby="rqTitle">
   <div class="mbox" style="max-width:720px">
     <h2 id="rqTitle">Запрос ставки перевозчикам</h2>
-    <div class="rq-sum" id="rqSum"></div>
     <div id="rqForm">
       <div class="grid2">
         <div class="fg"><label for="rqFrom">Откуда</label><input id="rqFrom" placeholder="Милан, Италия"></div>
         <div class="fg"><label for="rqTo">Куда</label><input id="rqTo" placeholder="Ереван, Армения"></div>
         <div class="fg"><label for="rqCargo">Груз</label><input id="rqCargo" placeholder="Продукты питания, паллеты"></div>
         <div class="fg"><label for="rqWeight">Вес / объём</label><input id="rqWeight" placeholder="20 т, 33 палеты"></div>
-        <div class="fg"><label for="rqTrailer">Тип прицепа</label><input id="rqTrailer" placeholder="Реф +2…+4 °C"></div>
         <div class="fg"><label for="rqDate">Дата загрузки</label><input id="rqDate" placeholder="15.10.2026"></div>
-        <div class="fg full"><label for="rqNote">Дополнительно</label><input id="rqNote" placeholder="ADR, таможня, оплата и т.п."></div>
-        <div class="fg"><label for="rqLang">Язык письма</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
+        <div class="fg"><label for="rqTrType">Тип прицепа</label><select id="rqTrType"></select></div>
+        <div class="fg full"><label for="rqNote">Дополнительно</label><input id="rqNote" placeholder="Режим +2…+4 °C, ADR, таможня, оплата и т.п."></div>
+        <div class="fg full">
+          <label>Кому отправить: разделы</label>
+          <div id="rqSections" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:13px;margin-top:6px"><input type="checkbox" class="check" id="rqOnlyTr" checked> Только перевозчикам с выбранным типом прицепа</label>
+        </div>
+        <div class="fg full">
+          <label>Как отправить</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:14px"><input type="checkbox" class="check" id="rqChEmail" checked> Email</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:14px"><input type="checkbox" class="check" id="rqChWa" checked> WhatsApp</label>
+          </div>
+        </div>
+        <div class="fg full"><div class="rq-sum" id="rqSum" style="margin:0"></div></div>
+        <div class="fg"><label for="rqLang">Язык</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
         <div class="fg"><label for="rqSubject">Тема письма</label><input id="rqSubject"></div>
-        <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="10"></textarea></div>
+        <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="9"></textarea></div>
       </div>
       <div class="mfoot">
         <button type="button" class="b" id="rqCancel" style="margin-right:auto">Отмена</button>
-        <button type="button" class="b" id="rqWa">WhatsApp по очереди</button>
-        <button type="button" class="b primary" id="rqEmail">Отправить на email</button>
+        <button type="button" class="b primary" id="rqSend">Отправить</button>
       </div>
     </div>
     <div id="rqWaBox" class="waq" hidden>
@@ -248,7 +254,6 @@ function sections() {
   return ORDER.filter(d => dirs.includes(d)).concat(dirs.filter(d => !ORDER.includes(d)).sort());
 }
 
-const sel = new Set();
 let lastReq = {}, me = {};
 const sigName = () => me.display_name || user;
 const sigMail = () => me.email || 'info@gllogistics.org';
@@ -256,10 +261,6 @@ const fmtD = s => { const d = new Date(String(s).replace(' ', 'T') + 'Z'); retur
 async function loadLastReq() {
   const r = await api('/api/carrier-requests/last').catch(() => []);
   lastReq = {}; (Array.isArray(r) ? r : []).forEach(x => { lastReq[x.carrier_id] = x.last_at; });
-}
-function updSelbar() {
-  $('selbar').classList.toggle('show', sel.size > 0);
-  $('selCount').textContent = 'Выбрано: ' + sel.size;
 }
 async function load() {
   api('/api/me').then(m => { if (m && !m.error) me = m; }).catch(() => {});
@@ -317,11 +318,9 @@ function render() {
 
   if (!isP) {
     $('tbl').classList.add('fit');
-    const allSel = list.length && list.every(c => sel.has(c.id));
-    $('thead').innerHTML = `<tr><th style="width:3%"><input type="checkbox" class="check" id="selAll" ${allSel ? 'checked' : ''} aria-label="Выбрать всех в списке"></th><th style="width:12%">Компания</th><th style="width:8%">Раздел</th><th style="width:5%">FTL / LTL</th><th style="width:7%">Откуда нашли</th><th style="width:11%">Маршрут</th><th style="width:8%">Прицеп</th><th style="width:12%">Телефон (WhatsApp)</th><th style="width:13%">Email</th><th style="width:16%">Заметки</th><th style="width:5%"></th></tr>`;
+    $('thead').innerHTML = `<tr><th style="width:13%">Компания</th><th style="width:8%">Раздел</th><th style="width:6%">FTL / LTL</th><th style="width:7%">Откуда нашли</th><th style="width:11%">Маршрут</th><th style="width:8%">Прицеп</th><th style="width:12%">Телефон (WhatsApp)</th><th style="width:13%">Email</th><th style="width:17%">Заметки</th><th style="width:5%"></th></tr>`;
     window._visible = list;
     $('tbody').innerHTML = list.length ? list.map(c => `<tr class="${c.name ? '' : 'noname'}">
-      <td><input type="checkbox" class="check" data-sel="${c.id}" ${sel.has(c.id) ? 'checked' : ''} aria-label="Выбрать"></td>
       <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}${lastReq[c.id] ? '<div class="lastreq">Запрос: ' + fmtD(lastReq[c.id]) + '</div>' : ''}</td>
       <td><span class="tag">${esc(dirOf(c))}</span></td>
       <td>${esc(c.load_type)}</td>
@@ -332,7 +331,7 @@ function render() {
       <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
-      : '<tr><td class="empty" colspan="11">Ничего не найдено. Измените фильтры.</td></tr>';
+      : '<tr><td class="empty" colspan="10">Ничего не найдено. Измените фильтры.</td></tr>';
   } else {
     $('tbl').classList.remove('fit');
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
@@ -355,14 +354,6 @@ $('country').addEventListener('change', render);
 $('chips').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { trailer = b.dataset.tr; render(); } });
 $('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
 $('tbody').addEventListener('click', e => { if (e.target.id === 'openF2') openPanel(); });
-document.addEventListener('change', e => {
-  const s = e.target.closest('[data-sel]');
-  if (s) { const id = +s.dataset.sel; s.checked ? sel.add(id) : sel.delete(id); updSelbar();
-    const sa = $('selAll'); if (sa) sa.checked = (window._visible || []).every(c => sel.has(c.id)); return; }
-  if (e.target.id === 'selAll') { (window._visible || []).forEach(c => e.target.checked ? sel.add(c.id) : sel.delete(c.id)); render(); updSelbar(); }
-});
-$('selClear').addEventListener('click', () => { sel.clear(); render(); updSelbar(); });
-
 // ── Окно запроса ──
 const TPL = {
   ru: f => ({ subject: `Запрос ставки: ${f.from || '…'} → ${f.to || '…'}${f.date ? ', ' + f.date : ''}`,
@@ -378,38 +369,73 @@ const TPL = {
 };
 let textEdited = false;
 function rqFields() { return { from: $('rqFrom').value.trim(), to: $('rqTo').value.trim(), cargo: $('rqCargo').value.trim(), weight: $('rqWeight').value.trim(),
-  trailer: $('rqTrailer').value.trim(), date: $('rqDate').value.trim(), note: $('rqNote').value.trim() }; }
+  trailer: ($('rqTrType').value ? TRAILERS.find(t => t[0] === $('rqTrType').value)[1] : ''), date: $('rqDate').value.trim(), note: $('rqNote').value.trim() }; }
 function rqBuild() { if (textEdited) return; const t = TPL[$('rqLang').value](rqFields()); $('rqSubject').value = t.subject; $('rqText').value = t.text; }
-['rqFrom','rqTo','rqCargo','rqWeight','rqTrailer','rqDate','rqNote','rqLang'].forEach(id => $(id).addEventListener('input', rqBuild));
+['rqFrom','rqTo','rqCargo','rqWeight','rqDate','rqNote','rqLang'].forEach(id => $(id).addEventListener('input', rqBuild));
 $('rqLang').addEventListener('change', () => { textEdited = false; rqBuild(); });
 $('rqText').addEventListener('input', () => { textEdited = true; });
-const selected = () => all.filter(c => sel.has(c.id));
 const firstWa = c => (phonesOf(c.phone).find(p => p.wa) || {}).wa || '';
 const hasEmail = c => /@/.test(c.email || '');
-function rqSummary() {
-  const s = selected(), ne = s.filter(hasEmail).length, nw = s.filter(firstWa).length, none = s.filter(c => !hasEmail(c) && !firstWa(c)).length;
-  $('rqSum').innerHTML = `<span>Выбрано: ${s.length}</span><span class="ok">С email: ${ne}</span><span class="ok">С WhatsApp: ${nw}</span>` + (none ? `<span class="warn">Без контактов: ${none}</span>` : '');
-  $('rqEmail').textContent = 'Отправить на email (' + ne + ')'; $('rqEmail').disabled = !ne;
-  $('rqWa').textContent = 'WhatsApp по очереди (' + nw + ')'; $('rqWa').disabled = !nw;
+const rqSecs = new Set();
+// Получатели: выбранные разделы + тип прицепа; одна компания в двух разделах получит запрос один раз
+function recipients() {
+  const tr = $('rqTrType').value, only = $('rqOnlyTr').checked;
+  const re = tr ? new RegExp(tr, 'i') : null;
+  const base = all.filter(c => c.status !== 'prospect' && rqSecs.has(dirOf(c)))
+    .filter(c => !re || !only || re.test([c.trailer, c.load_type, c.notes].join(' ')));
+  const seenE = new Set(), seenW = new Set(), email = [], wa = [];
+  for (const c of base) {
+    if (hasEmail(c)) { const k = c.email.toLowerCase().split(/[\s,;]+/)[0]; if (!seenE.has(k)) { seenE.add(k); email.push(c); } }
+    const w = firstWa(c); if (w && !seenW.has(w)) { seenW.add(w); wa.push(c); }
+  }
+  return { base, email, wa };
 }
+function rqSummary() {
+  const r = recipients(), ce = $('rqChEmail').checked, cw = $('rqChWa').checked;
+  const none = r.base.filter(c => !hasEmail(c) && !firstWa(c)).length;
+  $('rqSum').innerHTML = rqSecs.size
+    ? `<span>Перевозчиков в выбранных разделах: ${r.base.length}</span>` + (ce ? `<span class="ok">Email: ${r.email.length}</span>` : '') + (cw ? `<span class="ok">WhatsApp: ${r.wa.length}</span>` : '')
+      + (none ? `<span class="warn">Без контактов: ${none}</span>` : '') + (ce && r.email.length > 100 ? `<span class="warn">Email уйдут первым 100 (дневной лимит)</span>` : '')
+    : '<span class="warn">Выберите хотя бы один раздел</span>';
+  $('rqSend').disabled = !rqSecs.size || (!(ce && r.email.length) && !(cw && r.wa.length));
+}
+function rqRenderSections() {
+  const act = all.filter(c => c.status !== 'prospect');
+  $('rqSections').innerHTML = sections().map(d => `<button type="button" class="chip ${rqSecs.has(d) ? 'on' : ''}" data-sec="${esc(d)}" aria-pressed="${rqSecs.has(d)}">${esc(d)} · ${act.filter(c => dirOf(c) === d).length}</button>`).join('');
+}
+$('rqSections').addEventListener('click', e => {
+  const b = e.target.closest('[data-sec]'); if (!b) return;
+  const d = b.dataset.sec; rqSecs.has(d) ? rqSecs.delete(d) : rqSecs.add(d);
+  rqRenderSections(); rqSummary();
+});
+['rqTrType', 'rqOnlyTr', 'rqChEmail', 'rqChWa'].forEach(id => $(id).addEventListener('change', () => { if (id === 'rqTrType') rqBuild(); rqSummary(); }));
 $('reqBtn').addEventListener('click', () => {
-  textEdited = false; rqBuild(); rqSummary();
+  $('rqTrType').innerHTML = TRAILERS.map(([k, l]) => `<option value="${k}">${k ? l : 'Любой'}</option>`).join('');
+  textEdited = false; rqBuild(); rqRenderSections(); rqSummary();
   $('rqForm').hidden = false; $('rqWaBox').hidden = true;
   $('reqModal').classList.add('open'); $('rqFrom').focus();
 });
 $('rqCancel').addEventListener('click', () => $('reqModal').classList.remove('open'));
 $('reqModal').addEventListener('click', e => { if (e.target.id === 'reqModal') $('reqModal').classList.remove('open'); });
-$('rqEmail').addEventListener('click', async () => {
-  const s = selected().filter(hasEmail);
-  if (!confirm(`Отправить письмо ${s.length} перевозчикам? Каждый получит отдельное письмо, ответы придут на ${sigMail()}.`)) return;
-  const b = $('rqEmail'); b.disabled = true; b.textContent = 'Отправляю…';
-  const r = await api('/api/carrier-requests/send-email', 'POST', { ids: s.map(c => c.id), subject: $('rqSubject').value, text: $('rqText').value }).catch(() => ({ error: 'нет связи' }));
-  if (r.error) alert('Не отправлено: ' + r.error);
-  else alert(`Отправлено писем: ${r.sent}` + (r.skipped ? `\nПропущено (некорректный адрес): ${r.skipped}` : ''));
-  await loadLastReq(); render(); rqSummary();
+$('rqSend').addEventListener('click', async () => {
+  if (!$('rqFrom').value.trim() || !$('rqTo').value.trim()) { alert('Укажите, откуда и куда'); return; }
+  const r = recipients(), ce = $('rqChEmail').checked && r.email.length, cw = $('rqChWa').checked && r.wa.length;
+  const parts = []; if (ce) parts.push(`email: ${Math.min(r.email.length, 100)}`); if (cw) parts.push(`WhatsApp: ${r.wa.length}`);
+  if (!confirm('Отправить запрос (' + parts.join(', ') + ')? Ответы на письма придут на ' + sigMail() + '.')) return;
+  const b = $('rqSend'); b.disabled = true;
+  if (ce) {
+    b.textContent = 'Отправляю письма…';
+    const res = await api('/api/carrier-requests/send-email', 'POST', { ids: r.email.slice(0, 100).map(c => c.id), subject: $('rqSubject').value, text: $('rqText').value }).catch(() => ({ error: 'нет связи' }));
+    if (res.error) alert('Письма не отправлены: ' + res.error);
+    else alert(`Отправлено писем: ${res.sent}` + (res.skipped ? `\nПропущено (некорректный адрес): ${res.skipped}` : ''));
+  }
+  b.textContent = 'Отправить'; b.disabled = false;
+  await loadLastReq(); render();
+  if (cw) { waQueue = r.wa; waIdx = 0; $('rqForm').hidden = true; $('rqWaBox').hidden = false; waShow(); }
+  else $('reqModal').classList.remove('open');
 });
 // ── Очередь WhatsApp ──
-let waQueue = [], waIdx = 0;
+var waQueue = [], waIdx = 0;
 function waShow() {
   if (waIdx >= waQueue.length) { $('waWho').textContent = 'Готово, всем отправлено.'; $('waOpen').style.display = 'none'; $('waSkip').style.display = 'none'; $('waProgress').textContent = ''; loadLastReq().then(render); return; }
   const c = waQueue[waIdx];
@@ -418,10 +444,6 @@ function waShow() {
   $('waOpen').href = 'https://wa.me/' + firstWa(c) + '?text=' + encodeURIComponent($('rqText').value);
   $('waOpen').style.display = ''; $('waSkip').style.display = '';
 }
-$('rqWa').addEventListener('click', () => {
-  waQueue = selected().filter(firstWa); waIdx = 0;
-  $('rqForm').hidden = true; $('rqWaBox').hidden = false; waShow();
-});
 $('waOpen').addEventListener('click', () => {
   const c = waQueue[waIdx];
   api('/api/carrier-requests/log', 'POST', { ids: [c.id], channel: 'whatsapp', subject: $('rqSubject').value, text: $('rqText').value }).catch(() => {});
