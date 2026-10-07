@@ -1,7 +1,6 @@
 const WORKER = 'https://gl-api.gltransam.workers.dev';
 const ADMIN_USER = 'TigranMetspagyan';
 const SESSION_MAX = 12 * 60 * 60 * 1000;
-const WIALON_TOKEN = '9a42496eb8cb2922d6d2f97923818f3d8BDC20D911F8EECF1067A0FCC8066BBC06C93EAE';
 const WIALON_API = 'https://hst-api.wialon.com/wialon/ajax.html';
 const WIALON_UNITS = { '284 HT 61': 28629144, '927 HS 61': 30121499 };
 const WIALON_RES_ID = 28629123;
@@ -35,13 +34,10 @@ let aiMessages = [], aiTripContext = null;
 // ── Wialon ───────────────────────────────────────────────────────────────────
 async function wialonLogin() {
   try {
-    const r = await fetch(WIALON_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `svc=token/login&params=${encodeURIComponent(JSON.stringify({ token: WIALON_TOKEN, fl: 1, operateAs: '' }))}`
-    });
+    // Ключ Wialon хранится только на сервере; он выдаёт временный сеанс
+    const r = await fetch(WORKER + '/api/wialon/session', { method: 'POST' });
     const d = await r.json();
-    if (d.eid) { wialonSid = d.eid; return true; }
+    if (d.sid) { wialonSid = d.sid; return true; }
     return false;
   } catch { return false; }
 }
