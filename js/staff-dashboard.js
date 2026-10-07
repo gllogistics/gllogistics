@@ -470,8 +470,9 @@ function openSigModal(u) {
 
 function glEmailSignature(me) {
   const e = s => String(s || '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-  const name = me.display_name || me.username || 'GLL Team';
-  const title = me.sig_title || 'GL Logistics LLC';
+  const office = !me.email || String(me.email).toLowerCase() === 'info@gllogistics.org';
+  const name = me.display_name || (office ? 'GLL Team' : me.username) || 'GLL Team';
+  const title = me.sig_title || (office ? 'HQ, GL Logistics LLC' : 'GL Logistics LLC');
   const phones = String(me.sig_phones || '+37493661454, +37496664454').split(/[,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 3);
   const mail = me.email || 'info@gllogistics.org';
   const wa = (phones[0] || '').replace(/\D/g, '');
