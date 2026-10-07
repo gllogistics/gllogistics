@@ -77,7 +77,11 @@ tr.noname td { background: #FFFBF2; }
   <div class="tabs" id="tabs" role="tablist" aria-label="Разделы"></div>
   <div class="filters">
     <input type="search" id="q" placeholder="Поиск в разделе: компания, маршрут, телефон" aria-label="Поиск">
+    <select id="country" aria-label="Страна"><option value="">Все страны</option></select>
     <button type="button" class="b" id="noNameBtn" aria-pressed="false" style="display:none"></button>
+  </div>
+  <div class="filters" id="chipsRow" style="margin-top:-4px">
+    <div id="chips" role="group" aria-label="Тип прицепа" style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
   <div class="card"><div class="scroll"><table>
     <thead id="thead"></thead>
@@ -124,6 +128,8 @@ const fmt = n => Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 0 
 const ORDER = ['Украина', 'Европа-СНГ', 'Европа-АМ', 'Турция-СНГ', 'Китай', 'Belorus-AM', 'KZ-AM', 'Негабарит', 'INDIA', 'International Brokers', 'RU-AM', 'IRAN'];
 const PROSPECT = '__prospect';
 let all = [], tab = decodeURIComponent(location.hash.slice(1)) || ORDER[0], editId = null, noName = false;
+const TRAILERS = [['', 'Все прицепы'], ['реф|ref', 'Реф'], ['тент|tent', 'Тент'], ['контейн|contain|fcl|lcl', 'Контейнер'], ['трал|tral|негабар|площад', 'Трал / негабарит'], ['adr|адр', 'ADR']];
+let trailer = '';
 const countryOf = c => ((c.notes || '').match(/Страна:\s*([^;]+)/) || [])[1] || '';
 
 function waDigits(phone) {
@@ -158,6 +164,11 @@ function render() {
   const q = $('q').value.trim().toLowerCase();
   let list = all.filter(c => tab === PROSPECT ? c.status === 'prospect' : (c.status !== 'prospect' && (c.direction || 'Без раздела') === tab))
     .filter(c => !q || [c.name, c.route, c.phone, c.email, c.notes, c.trailer, c.source].join(' ').toLowerCase().includes(q));
+  const country = $('country').value;
+  const re = trailer ? new RegExp(trailer, 'i') : null;
+  if (tab !== PROSPECT) list = list
+    .filter(c => !country || countryOf(c).trim() === country)
+    .filter(c => !re || re.test([c.trailer, c.load_type, c.notes].join(' ')));
   const secAll = all.filter(c => tab !== PROSPECT && c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
   const nNo = secAll.filter(c => !c.name).length;
   const nb = $('noNameBtn');
@@ -166,6 +177,15 @@ function render() {
   nb.textContent = noName ? 'Показать всех' : 'Без названия: ' + nNo;
   nb.setAttribute('aria-pressed', String(noName));
   if (noName) list.splice(0, list.length, ...list.filter(c => !c.name));
+  // страны раздела и кнопки прицепов
+  if (tab !== PROSPECT) {
+    const sec = all.filter(c => c.status !== 'prospect' && (c.direction || 'Без раздела') === tab);
+    const cs = [...new Set(sec.map(c => countryOf(c).trim()).filter(Boolean))].sort();
+    const cur = $('country').value;
+    $('country').innerHTML = '<option value="">Все страны</option>' + cs.map(x => `<option${x === cur ? ' selected' : ''}>${esc(x)}</option>`).join('');
+    $('chips').innerHTML = TRAILERS.map(([k, l]) => `<button type="button" class="chip ${trailer === k ? 'on' : ''}" data-tr="${k}" aria-pressed="${trailer === k}">${l}</button>`).join('');
+  }
+  $('country').style.display = $('chipsRow').style.display = tab === PROSPECT ? 'none' : '';
   $('sub').textContent = (tab === PROSPECT ? 'Потенциальные' : tab) + ': ' + list.length;
 
   if (tab !== PROSPECT) {
@@ -194,10 +214,12 @@ function render() {
 
 $('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
-  tab = t.dataset.tab; $('q').value = ''; noName = false;
+  tab = t.dataset.tab; $('q').value = ''; noName = false; trailer = ''; $('country').value = '';
   history.replaceState(null, '', '#' + encodeURIComponent(tab));
   render();
 });
+$('country').addEventListener('change', render);
+$('chips').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { trailer = b.dataset.tr; render(); } });
 $('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
 
