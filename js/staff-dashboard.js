@@ -479,10 +479,10 @@ function glEmailSignature(me) {
   const html = `<br><div style="color:#888">--</div>
 <table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#555555;margin-top:8px">
 <tr>
-<td style="vertical-align:top;padding:4px 16px 4px 0;text-align:center">
-<img src="https://gllogistics.org/images/gl_logo_email.png" width="64" alt="GL Logistics" style="display:block;margin:0 auto 4px;border:0">
-<div style="font-size:11px;font-weight:bold;color:#222222">GL Logistics</div>
-<div style="font-size:8px;color:#888888">Your supply chain partner everywhere.</div>
+<td style="vertical-align:top;padding:4px 12px 4px 0;text-align:center;width:70px">
+<img src="https://gllogistics.org/images/gl_logo_email.png" width="44" alt="GL Logistics" style="display:block;margin:0 auto 4px;border:0">
+<div style="font-size:9px;font-weight:bold;color:#222222">GL Logistics</div>
+<div style="font-size:6px;color:#888888">Your supply chain partner everywhere.</div>
 </td>
 <td style="vertical-align:top;border-left:1px solid #cccccc;padding:2px 0 2px 16px">
 <div style="font-size:16px;font-weight:bold;color:#555555">${e(name)}</div>
