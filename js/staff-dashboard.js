@@ -184,11 +184,24 @@ function renderLogists() {
   document.getElementById('logistListTable').innerHTML = usersList.map((u, i) =>
     `<tr><td>${esc(u.username)}</td><td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
     <td><span id="pwd_${i}">••••••</span> <button class="show-pwd" data-idx="${i}">Показать</button></td>
+    <td>${u.email ? esc((u.display_name ? u.display_name + ' · ' : '') + u.email) : '<span style="color:#8fa8ab">не задан</span>'} <button class="show-pwd set-mail" data-idx="${i}">Изменить</button></td>
     <td>${u.role !== 'admin' ? `<button class="btn-sm-del" data-name="${esc(u.username)}">Удалить</button>` : ''}</td></tr>`
   ).join('');
 
   document.querySelectorAll('.show-pwd').forEach(btn => {
     btn.addEventListener('click', () => toggleShowPwd(parseInt(btn.dataset.idx), btn));
+  });
+  document.querySelectorAll('.set-mail').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const u = usersList[parseInt(btn.dataset.idx)];
+      const name = prompt('Имя в письмах для ' + u.username + ' (например: Армен Петросян)', u.display_name || '');
+      if (name === null) return;
+      const email = prompt('Email логиста. Адрес @gllogistics.org — письма уйдут прямо от него. Личная почта — письма уйдут от GL Logistics, а ответы придут на неё.', u.email || '');
+      if (email === null) return;
+      const r = await api('/api/users/' + encodeURIComponent(u.username) + '/email', 'PUT', { email: email.trim(), display_name: name.trim() });
+      if (r && r.error) return alert(r.error);
+      await loadUsers();
+    });
   });
   document.querySelectorAll('.btn-sm-del').forEach(btn => {
     btn.addEventListener('click', () => deleteLogist(btn.dataset.name));
