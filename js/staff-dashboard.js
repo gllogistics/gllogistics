@@ -184,7 +184,7 @@ function renderLogists() {
   document.getElementById('logistListTable').innerHTML = usersList.map((u, i) =>
     `<tr><td>${esc(u.username)}</td><td>${u.role === 'admin' ? '👑 Админ' : '👤 Логист'}</td>
     <td><span id="pwd_${i}">••••••</span> <button class="show-pwd" data-idx="${i}">Показать</button></td>
-    <td>${u.email ? esc((u.display_name ? u.display_name + ' · ' : '') + u.email) : '<span style="color:#8fa8ab">не задан</span>'} <button class="show-pwd set-mail" data-idx="${i}">Изменить</button></td>
+    <td>${u.email ? esc((u.display_name ? u.display_name + ' · ' : '') + u.email) : '<span style="color:#8fa8ab">не задан</span>'}${u.sig_title ? '<br><small style="color:#8fa8ab">' + esc(u.sig_title) + '</small>' : ''} <button class="show-pwd set-mail" data-idx="${i}">Подпись</button></td>
     <td>${u.role !== 'admin' ? `<button class="btn-sm-del" data-name="${esc(u.username)}">Удалить</button>` : ''}</td></tr>`
   ).join('');
 
@@ -192,16 +192,7 @@ function renderLogists() {
     btn.addEventListener('click', () => toggleShowPwd(parseInt(btn.dataset.idx), btn));
   });
   document.querySelectorAll('.set-mail').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const u = usersList[parseInt(btn.dataset.idx)];
-      const name = prompt('Имя в письмах для ' + u.username + ' (например: Армен Петросян)', u.display_name || '');
-      if (name === null) return;
-      const email = prompt('Email логиста. Адрес @gllogistics.org — письма уйдут прямо от него. Личная почта — письма уйдут от GL Logistics, а ответы придут на неё.', u.email || '');
-      if (email === null) return;
-      const r = await api('/api/users/' + encodeURIComponent(u.username) + '/email', 'PUT', { email: email.trim(), display_name: name.trim() });
-      if (r && r.error) return alert(r.error);
-      await loadUsers();
-    });
+    btn.addEventListener('click', () => openSigModal(usersList[parseInt(btn.dataset.idx)]));
   });
   document.querySelectorAll('.btn-sm-del').forEach(btn => {
     btn.addEventListener('click', () => deleteLogist(btn.dataset.name));
@@ -414,3 +405,52 @@ document.addEventListener('DOMContentLoaded', function() {
     if (el) el.addEventListener('change', () => loadData());
   });
 });
+
+// ── Окно подписи логиста ──
+function openSigModal(u) {
+  let m = document.getElementById('sigModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'sigModal';
+    m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(16,38,42,.45);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:40px 12px;overflow:auto';
+    m.innerHTML = `<div style="background:#fff;border-radius:10px;max-width:520px;width:100%;padding:20px;font-family:inherit">
+      <h3 style="margin:0 0 4px;font-size:18px" id="sigTitle"></h3>
+      <div style="font-size:13px;color:#5B6670;margin-bottom:14px">Эти данные попадут в подпись писем, которые логист отправляет перевозчикам.</div>
+      <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgName">Имя и фамилия</label>
+      <input id="sgName" style="width:100%;margin-bottom:10px" placeholder="Армен Петросян">
+      <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgTitle">Должность</label>
+      <input id="sgTitle" style="width:100%;margin-bottom:10px" placeholder="Logistics Manager, GL Logistics LLC">
+      <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgPhones">Телефоны (через запятую)</label>
+      <input id="sgPhones" style="width:100%;margin-bottom:10px" placeholder="+37493661454, +37496664454">
+      <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgEmail">Рабочий email</label>
+      <input id="sgEmail" type="email" style="width:100%;margin-bottom:16px" placeholder="armen@gllogistics.org">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn-sm" id="sgCancel" style="background:#fff;color:#14202B;border:1px solid #D5DADF">Отмена</button>
+        <button type="button" class="btn-sm" id="sgSave">Сохранить</button>
+      </div></div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    document.getElementById('sgCancel').addEventListener('click', () => { m.style.display = 'none'; });
+    document.getElementById('sgSave').addEventListener('click', async () => {
+      const uname = m.dataset.user;
+      const r = await api('/api/users/' + encodeURIComponent(uname) + '/email', 'PUT', {
+        display_name: document.getElementById('sgName').value.trim(),
+        sig_title: document.getElementById('sgTitle').value.trim(),
+        sig_phones: document.getElementById('sgPhones').value.trim(),
+        email: document.getElementById('sgEmail').value.trim()
+      });
+      if (r && r.error) return alert(r.error);
+      m.style.display = 'none';
+      await loadUsers();
+    });
+  }
+  m.dataset.user = u.username;
+  document.getElementById('sigTitle').textContent = 'Подпись: ' + u.username;
+  document.getElementById('sgName').value = u.display_name || '';
+  document.getElementById('sgTitle').value = u.sig_title || '';
+  document.getElementById('sgPhones').value = u.sig_phones || '';
+  document.getElementById('sgEmail').value = u.email || '';
+  m.style.display = 'flex';
+  document.getElementById('sgName').focus();
+}
