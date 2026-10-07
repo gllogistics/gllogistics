@@ -14,10 +14,11 @@
     fleet: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
     exp: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     files: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
     menu: '<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>',
   };
   const svg = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-  const work = [['/staff-dashboard.html', 'Главная', 'home', true], ['/staff-cargo.html', 'Сделки', 'deals'], ['/rateconfirmation', 'Заявки', 'req'],
+  const work = [['/staff-dashboard.html', 'Главная', 'home', true], ['/staff-cargo.html', 'Сделки', 'deals'], ['/carriers.html', 'Перевозчики', 'book'], ['/rateconfirmation', 'Заявки', 'req'],
                 ['/invoice', 'Инвойсы', 'inv'], ['/trip-report', 'Рейсы', 'trip', true], ['/dispatch.html', 'Диспатчинг', 'disp', true]];
   const company = [['/clients', 'Клиенты', 'clients'], ['/fleet.html', 'Автопарк', 'fleet'], ['/expenses.html', 'Расходы', 'exp'], ['/files', 'Файлы', 'files']];
   const path = location.pathname.replace(/\.html$/, '');
