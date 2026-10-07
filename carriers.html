@@ -82,6 +82,20 @@ tr.noname td { background: #FFFBF2; }
   table.fit .b.sm { padding: 0 8px; }
 }
 .wrap { max-width: none; }
+
+.selbar { position: fixed; left: 240px; right: 0; bottom: 18px; display: none; justify-content: center; z-index: 800; pointer-events: none; }
+.selbar.show { display: flex; }
+.selbar > div { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: #10262A; color: #fff; border-radius: 10px; padding: 10px 12px 10px 16px; box-shadow: 0 10px 30px rgba(16,38,42,.3); font-size: 14px; }
+.selbar .b { height: 34px; }
+.selbar .b.ghost { background: transparent; color: #C6D3D5; border-color: #2C4A50; }
+.lastreq { font-size: 11.5px; color: #8A4B00; font-weight: 500; margin-top: 2px; }
+.rq-sum { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.rq-sum span { font-size: 12.5px; padding: 3px 9px; border-radius: 12px; background: #F0F2F4; color: #3D4852; }
+.rq-sum span.ok { background: #E7F4EC; color: #1B6B3F; }
+.rq-sum span.warn { background: #FDF1E3; color: #8A4B00; }
+.waq { border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px; margin-top: 12px; background: #FAFBFB; }
+.waq .who { font-size: 15px; font-weight: 600; margin: 4px 0 10px; }
+@media (max-width: 960px) { .selbar { left: 0; } }
 </style>
 <link rel="stylesheet" href="/css/gl-shell.css?v=7">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
@@ -110,6 +124,48 @@ tr.noname td { background: #FFFBF2; }
     <thead id="thead"></thead>
     <tbody id="tbody"></tbody>
   </table></div></div>
+</div>
+
+<div class="selbar" id="selbar" role="region" aria-label="Выбранные перевозчики"><div>
+  <span id="selCount"></span>
+  <button type="button" class="b primary" id="reqBtn">Отправить запрос</button>
+  <button type="button" class="b ghost" id="selClear">Снять выбор</button>
+</div></div>
+
+<div class="modal" id="reqModal" role="dialog" aria-modal="true" aria-labelledby="rqTitle">
+  <div class="mbox" style="max-width:720px">
+    <h2 id="rqTitle">Запрос ставки перевозчикам</h2>
+    <div class="rq-sum" id="rqSum"></div>
+    <div id="rqForm">
+      <div class="grid2">
+        <div class="fg"><label for="rqFrom">Откуда</label><input id="rqFrom" placeholder="Милан, Италия"></div>
+        <div class="fg"><label for="rqTo">Куда</label><input id="rqTo" placeholder="Ереван, Армения"></div>
+        <div class="fg"><label for="rqCargo">Груз</label><input id="rqCargo" placeholder="Продукты питания, паллеты"></div>
+        <div class="fg"><label for="rqWeight">Вес / объём</label><input id="rqWeight" placeholder="20 т, 33 палеты"></div>
+        <div class="fg"><label for="rqTrailer">Тип прицепа</label><input id="rqTrailer" placeholder="Реф +2…+4 °C"></div>
+        <div class="fg"><label for="rqDate">Дата загрузки</label><input id="rqDate" placeholder="15.10.2026"></div>
+        <div class="fg full"><label for="rqNote">Дополнительно</label><input id="rqNote" placeholder="ADR, таможня, оплата и т.п."></div>
+        <div class="fg"><label for="rqLang">Язык письма</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
+        <div class="fg"><label for="rqSubject">Тема письма</label><input id="rqSubject"></div>
+        <div class="fg full"><label for="rqText">Текст (можно поправить вручную)</label><textarea id="rqText" rows="10"></textarea></div>
+      </div>
+      <div class="mfoot">
+        <button type="button" class="b" id="rqCancel" style="margin-right:auto">Отмена</button>
+        <button type="button" class="b" id="rqWa">WhatsApp по очереди</button>
+        <button type="button" class="b primary" id="rqEmail">Отправить на email</button>
+      </div>
+    </div>
+    <div id="rqWaBox" class="waq" hidden>
+      <div class="muted" id="waProgress"></div>
+      <div class="who" id="waWho"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="b primary" id="waOpen" target="_blank" rel="noopener">Открыть WhatsApp с готовым текстом</a>
+        <button type="button" class="b" id="waSkip">Пропустить</button>
+        <button type="button" class="b" id="waStop" style="margin-left:auto">Закончить</button>
+      </div>
+      <div class="muted" style="margin-top:10px">В открывшемся чате текст уже вставлен, нажмите «Отправить» и вернитесь сюда, откроется следующий.</div>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -192,7 +248,19 @@ function sections() {
   return ORDER.filter(d => dirs.includes(d)).concat(dirs.filter(d => !ORDER.includes(d)).sort());
 }
 
+const sel = new Set();
+let lastReq = {};
+const fmtD = s => { const d = new Date(String(s).replace(' ', 'T') + 'Z'); return isNaN(d) ? '' : d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' }); };
+async function loadLastReq() {
+  const r = await api('/api/carrier-requests/last').catch(() => []);
+  lastReq = {}; (Array.isArray(r) ? r : []).forEach(x => { lastReq[x.carrier_id] = x.last_at; });
+}
+function updSelbar() {
+  $('selbar').classList.toggle('show', sel.size > 0);
+  $('selCount').textContent = 'Выбрано: ' + sel.size;
+}
 async function load() {
+  await loadLastReq();
   all = await api('/api/carrier-base').catch(() => []);
   if (!Array.isArray(all)) all = [];
   $('dirList').innerHTML = sections().map(d => `<option value="${esc(d)}">`).join('');
@@ -246,9 +314,12 @@ function render() {
 
   if (!isP) {
     $('tbl').classList.add('fit');
-    $('thead').innerHTML = '<tr><th style="width:13%">Компания</th><th style="width:8%">Раздел</th><th style="width:6%">FTL / LTL</th><th style="width:7%">Откуда нашли</th><th style="width:11%">Маршрут</th><th style="width:8%">Прицеп</th><th style="width:12%">Телефон (WhatsApp)</th><th style="width:13%">Email</th><th style="width:17%">Заметки</th><th style="width:5%"></th></tr>';
+    const allSel = list.length && list.every(c => sel.has(c.id));
+    $('thead').innerHTML = `<tr><th style="width:3%"><input type="checkbox" class="check" id="selAll" ${allSel ? 'checked' : ''} aria-label="Выбрать всех в списке"></th><th style="width:12%">Компания</th><th style="width:8%">Раздел</th><th style="width:5%">FTL / LTL</th><th style="width:7%">Откуда нашли</th><th style="width:11%">Маршрут</th><th style="width:8%">Прицеп</th><th style="width:12%">Телефон (WhatsApp)</th><th style="width:13%">Email</th><th style="width:16%">Заметки</th><th style="width:5%"></th></tr>`;
+    window._visible = list;
     $('tbody').innerHTML = list.length ? list.map(c => `<tr class="${c.name ? '' : 'noname'}">
-      <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}</td>
+      <td><input type="checkbox" class="check" data-sel="${c.id}" ${sel.has(c.id) ? 'checked' : ''} aria-label="Выбрать"></td>
+      <td class="name">${esc(c.name) || '<span class="muted" style="font-weight:500">Без названия' + (countryOf(c) ? ' · ' + esc(countryOf(c)) : '') + '</span>'}${lastReq[c.id] ? '<div class="lastreq">Запрос: ' + fmtD(lastReq[c.id]) + '</div>' : ''}</td>
       <td><span class="tag">${esc(dirOf(c))}</span></td>
       <td>${esc(c.load_type)}</td>
       <td>${esc(c.source)}</td>
@@ -258,7 +329,7 @@ function render() {
       <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
-      : '<tr><td class="empty" colspan="10">Ничего не найдено. Измените фильтры.</td></tr>';
+      : '<tr><td class="empty" colspan="11">Ничего не найдено. Измените фильтры.</td></tr>';
   } else {
     $('tbl').classList.remove('fit');
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
@@ -281,6 +352,80 @@ $('country').addEventListener('change', render);
 $('chips').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { trailer = b.dataset.tr; render(); } });
 $('noNameBtn').addEventListener('click', () => { noName = !noName; render(); });
 $('tbody').addEventListener('click', e => { if (e.target.id === 'openF2') openPanel(); });
+document.addEventListener('change', e => {
+  const s = e.target.closest('[data-sel]');
+  if (s) { const id = +s.dataset.sel; s.checked ? sel.add(id) : sel.delete(id); updSelbar();
+    const sa = $('selAll'); if (sa) sa.checked = (window._visible || []).every(c => sel.has(c.id)); return; }
+  if (e.target.id === 'selAll') { (window._visible || []).forEach(c => e.target.checked ? sel.add(c.id) : sel.delete(c.id)); render(); updSelbar(); }
+});
+$('selClear').addEventListener('click', () => { sel.clear(); render(); updSelbar(); });
+
+// ── Окно запроса ──
+const TPL = {
+  ru: f => ({ subject: `Запрос ставки: ${f.from || '…'} → ${f.to || '…'}${f.date ? ', ' + f.date : ''}`,
+    text: `Здравствуйте!\n\nИщем транспорт:\nМаршрут: ${f.from || '…'} → ${f.to || '…'}` +
+      (f.cargo ? `\nГруз: ${f.cargo}` : '') + (f.weight ? `\nВес / объём: ${f.weight}` : '') + (f.trailer ? `\nПрицеп: ${f.trailer}` : '') +
+      (f.date ? `\nДата загрузки: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
+      `\n\nПожалуйста, пришлите вашу ставку и возможную дату подачи машины.\n\nС уважением,\n${user}\nGL Logistics LLC\n+374 93 66 14 54 · info@gllogistics.org` }),
+  en: f => ({ subject: `Rate request: ${f.from || '…'} → ${f.to || '…'}${f.date ? ', ' + f.date : ''}`,
+    text: `Hello,\n\nWe are looking for a truck:\nRoute: ${f.from || '…'} → ${f.to || '…'}` +
+      (f.cargo ? `\nCargo: ${f.cargo}` : '') + (f.weight ? `\nWeight / volume: ${f.weight}` : '') + (f.trailer ? `\nTrailer: ${f.trailer}` : '') +
+      (f.date ? `\nLoading date: ${f.date}` : '') + (f.note ? `\n${f.note}` : '') +
+      `\n\nPlease send us your rate and the earliest available truck date.\n\nBest regards,\n${user}\nGL Logistics LLC\n+374 93 66 14 54 · info@gllogistics.org` })
+};
+let textEdited = false;
+function rqFields() { return { from: $('rqFrom').value.trim(), to: $('rqTo').value.trim(), cargo: $('rqCargo').value.trim(), weight: $('rqWeight').value.trim(),
+  trailer: $('rqTrailer').value.trim(), date: $('rqDate').value.trim(), note: $('rqNote').value.trim() }; }
+function rqBuild() { if (textEdited) return; const t = TPL[$('rqLang').value](rqFields()); $('rqSubject').value = t.subject; $('rqText').value = t.text; }
+['rqFrom','rqTo','rqCargo','rqWeight','rqTrailer','rqDate','rqNote','rqLang'].forEach(id => $(id).addEventListener('input', rqBuild));
+$('rqLang').addEventListener('change', () => { textEdited = false; rqBuild(); });
+$('rqText').addEventListener('input', () => { textEdited = true; });
+const selected = () => all.filter(c => sel.has(c.id));
+const firstWa = c => (phonesOf(c.phone).find(p => p.wa) || {}).wa || '';
+const hasEmail = c => /@/.test(c.email || '');
+function rqSummary() {
+  const s = selected(), ne = s.filter(hasEmail).length, nw = s.filter(firstWa).length, none = s.filter(c => !hasEmail(c) && !firstWa(c)).length;
+  $('rqSum').innerHTML = `<span>Выбрано: ${s.length}</span><span class="ok">С email: ${ne}</span><span class="ok">С WhatsApp: ${nw}</span>` + (none ? `<span class="warn">Без контактов: ${none}</span>` : '');
+  $('rqEmail').textContent = 'Отправить на email (' + ne + ')'; $('rqEmail').disabled = !ne;
+  $('rqWa').textContent = 'WhatsApp по очереди (' + nw + ')'; $('rqWa').disabled = !nw;
+}
+$('reqBtn').addEventListener('click', () => {
+  textEdited = false; rqBuild(); rqSummary();
+  $('rqForm').hidden = false; $('rqWaBox').hidden = true;
+  $('reqModal').classList.add('open'); $('rqFrom').focus();
+});
+$('rqCancel').addEventListener('click', () => $('reqModal').classList.remove('open'));
+$('reqModal').addEventListener('click', e => { if (e.target.id === 'reqModal') $('reqModal').classList.remove('open'); });
+$('rqEmail').addEventListener('click', async () => {
+  const s = selected().filter(hasEmail);
+  if (!confirm(`Отправить письмо ${s.length} перевозчикам? Каждый получит отдельное письмо, ответы придут на info@gllogistics.org.`)) return;
+  const b = $('rqEmail'); b.disabled = true; b.textContent = 'Отправляю…';
+  const r = await api('/api/carrier-requests/send-email', 'POST', { ids: s.map(c => c.id), subject: $('rqSubject').value, text: $('rqText').value }).catch(() => ({ error: 'нет связи' }));
+  if (r.error) alert('Не отправлено: ' + r.error);
+  else alert(`Отправлено писем: ${r.sent}` + (r.skipped ? `\nПропущено (некорректный адрес): ${r.skipped}` : ''));
+  await loadLastReq(); render(); rqSummary();
+});
+// ── Очередь WhatsApp ──
+let waQueue = [], waIdx = 0;
+function waShow() {
+  if (waIdx >= waQueue.length) { $('waWho').textContent = 'Готово, всем отправлено.'; $('waOpen').style.display = 'none'; $('waSkip').style.display = 'none'; $('waProgress').textContent = ''; loadLastReq().then(render); return; }
+  const c = waQueue[waIdx];
+  $('waProgress').textContent = `${waIdx + 1} из ${waQueue.length}`;
+  $('waWho').textContent = (c.name || 'Без названия') + ' · ' + (phonesOf(c.phone).find(p => p.wa) || {}).text;
+  $('waOpen').href = 'https://wa.me/' + firstWa(c) + '?text=' + encodeURIComponent($('rqText').value);
+  $('waOpen').style.display = ''; $('waSkip').style.display = '';
+}
+$('rqWa').addEventListener('click', () => {
+  waQueue = selected().filter(firstWa); waIdx = 0;
+  $('rqForm').hidden = true; $('rqWaBox').hidden = false; waShow();
+});
+$('waOpen').addEventListener('click', () => {
+  const c = waQueue[waIdx];
+  api('/api/carrier-requests/log', 'POST', { ids: [c.id], channel: 'whatsapp', subject: $('rqSubject').value, text: $('rqText').value }).catch(() => {});
+  setTimeout(() => { waIdx++; waShow(); }, 300);
+});
+$('waSkip').addEventListener('click', () => { waIdx++; waShow(); });
+$('waStop').addEventListener('click', () => { $('reqModal').classList.remove('open'); loadLastReq().then(render); });
 let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 150); });
 
 $('tbody').addEventListener('click', async e => {
