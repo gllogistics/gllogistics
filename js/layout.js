@@ -18,16 +18,17 @@
     menu: '<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>',
   };
   const svg = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-  const work = [['/staff-dashboard.html', 'Главная', 'home', true], ['/staff-cargo.html', 'Сделки', 'deals'], ['/carriers.html', 'Перевозчики', 'book'], ['/rateconfirmation', 'Заявки', 'req'],
+  const work = [['/staff-dashboard.html', 'Главная', 'home', true], ['/staff-cargo.html', 'Сделки', 'deals'], ['/rateconfirmation', 'Заявки', 'req'],
                 ['/invoice', 'Инвойсы', 'inv'], ['/trip-report', 'Рейсы', 'trip', true], ['/dispatch.html', 'Диспатчинг', 'disp', true]];
-  const company = [['/clients', 'Клиенты', 'clients'], ['/fleet.html', 'Автопарк', 'fleet'], ['/expenses.html', 'Расходы', 'exp'], ['/files', 'Файлы', 'files']];
+  const company = [['/clients', 'Клиенты', 'clients'], ['/carriers.html', 'Перевозчики', 'book'], ['/fleet.html', 'Автопарк', 'fleet'], ['/expenses.html', 'Расходы', 'exp'], ['/files', 'Файлы', 'files']];
   const path = location.pathname.replace(/\.html$/, '');
   const link = ([href, label, ic]) => {
     const active = path === href.replace(/\.html$/, '') ? ' class="active" aria-current="page"' : '';
     const badge = href === '/fleet.html' ? '<b class="gl-badge" id="glFleetBadge" style="display:none"></b>' : '';
     return '<a href="' + href + '"' + active + '>' + svg(P[ic]) + '<span>' + label + '</span>' + badge + '</a>';
   };
-  const items = isAdmin ? work : work.filter(w => !w[3]);
+  // логисты: их разделы + Перевозчики (группы «Компания» у них нет)
+  const items = isAdmin ? work : work.filter(w => !w[3]).concat([['/carriers.html', 'Перевозчики', 'book']]);
   let navHtml = (isAdmin ? '<div class="gl-group">Работа</div>' : '') + items.map(link).join('');
   if (isAdmin) navHtml += '<div class="gl-group">Компания</div>' + company.map(link).join('');
   const initials = user.replace(/[^A-Za-zА-Яа-я]/g, ' ').trim().split(/\s+|(?=[A-ZА-Я])/).slice(0, 2).map(s => s[0]).join('').toUpperCase() || 'GL';
