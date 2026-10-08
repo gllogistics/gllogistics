@@ -4,6 +4,11 @@
   const TR_LINK = 'https://uygulamalar.gumruk.gov.tr/websahaozet/';
   const RS_LINK = 'https://www.rs.ge/TirPark-en?cat=1&tab=1';
   const BG_LINK = 'https://www.mvr.bg/gdgp/';
+  const BY_LINK = 'https://gpk.gov.by/situation-at-the-border/';
+  const PL_LINK = 'https://www.granica.gov.pl/';
+  const EE_LINK = ['https://www.eestipiir.ee/yphis/borderQueueInfo.action', 'Эстонская очередь (eestipiir.ee)'];
+  const LT_LINK = ['https://www.ltsiena.lt/', 'Литовская очередь (ltsiena.lt)'];
+  const LV_LINK = ['https://lvborder.lv/en/', 'Латвийская очередь (lvborder.lv)'];
   const GTI_LINK = p => 'https://tirparklari.com.tr/bekleme?park=' + p + '&lang=en';
   // Координаты примерные (у пунктов пропуска)
   const POINTS = [
@@ -24,6 +29,34 @@
     { key: 'Калотина', title: 'Калотина / Градина', border: 'Болгария — Сербия', lat: 42.9946, lng: 22.8683, src: 'bg' },
     { key: 'Видин', title: 'Видин — Калафат', border: 'Болгария — Румыния', lat: 43.9662, lng: 22.9133, src: 'bg' },
     { key: 'Русе', title: 'Русе — Джурджу', border: 'Болгария — Румыния', lat: 43.8916, lng: 25.9690, src: 'bg' },
+    // Польша — Беларусь (Беларусь: машины в эл. очереди на выезд; Польша: часы ожидания на выезд)
+    { key: 'kuk', title: 'Кукурики / Козловичи', border: 'Польша — Беларусь', lat: 52.0896, lng: 23.6201, src: 'eu', by: 'Козловичи', pl: 'Koroszczyn (Kukuryki)' },
+    { key: 'ter', title: 'Тересполь / Брест', border: 'Польша — Беларусь', lat: 52.0790, lng: 23.6550, src: 'eu', by: 'Брест', pl: 'Terespol' },
+    { key: 'bob', title: 'Бобровники / Берестовица', border: 'Польша — Беларусь', lat: 53.1380, lng: 23.9420, src: 'eu', by: 'Берестовица', pl: 'Bobrowniki' },
+    { key: 'kuz', title: 'Кузница / Брузги', border: 'Польша — Беларусь', lat: 53.5300, lng: 23.6930, src: 'eu', by: 'Брузги', pl: 'Kuźnica' },
+    { key: 'pol', title: 'Половце / Песчатка', border: 'Польша — Беларусь', lat: 52.3830, lng: 23.4570, src: 'eu', by: 'Песчатка', pl: 'Połowce' },
+    { key: 'sla', title: 'Славатыче / Домачево', border: 'Польша — Беларусь', lat: 51.7500, lng: 23.5900, src: 'eu', by: 'Домачево', pl: 'Sławatycze' },
+    // Литва — Беларусь
+    { key: 'med', title: 'Мядининкай / Каменный Лог', border: 'Литва — Беларусь', lat: 54.5410, lng: 25.7180, src: 'eu', by: 'Каменный Лог', link2: LT_LINK },
+    { key: 'sal', title: 'Шальчининкай / Бенякони', border: 'Литва — Беларусь', lat: 54.2470, lng: 25.3720, src: 'eu', by: 'Бенякони', link2: LT_LINK },
+    { key: 'kot', title: 'Лаворишкес / Котловка', border: 'Литва — Беларусь', lat: 54.6800, lng: 26.0700, src: 'eu', by: 'Котловка', link2: LT_LINK },
+    { key: 'pri', title: 'Райгардас / Привалка', border: 'Литва — Беларусь', lat: 53.9890, lng: 23.9840, src: 'eu', by: 'Привалка', link2: LT_LINK },
+    { key: 'vid', title: 'Тверечюс / Видзы', border: 'Литва — Беларусь', lat: 55.2600, lng: 26.5200, src: 'eu', by: 'Видзы', link2: LT_LINK },
+    // Латвия — Беларусь
+    { key: 'gri', title: 'Патерниеки / Григоровщина', border: 'Латвия — Беларусь', lat: 55.8700, lng: 26.6200, src: 'eu', by: 'Григоровщина', link2: LV_LINK },
+    { key: 'urb', title: 'Силене / Урбаны', border: 'Латвия — Беларусь', lat: 55.6780, lng: 26.7850, src: 'eu', by: 'Урбаны', link2: LV_LINK },
+    // Польша — Россия (Калининград)
+    { key: 'grz', title: 'Гжехотки / Мамоново', border: 'Польша — Россия', lat: 54.3890, lng: 19.8220, src: 'eu', pl: 'Grzechotki' },
+    { key: 'gro', title: 'Гроново / Мамоново', border: 'Польша — Россия', lat: 54.4200, lng: 19.9600, src: 'eu', pl: 'Gronowo' },
+    { key: 'bez', title: 'Безледы / Багратионовск', border: 'Польша — Россия', lat: 54.3550, lng: 20.6030, src: 'eu', pl: 'Bezledy' },
+    { key: 'gol', title: 'Голдап / Гусев', border: 'Польша — Россия', lat: 54.3150, lng: 22.2890, src: 'eu', pl: 'Gołdap' },
+    // Только ссылкой: сайты не разрешают автоматическое чтение или недоступны
+    { key: 'kib', title: 'Кибартай / Чернышевское', border: 'Литва — Россия', lat: 54.6450, lng: 22.7600, src: 'link', link2: LT_LINK },
+    { key: 'ter2', title: 'Терехова / Убылинка', border: 'Латвия — Россия', lat: 56.1700, lng: 28.1210, src: 'link', link2: LV_LINK },
+    { key: 'gre', title: 'Гребнева / Убылинка', border: 'Латвия — Россия', lat: 56.9030, lng: 28.0870, src: 'link', link2: LV_LINK },
+    { key: 'nar', title: 'Нарва / Ивангород', border: 'Эстония — Россия', lat: 59.3770, lng: 28.2080, src: 'link', link2: EE_LINK },
+    { key: 'koi', title: 'Койдула / Куничина Гора', border: 'Эстония — Россия', lat: 57.8360, lng: 27.6420, src: 'link', link2: EE_LINK },
+    { key: 'luh', title: 'Лухамаа / Шумилкино', border: 'Эстония — Россия', lat: 57.6080, lng: 27.3560, src: 'link', link2: EE_LINK },
   ];
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const fmt = n => Number(n || 0).toLocaleString('ru');
@@ -42,6 +75,34 @@
 
   // Состояние точки: число на пине, цвет, текст
   function stateOf(p) {
+    if (p.src === 'link') {
+      return { label: 'i', cls: 'na', text: 'Числа этой очереди смотрите на сайте источника: он не разрешает автоматическое чтение или сейчас недоступен.' };
+    }
+    if (p.src === 'eu') {
+      const rank = { na: -1, ok: 0, mid: 1, bad: 2 };
+      let cls = 'na', label = null; const parts = []; let at = null, asOf = null;
+      const b = p.by ? data?.belarus?.data?.points?.[p.by] : null;
+      if (b) {
+        at = data.belarus.at; asOf = data.belarus.data.time;
+        if (b.closed) parts.push('Беларусь, выезд грузовиков: <b>пункт не работает</b>');
+        else if (b.out != null) {
+          parts.push(`Беларусь, выезд грузовиков: <b>${fmt(b.out)}</b> машин${b.eq ? ' в электронной очереди' : ' в очереди'}`);
+          label = fmt(b.out); const k = b.out >= 300 ? 'bad' : b.out >= 100 ? 'mid' : 'ok'; if (rank[k] > rank[cls]) cls = k;
+        }
+      }
+      const q = p.pl ? data?.poland?.data?.points?.[p.pl] : null;
+      if (q) {
+        at = at || data.poland.at;
+        if (q.wait_h != null) {
+          parts.push(`Польша, выезд грузовиков: ожидание <b>~${q.wait_h} ч</b>${q.at ? ' (обновлено в ' + esc(q.at) + ')' : ''}`);
+          if (!label) label = q.wait_h + 'ч';
+          const k = q.wait_h >= 12 ? 'bad' : q.wait_h >= 3 ? 'mid' : 'ok'; if (rank[k] > rank[cls]) cls = k;
+        } else parts.push('Польша, выезд грузовиков: нет данных');
+      }
+      if (!parts.length) return { label: '?', cls: 'na', text: 'Нет данных' };
+      if (!label) label = b && b.closed ? 'закр.' : '–';
+      return { label, cls, text: parts.join('<br>'), at, asOf };
+    }
     if (p.src === 'ru') {
       const l = data?.lars?.data;
       if (!l || l.queue == null) return { label: '?', cls: 'na', text: 'Нет данных' };
@@ -83,11 +144,11 @@
   function popup(p, st) {
     const parks = st.g && st.g.parks && st.g.parks.length
       ? '<div class="bd-parks">' + st.g.parks.map(x => `<div><span>${esc(x.name)}</span><span>${fmt(x.busy)} / своб. ${fmt(x.free)}</span></div>`).join('') + '</div>' : '';
-    const src = p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
+    const src = p.src === 'link' ? null : p.src === 'eu' ? (p.by ? [BY_LINK, 'Госпогранкомитет Беларуси'] : [PL_LINK, 'Налоговая служба Польши']) : p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
-      <div class="bd-links"><a href="${src[0]}" target="_blank" rel="noopener">${src[1]}</a>${p.link2 ? `<a href="${p.link2[0]}" target="_blank" rel="noopener">${p.link2[1]}</a>` : ''}</div></div>`;
+      <div class="bd-links">${src ? `<a href="${src[0]}" target="_blank" rel="noopener">${src[1]}</a>` : ''}${p.src === 'eu' && p.by && p.pl ? `<a href="${PL_LINK}" target="_blank" rel="noopener">Налоговая служба Польши</a>` : ''}${p.link2 ? `<a href="${p.link2[0]}" target="_blank" rel="noopener">${p.link2[1]}</a>` : ''}</div></div>`;
   }
 
   function render() {
@@ -107,7 +168,7 @@
   }
 
   const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
-                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли']];
+                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог']];
   let expanded = localStorage.getItem('gl_borders_open') === '1';
 
   function renderSummary() {
@@ -137,7 +198,8 @@
     if (!v) return;
     try { await loadLeaflet(); } catch (e) { document.getElementById('bdTime').textContent = e.message; return; }
     if (!map) {
-      map = window.L.map('bdMap', { scrollWheelZoom: false }).setView([42.3, 35.5], 5);
+      map = window.L.map('bdMap', { scrollWheelZoom: false });
+      map.fitBounds(POINTS.map(p => [p.lat, p.lng]), { padding: [20, 20] });
       window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
     }
     setTimeout(() => {
@@ -161,7 +223,7 @@
       </div>
       <div class="bd-chips" id="bdChips"></div>
       <div id="bdBody" hidden>
-        <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики на стоянках перед границей. Болгария: статус OK / !.</span></div>
+        <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики в очереди или на стоянках перед границей; «ч» — часы ожидания (Польша); «i» — только ссылка на источник.</span></div>
         <div id="bdMap"></div>
         <div class="bd-card"><table class="bd-table"><thead><tr><th>Пункт</th><th>Состояние</th><th></th></tr></thead><tbody id="bdList"></tbody></table></div>
       </div>`;
