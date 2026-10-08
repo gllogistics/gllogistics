@@ -96,7 +96,17 @@
     const tp = data?.tpcentral?.data;
     if (tp) rows.push(`<tr><td><b>TPCentral</b><div class="bd-muted">Стоянка (Грузия)</div></td><td>Занято мест: <b>${fmt(tp.busy)}</b> · свободно: ${fmt(tp.free)} · на обслуживании: ${fmt(tp.in_service)}${tp.suspended ? '<br><b style="color:#A3241B">Вызов на границу временно приостановлен</b>' : ''}</td><td><span class="bd-dot ${tp.suspended ? 'bad' : 'ok'}"></span></td></tr>`);
     document.getElementById('bdList').innerHTML = rows.join('');
-    document.getElementById('bdTime').textContent = 'Обновлено ' + ago(data.updated_at) + (data.errors && data.errors.length ? ' · часть источников недоступна, показаны последние данные' : '');
+  }
+
+  const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
+                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли']];
+  let expanded = localStorage.getItem('gl_borders_open') === '1';
+
+  function renderSummary() {
+    document.getElementById('bdChips').innerHTML = SUMMARY.map(([k, short]) => {
+      const p = POINTS.find(x => x.key === k); const st = stateOf(p);
+      return `<button type="button" class="bd-chip" data-key="${esc(k)}"><i class="bd-dot ${st.cls}"></i>${esc(short)} <b>${esc(st.label)}</b></button>`;
+    }).join('');
   }
 
   async function load(force) {
@@ -105,72 +115,90 @@
       const r = await fetch(API + (force ? '?refresh=1' : ''));
       data = await r.json();
       if (data.error) throw new Error(data.error);
-      render();
-    } catch (e) { document.getElementById('bdTime').textContent = 'Не удалось загрузить данные: ' + e.message; }
+      renderSummary();
+      document.getElementById('bdTime').textContent = 'Обновлено ' + ago(data.updated_at) + (data.errors && data.errors.length ? ' · часть источников недоступна, показаны последние данные' : '');
+      if (map) render();
+    } catch (e) { document.getElementById('bdTime').textContent = 'Не удалось загрузить: ' + e.message; }
     btn.disabled = false; btn.textContent = 'Обновить';
   }
 
-  async function open() {
-    document.querySelector('.two-col').style.display = 'none';
-    document.getElementById('bordersView').hidden = false;
+  async function setExpanded(v, focusKey) {
+    expanded = v; localStorage.setItem('gl_borders_open', v ? '1' : '0');
+    document.getElementById('bdBody').hidden = !v;
+    const t = document.getElementById('bdToggle'); t.textContent = v ? 'Свернуть' : 'Показать карту'; t.setAttribute('aria-expanded', String(v));
+    if (!v) return;
     try { await loadLeaflet(); } catch (e) { document.getElementById('bdTime').textContent = e.message; return; }
     if (!map) {
-      map = window.L.map('bdMap', { scrollWheelZoom: true }).setView([42.3, 35.5], 5);
+      map = window.L.map('bdMap', { scrollWheelZoom: false }).setView([42.3, 35.5], 5);
       window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
     }
-    setTimeout(() => map.invalidateSize(), 50);
-    load(false);
-  }
-  function close() {
-    document.getElementById('bordersView').hidden = true;
-    document.querySelector('.two-col').style.display = '';
+    setTimeout(() => {
+      map.invalidateSize();
+      if (data) render();
+      if (focusKey) { const p = POINTS.find(x => x.key === focusKey); if (p) map.setView([p.lat, p.lng], 9); }
+    }, 60);
   }
 
   function init() {
-    const two = document.querySelector('.two-col'); if (!two) return;
-    const sec = document.createElement('section');
-    sec.id = 'bordersView'; sec.hidden = true; sec.setAttribute('aria-label', 'Очереди на границах');
-    sec.innerHTML = `<div class="bd-head"><div><h2>Очереди на границах</h2><div class="bd-muted" id="bdTime">Загрузка…</div></div>
-      <div class="bd-actions"><button type="button" class="btn btn-ghost btn-sm" id="bdRefresh">Обновить</button><button type="button" class="btn btn-primary btn-sm" id="bdBack">Назад к рейсам</button></div></div>
-      <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики на стоянках перед границей (Грузия, турецкие TIR-парки). Болгария без турецкого парка: статус OK / !.</span></div>
-      <div id="bdMap"></div>
-      <div class="bd-card"><table class="bd-table"><thead><tr><th>Пункт</th><th>Состояние</th><th></th></tr></thead><tbody id="bdList"></tbody></table></div>`;
-    two.parentNode.insertBefore(sec, two);
-    document.getElementById('bdBack').addEventListener('click', close);
+    const two = document.querySelector('.two-col'); const detail = document.getElementById('tripDetail');
+    if (!two || !detail) return;
+    // правая колонка: очереди сверху, выбранный рейс под ними
+    const right = document.createElement('div'); right.className = 'right-col';
+    detail.parentNode.insertBefore(right, detail); right.appendChild(detail);
+    const card = document.createElement('section');
+    card.id = 'bordersCard'; card.setAttribute('aria-label', 'Очереди на границах');
+    card.innerHTML = `<div class="bd-top">
+        <div class="bd-titles"><h3>Очереди на границах</h3><span class="bd-muted" id="bdTime">Загрузка…</span></div>
+        <div class="bd-actions"><button type="button" class="bd-btn" id="bdRefresh">Обновить</button><button type="button" class="bd-btn primary" id="bdToggle" aria-expanded="false" aria-controls="bdBody">Показать карту</button></div>
+      </div>
+      <div class="bd-chips" id="bdChips"></div>
+      <div id="bdBody" hidden>
+        <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики на стоянках перед границей. Болгария: статус OK / !.</span></div>
+        <div id="bdMap"></div>
+        <div class="bd-card"><table class="bd-table"><thead><tr><th>Пункт</th><th>Состояние</th><th></th></tr></thead><tbody id="bdList"></tbody></table></div>
+      </div>`;
+    right.insertBefore(card, detail);
     document.getElementById('bdRefresh').addEventListener('click', () => load(true));
-    const nb = document.getElementById('newTripBtn');
-    if (nb) {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-ghost btn-sm'; b.id = 'bordersBtn'; b.textContent = 'Границы';
-      b.style.marginRight = '6px'; b.addEventListener('click', open);
-      nb.parentNode.insertBefore(b, nb);
-    }
+    document.getElementById('bdToggle').addEventListener('click', () => setExpanded(!expanded));
+    document.getElementById('bdChips').addEventListener('click', e => { const b = e.target.closest('[data-key]'); if (b) setExpanded(true, b.dataset.key); });
     const st = document.createElement('style');
     st.textContent = `
-      #bordersView { padding: 24px 28px 40px; max-width: 1400px; display: flex; flex-direction: column; gap: 14px; }
-      #bordersView[hidden] { display: none; }
-      .bd-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-      .bd-head h2 { margin: 0; font-size: 24px; font-weight: 600; color: #14202B; }
-      .bd-actions { display: flex; gap: 8px; }
-      .bd-actions .btn-sm { height: 38px; padding: 0 14px !important; font-size: 14px !important; border-radius: 6px !important; }
+      .right-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+      #bordersCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+      .bd-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .bd-titles { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .bd-titles h3 { margin: 0; font-size: 15px; font-weight: 600; color: #14202B; }
+      .bd-actions { display: flex; gap: 6px; }
+      .bd-btn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #D5DADF; background: #fff; color: #14202B; font: inherit; font-size: 13px; cursor: pointer; }
+      .bd-btn.primary { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; }
+      .bd-btn:disabled { opacity: .6; }
+      .bd-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+      .bd-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #E4E7EA; background: #FAFBFB; border-radius: 14px; padding: 4px 10px; font: inherit; font-size: 13px; color: #3D4852; cursor: pointer; }
+      .bd-chip b { color: #14202B; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .bd-chip:hover { border-color: #9CC5C8; }
+      #bdBody { display: flex; flex-direction: column; gap: 10px; }
+      #bdBody[hidden] { display: none; }
       .bd-muted { font-size: 12.5px; color: #5B6670; }
-      .bd-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: #5B6670; align-items: center; }
+      .bd-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: #5B6670; align-items: center; }
       .bd-legend span { display: inline-flex; align-items: center; gap: 6px; }
-      #bdMap { height: 560px; border: 1px solid #E4E7EA; border-radius: 8px; z-index: 0; }
-      .bd-pin { display: flex; align-items: center; justify-content: center; min-width: 40px; height: 26px; padding: 0 6px; border-radius: 13px; color: #fff; font: 600 13px 'IBM Plex Sans', system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,.3); border: 2px solid #fff; box-sizing: border-box; }
+      #bdMap { height: 460px; border: 1px solid #E4E7EA; border-radius: 8px; z-index: 0; }
+      .bd-pin { display: flex; align-items: center; justify-content: center; min-width: 40px; height: 26px; padding: 0 6px; border-radius: 13px; color: #fff; font: 600 13px 'IBM Plex Sans', system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,.3); border: 2px solid #fff; box-sizing: border-box; white-space: nowrap; }
       .bd-pin.ok { background: #1B7F4B; } .bd-pin.mid { background: #C26A00; } .bd-pin.bad { background: #B3261E; } .bd-pin.na { background: #8A949C; }
-      .bd-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #8A949C; }
+      .bd-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #8A949C; flex-shrink: 0; }
       .bd-dot.ok { background: #1B7F4B; } .bd-dot.mid { background: #C26A00; } .bd-dot.bad { background: #B3261E; }
       .bd-pop { font: 13px/1.45 'IBM Plex Sans', system-ui, sans-serif; color: #14202B; }
       .bd-parks { border-top: 1px solid #EEF0F2; margin: 6px 0; padding-top: 4px; }
       .bd-parks div { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: #3D4852; }
       .bd-links { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
       .bd-links a { color: #146C72; font-size: 12.5px; }
-      .bd-card { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow-x: auto; }
-      .bd-table { width: 100%; border-collapse: collapse; min-width: 560px; }
-      .bd-table th { text-align: left; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; padding: 10px 14px; border-bottom: 1px solid #E4E7EA; }
-      .bd-table td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
-      @media (max-width: 960px) { #bordersView { padding: 16px 12px 32px; } #bdMap { height: 420px; } }`;
+      .bd-card { border: 1px solid #E4E7EA; border-radius: 8px; overflow-x: auto; }
+      .bd-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+      .bd-table th { text-align: left; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; padding: 9px 12px; border-bottom: 1px solid #E4E7EA; }
+      .bd-table td { padding: 9px 12px; border-top: 1px solid #EEF0F2; font-size: 13.5px; vertical-align: top; }
+      @media (max-width: 960px) { #bdMap { height: 360px; } }`;
     document.head.appendChild(st);
+    load(false);
+    if (expanded) setExpanded(true);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
