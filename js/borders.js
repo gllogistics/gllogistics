@@ -4,6 +4,7 @@
   const TR_LINK = 'https://uygulamalar.gumruk.gov.tr/websahaozet/';
   const RS_LINK = 'https://www.rs.ge/TirPark-en?cat=1&tab=1';
   const BG_LINK = 'https://www.mvr.bg/gdgp/';
+  const GTI_LINK = p => 'https://tirparklari.com.tr/bekleme?park=' + p + '&lang=en';
   // Координаты примерные (у пунктов пропуска)
   const POINTS = [
     { key: 'Сарпи', title: 'Сарпи / Сарп', border: 'Грузия — Турция', lat: 41.5221, lng: 41.5475, src: 'ge', link2: [TR_LINK, 'Турецкая сторона (Мин. торговли)'] },
@@ -15,8 +16,9 @@
     { key: 'Красный мост', title: 'Красный мост', border: 'Грузия — Азербайджан', lat: 41.3365, lng: 45.0968, src: 'ge' },
     { key: 'Лагодехи', title: 'Лагодехи', border: 'Грузия — Азербайджан', lat: 41.7555, lng: 46.2949, src: 'ge' },
     { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge', link2: ['https://zitic.ru/eo/vl/', 'Российская сторона (электронная очередь)'] },
-    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', link2: [TR_LINK, 'Турецкая сторона (Мин. торговли)'] },
-    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', link2: [TR_LINK, 'Турецкая сторона (Мин. торговли)'] },
+    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'] },
+    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'] },
+    { key: 'Джилвегёзю', title: 'Джилвегёзю', border: 'Турция — Сирия', lat: 36.2267, lng: 36.6638, src: 'tr', tr: 'cilvegozu', link2: [GTI_LINK('cilvegozu'), 'TIR-парк Джилвегёзю (GTI)'] },
     { key: 'Кулата', title: 'Кулата / Промахон', border: 'Болгария — Греция', lat: 41.3940, lng: 23.3643, src: 'bg' },
     { key: 'Калотина', title: 'Калотина / Градина', border: 'Болгария — Сербия', lat: 42.9946, lng: 22.8683, src: 'bg' },
     { key: 'Видин', title: 'Видин — Калафат', border: 'Болгария — Румыния', lat: 43.9662, lng: 22.9133, src: 'bg' },
@@ -46,18 +48,34 @@
       return { label: fmt(g.used), cls: load >= 0.85 ? 'bad' : load >= 0.6 ? 'mid' : 'ok', g,
         text: `На стоянках перед границей: <b>${fmt(g.used)}</b> машин · свободно мест: ${fmt(g.free)}`, at: data.georgia.at };
     }
+    const t = p.tr ? data?.turkey?.data?.[p.tr] : null;
+    let trText = '', trCls = null, trLabel = null;
+    if (t) {
+      const total = (t.outer || 0) + (t.inner || 0);
+      const maxWait = Math.max(0, ...t.cats.map(x => x.total_wait_h || 0));
+      trCls = maxWait >= 48 ? 'bad' : maxWait >= 12 ? 'mid' : 'ok'; trLabel = fmt(total);
+      trText = `Турецкий TIR-парк: <b>${fmt(total)}</b> машин (внешний ${fmt(t.outer)}, внутренний ${fmt(t.inner)})`
+        + (t.cats.length ? '<div class="bd-parks">' + t.cats.filter(x => x.queue || x.total_wait_h).map(x =>
+            `<div><span>${esc(x.name)}</span><span>${fmt(x.queue)} маш. · ${x.total_wait_h != null ? x.total_wait_h + ' ч' : '—'}</span></div>`).join('') + '</div>' : '');
+    }
+    if (p.src === 'tr') return t ? { label: trLabel, cls: trCls, text: trText, at: data.turkey.at } : { label: '?', cls: 'na', text: 'Нет данных' };
     const b = data?.bulgaria?.data?.points?.[p.key];
-    if (!b) return { label: '?', cls: 'na', text: 'Нет данных' };
+    if (!b && !t) return { label: '?', cls: 'na', text: 'Нет данных' };
+    if (!b) return { label: trLabel, cls: trCls, text: trText, at: data.turkey.at };
     const out = b.trucks_out === 'intense', inn = b.trucks_in === 'intense';
-    return { label: out || inn ? '!' : 'OK', cls: out || inn ? 'bad' : 'ok', b,
-      text: 'Грузовики: выезд из Болгарии — <b>' + (out ? 'интенсивно' : 'нормально') + '</b>, въезд — <b>' + (inn ? 'интенсивно' : 'нормально') + '</b>'
-        + (b.cars === 'intense' ? '<br>Легковые: интенсивно' : ''), at: data.bulgaria.at, asOf: data.bulgaria.data.as_of };
+    const bgCls = out || inn ? 'bad' : 'ok';
+    const rank = { ok: 0, mid: 1, bad: 2 };
+    const cls = trCls && rank[trCls] > rank[bgCls] ? trCls : bgCls;
+    const bgText = 'Болгария, грузовики: выезд — <b>' + (out ? 'интенсивно' : 'нормально') + '</b>, въезд — <b>' + (inn ? 'интенсивно' : 'нормально') + '</b>'
+      + (b.cars === 'intense' ? '<br>Легковые: интенсивно' : '');
+    return { label: trLabel || (out || inn ? '!' : 'OK'), cls, b, text: (trText ? trText + '<div style="margin-top:6px">' + bgText + '</div>' : bgText),
+      at: data.bulgaria.at, asOf: data.bulgaria.data.as_of };
   }
 
   function popup(p, st) {
     const parks = st.g && st.g.parks && st.g.parks.length
       ? '<div class="bd-parks">' + st.g.parks.map(x => `<div><span>${esc(x.name)}</span><span>${fmt(x.busy)} / своб. ${fmt(x.free)}</span></div>`).join('') + '</div>' : '';
-    const src = p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : [BG_LINK, 'Гранична полиция Болгарии'];
+    const src = p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
@@ -114,7 +132,7 @@
     sec.id = 'bordersView'; sec.hidden = true; sec.setAttribute('aria-label', 'Очереди на границах');
     sec.innerHTML = `<div class="bd-head"><div><h2>Очереди на границах</h2><div class="bd-muted" id="bdTime">Загрузка…</div></div>
       <div class="bd-actions"><button type="button" class="btn btn-ghost btn-sm" id="bdRefresh">Обновить</button><button type="button" class="btn btn-primary btn-sm" id="bdBack">Назад к рейсам</button></div></div>
-      <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Грузия: число на пине — машины на стоянках перед границей. Болгария: статус для грузовиков.</span></div>
+      <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики на стоянках перед границей (Грузия, турецкие TIR-парки). Болгария без турецкого парка: статус OK / !.</span></div>
       <div id="bdMap"></div>
       <div class="bd-card"><table class="bd-table"><thead><tr><th>Пункт</th><th>Состояние</th><th></th></tr></thead><tbody id="bdList"></tbody></table></div>`;
     two.parentNode.insertBefore(sec, two);
