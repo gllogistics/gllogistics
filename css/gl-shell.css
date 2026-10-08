@@ -87,3 +87,10 @@ body.gl-shell #aiPanel { left: auto !important; right: 1.5rem !important; border
 /* рейсы: отступ от бокового меню */
 body.gl-shell > .two-col { margin-left: 20px; }
 @media (max-width: 960px) { body.gl-shell > .two-col { margin-left: 0; } }
+
+/* Без «вспышки» старого вида: признак gl-shell ставится при открытии страницы, а пока скрипт строит настоящее меню,
+   слева показывается тёмная заглушка; старая шапка скрыта с первого кадра (остаётся только та, где есть нужные элементы). */
+body.gl-shell:not(.gl-ready)::before { content: ''; position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: #10262A; z-index: 899; }
+body.gl-shell .top-bar:not(.gl-keep) { display: none !important; }
+@media (max-width: 960px) { body.gl-shell:not(.gl-ready)::before { right: 0; bottom: auto; width: auto; height: 56px; } }
+@media print { body.gl-shell::before { display: none !important; } }
