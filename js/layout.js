@@ -57,12 +57,13 @@
       ['gl_staff_user', 'gl_staff_login_time', 'gl_staff_token', 'gl_staff_last_active', 'gl_staff_role'].forEach(k => localStorage.removeItem(k));
       location.href = '/staff.html';
     });
-    // старая шапка: прячем, если в ней не осталось полезных элементов
-    document.querySelectorAll('.top-bar').forEach(tb => {
+    // старая шапка: прячем, если в ней не осталось полезных элементов (шапка появляется позже, ждём разметку)
+    const scanTopBars = () => document.querySelectorAll('.top-bar').forEach(tb => {
       const useful = [...tb.children].some(ch => !ch.matches('.brand, .btn-logout, .nav-links, #navLinks') &&
         !ch.querySelector('#logoutBtn') && ch.textContent.trim() !== '' && !ch.matches(':empty'));
       tb.classList.add(useful ? 'gl-keep' : 'gl-empty');
     });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scanTopBars); else scanTopBars();
     if (isAdmin) {
       fetch('https://gl-api.gltransam.workers.dev/api/fleet/alerts').then(r => r.json()).then(a => {
         if (!Array.isArray(a) || !a.length) return;
@@ -72,5 +73,6 @@
       }).catch(() => {});
     }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+  // строим меню сразу, как только есть <body> — до содержимого страницы, чтобы ничего не мелькало
+  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
 })();
