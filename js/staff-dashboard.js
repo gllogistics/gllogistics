@@ -85,13 +85,15 @@ function renderBankAccounts() {
         <button class="btn-save-balance" data-action="overdraft">💾 Обновить овердрафт</button>`;
     }
     const cardClass = displayBalance < 0 ? ' bank-card-negative' : '';
-    return `<div class="bank-card${cardClass}">
-      <div class="bank-header"><span class="bank-currency">${acc.currency}</span><span class="bank-flag">${acc.flag}</span></div>
-      <div class="bank-balance">${formatCurrency(displayBalance, acc.currency)}</div>
-      <div class="bank-label">${acc.currency === 'AMD' ? 'Доступно' : acc.label}</div>
-      <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс" value="${balance}">
-      <button class="btn-save-balance" data-currency="${acc.currency}">Обновить баланс</button>
-      ${extraHtml}
+    return `<div class="bank-row${cardClass ? ' neg' : ''}">
+      <div class="bank-line"><span class="bank-currency">${acc.currency}${acc.currency === 'AMD' ? ' <small>доступно</small>' : ''}</span>
+        <span class="bank-balance">${formatCurrency(displayBalance, acc.currency)}</span>
+        <button type="button" class="bank-edit-btn" aria-expanded="false">Изменить</button></div>
+      <div class="bank-edit" hidden>
+        <input type="number" id="bankInput_${acc.currency}" placeholder="Баланс" value="${balance}" aria-label="Баланс ${acc.currency}">
+        <button class="btn-save-balance" data-currency="${acc.currency}">Сохранить</button>
+        ${extraHtml}
+      </div>
     </div>`;
   }).join('');
 
@@ -157,9 +159,10 @@ async function autoFetchRates() {
 
 function updateRateDisplay() {
   if (!exchangeRates) return;
-  document.getElementById('rateUSD').textContent = `1 USD = ${exchangeRates.AMD} AMD`;
-  document.getElementById('rateEUR').textContent = `1 EUR = ${exchangeRates.EUR} AMD`;
-  document.getElementById('rateRUB').textContent = `1 RUB = ${exchangeRates.RUB} AMD`;
+  const f2 = v => Number(v || 0).toLocaleString('ru', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+  document.getElementById('rateUSD').textContent = f2(exchangeRates.AMD);
+  document.getElementById('rateEUR').textContent = f2(exchangeRates.EUR);
+  document.getElementById('rateRUB').textContent = f2(exchangeRates.RUB);
 }
 
 function convertToUSD(amount, currency) {
@@ -294,30 +297,23 @@ async function loadData() {
     const bankAMD = (bankBalances.USD || 0) * amdRate + (bankBalances.EUR || 0) * eurRate + (bankBalances.RUB || 0) * rubRate + (bankBalances.AMD || 0) - (bankBalances.overdraft_AMD || 0);
     const netBalanceAMD = bankAMD + receivedAMD - paidAMD;
 
-    document.getElementById('statsRowTop').innerHTML = `
-      <div class="stat-card"><div class="num">${cargo.length}</div><div class="lbl">Сделок</div></div>
-      <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
-      <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">Получено</div></div>
-      <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">Оплачено</div></div>
-      <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-free'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : 'Свободные средства'}</div></div>`;
-
     const tripRevAMD = Math.round(tripsFinance.total_revenue_amd || 0);
     const tripExpAMD = Math.round((tripsFinance.total_expenses_amd || 0) + (tripsFinance.total_advance_amd || 0) + (tripsFinance.total_salary_amd || 0));
     const tripProfitAMD = tripRevAMD - tripExpAMD;
-
-    document.getElementById('statsRowBottom').innerHTML = `
-      <div class="stat-card stat-profit" style="border:2px solid rgba(85,183,189,.4)">
-        <div class="num">֏${Math.round(bankAMD).toLocaleString()}</div>
-        <div class="lbl">🏦 Реальная касса (счёт)</div>
-      </div>
-      <div class="stat-card ${netBalanceAMD >= 0 ? 'stat-success' : 'stat-netbal'}"><div class="num">֏${Math.round(netBalanceAMD).toLocaleString()}</div><div class="lbl">💎 Чистый баланс</div></div>
-      <div class="stat-card stat-debtor"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">Ждём от клиентов</div></div>
-      <div class="stat-card stat-creditor"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">Должны перевозчикам</div></div>
-      ${tripRevAMD > 0 ? `
-      <div class="stat-card stat-profit" style="border:1px solid rgba(85,183,189,.2)"><div class="num">֏${tripRevAMD.toLocaleString()}</div><div class="lbl">Доход рейсов</div></div>
-      <div class="stat-card"><div class="num">֏${tripExpAMD.toLocaleString()}</div><div class="lbl">🚛 Расходы рейсов</div></div>
-      <div class="stat-card ${tripProfitAMD >= 0 ? 'stat-success' : 'stat-danger'}"><div class="num">֏${tripProfitAMD.toLocaleString()}</div><div class="lbl">Прибыль рейсов</div></div>
-      ` : ''}`;
+    const A = n => '֏' + Math.round(n).toLocaleString('ru');
+    const kpi = (lbl, val, sub, cls) => `<div class="stat-card ${cls || ''}"><div class="lbl">${lbl}</div><div class="num">${val}</div><div class="sub">${sub}</div></div>`;
+    const nDeals = cargo.length;
+    const dealsWord = nDeals % 10 === 1 && nDeals % 100 !== 11 ? 'сделка' : nDeals % 10 >= 2 && nDeals % 10 <= 4 && (nDeals % 100 < 10 || nDeals % 100 >= 20) ? 'сделки' : 'сделок';
+    document.getElementById('statsRowTop').innerHTML =
+      kpi('Прибыль', A(totalProfitAMD), nDeals + ' ' + dealsWord + ' за период', totalProfitAMD < 0 ? 'neg' : '')
+      + kpi('Получено от клиентов', A(receivedAMD), 'Ждём ещё ' + A(waitingClientsAMD))
+      + kpi('Оплачено перевозчикам', A(paidAMD), 'Должны ещё ' + A(waitingCarriersAMD))
+      + (cashGapAMD > 0
+          ? kpi('Кассовый разрыв', A(cashGapAMD), 'На счетах ' + A(bankAMD), 'neg')
+          : kpi('Свободные средства', A(-cashGapAMD), 'На счетах ' + A(bankAMD)));
+    document.getElementById('statsRowBottom').innerHTML = `<div class="dash-line">
+      <span>Рейсы за период: доход <b>${A(tripRevAMD)}</b> · расходы <b>${A(tripExpAMD)}</b> · прибыль <b class="${tripProfitAMD < 0 ? 'neg' : 'pos'}">${A(tripProfitAMD)}</b></span>
+      <span>Чистый баланс <b class="${netBalanceAMD < 0 ? 'neg' : ''}">${A(netBalanceAMD)}</b></span></div>`;
 
     renderFinanceSummary(Math.round(receivedAMD), Math.round(paidAMD), Math.round(totalProfitAMD), Math.round(waitingClientsAMD), Math.round(waitingCarriersAMD));
 
@@ -337,15 +333,19 @@ async function loadData() {
 
     const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
     const sc = { loading:'status-loading', onroad:'status-onroad', loaded:'status-loaded', completed:'status-completed' };
-    document.getElementById('recentTable').innerHTML = cargo.slice(0, 10).map((c, i) => {
-      const cU = convertToUSD(parseFloat(c.client_price || 0), c.client_currency || c.currency || 'USD');
-      const rU = convertToUSD(parseFloat(c.carrier_price || 0), c.carrier_currency || c.currency || 'USD');
-      const profitAMD = usdToAMD(cU - rU);
-      return `<tr><td>${i+1}</td><td>${esc(c.client_name||'—')}</td><td>${esc(c.carrier_name||'—')}</td><td>${esc(c.product||'—')}</td>
-        <td><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
-        <td class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
-        <td>${(c.client_currency||'USD')}/${(c.carrier_currency||'USD')}</td><td>${esc(c.logist||'—')}</td></tr>`;
-    }).join('');
+    const sym = c => c === 'EUR' ? '€' : c === 'USD' ? '$' : c === 'RUB' ? '₽' : '֏';
+    const fd = d => { const m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '.' + m[2] + '.' + m[1] : (d || '—'); };
+    const place = (city, country) => [city, country].filter(Boolean).join(', ') || '—';
+    document.getElementById('recentTable').innerHTML = cargo.slice(0, 8).map(c => {
+      const ref = c.unload_date || c.load_date;
+      const overdue = !c.client_paid && ref && (Date.now() - new Date(ref).getTime()) > 30 * 86400000;
+      const pay = c.client_paid ? '<span class="pill ok">Получено</span>' : overdue ? '<span class="pill bad">Просрочено</span>' : '<span class="pill wait">Ожидает</span>';
+      return `<tr><td class="strong">${esc(c.client_name || '—')}</td>
+        <td>${esc(place(c.city_load, c.country_load))} → ${esc(place(c.city_unload, c.country_unload))}</td>
+        <td class="muted nowrap">${fd(c.load_date)}</td>
+        <td class="r strong nowrap">${sym(c.client_currency || c.currency || 'USD')}${Math.round(parseFloat(c.client_price || 0)).toLocaleString('ru')}</td>
+        <td class="r">${pay}</td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="muted" style="padding:16px">За этот период сделок нет</td></tr>';
   } catch (err) { document.getElementById('statsRowTop').innerHTML = '<p>Ошибка загрузки данных</p>'; }
 }
 
@@ -521,3 +521,10 @@ function sigPreview() {
     ['dashApplyBtn', 'dashResetBtn'].forEach(id => document.getElementById(id)?.addEventListener('click', () => setTimeout(label, 30)));
   });
 })();
+
+// Счета: показать / скрыть правку
+document.addEventListener('click', e => {
+  const b = e.target.closest('.bank-edit-btn'); if (!b) return;
+  const box = b.closest('.bank-row').querySelector('.bank-edit');
+  box.hidden = !box.hidden; b.setAttribute('aria-expanded', String(!box.hidden)); b.textContent = box.hidden ? 'Изменить' : 'Скрыть';
+});
