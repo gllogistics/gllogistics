@@ -6,6 +6,9 @@
   const BG_LINK = 'https://www.mvr.bg/gdgp/';
   const BY_LINK = 'https://gpk.gov.by/situation-at-the-border/';
   const PL_LINK = 'https://www.granica.gov.pl/';
+  const CGR_LINK = 'https://cgr.qoldau.kz/ru/start';
+  const EPD_LINK = 'https://public.epd-portal.ru/';
+  const RGS_LINK = 'https://www.rosgranstroy.ru/checkpoints';
   const EE_LINK = ['https://www.eestipiir.ee/yphis/borderQueueInfo.action', 'Эстонская очередь (eestipiir.ee)'];
   const LT_LINK = ['https://www.ltsiena.lt/', 'Литовская очередь (ltsiena.lt)'];
   const LV_LINK = ['https://lvborder.lv/en/', 'Латвийская очередь (lvborder.lv)'];
@@ -57,11 +60,41 @@
     { key: 'nar', title: 'Нарва / Ивангород', border: 'Эстония — Россия', lat: 59.3770, lng: 28.2080, src: 'link', link2: EE_LINK },
     { key: 'koi', title: 'Койдула / Куничина Гора', border: 'Эстония — Россия', lat: 57.8360, lng: 27.6420, src: 'link', link2: EE_LINK },
     { key: 'luh', title: 'Лухамаа / Шумилкино', border: 'Эстония — Россия', lat: 57.6080, lng: 27.3560, src: 'link', link2: EE_LINK },
+    // ── Центральная Азия: Казахстан (выезд из РК, электронная очередь CarGoRuqsat) ──
+    { key: 'kz-dostyk', reg: 'central', title: 'Достык / Алашанькоу', border: 'Казахстан — Китай', lat: 45.256, lng: 82.493, src: 'kz', kz: 'Достык - Алашанькоу' },
+    { key: 'kz-khorgos', reg: 'central', title: 'Нур Жолы / Хоргос', border: 'Казахстан — Китай', lat: 44.224, lng: 80.384, src: 'kz', kz: 'Нур Жолы - Хоргос' },
+    { key: 'kz-bakhty', reg: 'central', title: 'Бахты / Покиту', border: 'Казахстан — Китай', lat: 46.659, lng: 82.735, src: 'kz', kz: 'Бахты - Покиту' },
+    { key: 'kz-kolzhat', reg: 'central', title: 'Калжат / Дулаты', border: 'Казахстан — Китай', lat: 43.637, lng: 80.607, src: 'kz', kz: 'Калжат - Дулаты' },
+    { key: 'kz-maikap', reg: 'central', title: 'Майкапчагай / Зимунай', border: 'Казахстан — Китай', lat: 47.496, lng: 85.604, src: 'kz', kz: 'Майкапчагай - Зимунай' },
+    { key: 'kz-ozinki', reg: 'central', title: 'Таскала / Озинки', border: 'Казахстан — Россия', lat: 51.199, lng: 49.727, src: 'kz', kz: 'Таскала - Озинки' },
+    { key: 'kz-ilek', reg: 'central', title: 'Аксай / Илек', border: 'Казахстан — Россия', lat: 51.527, lng: 53.383, src: 'kz', kz: 'Аксай - Илек' },
+    { key: 'kz-sagarchin', reg: 'central', title: 'Жайсан / Сагарчин', border: 'Казахстан — Россия', lat: 50.902, lng: 55.909, src: 'kz', kz: 'Жайсан - Сагарчин' },
+    { key: 'kz-orsk', reg: 'central', title: 'Алимбет / Орск', border: 'Казахстан — Россия', lat: 51.231, lng: 58.474, src: 'kz', kz: 'Алимбет - Орск' },
+    { key: 'kz-bugristoe', reg: 'central', title: 'Кайрак / Бугристое', border: 'Казахстан — Россия', lat: 54.007, lng: 61.602, src: 'kz', kz: 'Кайрак - Бугристое' },
+    { key: 'kz-zverino', reg: 'central', title: 'Убаган / Звериноголовское', border: 'Казахстан — Россия', lat: 54.459, lng: 64.857, src: 'kz', kz: 'Убаган - Звериноголовское' },
+    { key: 'kz-petuhovo', reg: 'central', title: 'Жана Жол / Петухово', border: 'Казахстан — Россия', lat: 55.065, lng: 67.887, src: 'kz', kz: 'Жана Жол - Петухово' },
+    { key: 'kz-isilkul', reg: 'central', title: 'Каракога / Исилькуль', border: 'Казахстан — Россия', lat: 54.913, lng: 71.262, src: 'kz', kz: 'Каракога - Исилькуль' },
+    { key: 'kz-kulunda', reg: 'central', title: 'Шарбакты / Кулунда', border: 'Казахстан — Россия', lat: 52.567, lng: 78.935, src: 'kz', kz: 'Шарбакты - Кулунда' },
+    // ── Китай — Кыргызстан, Китай — Таджикистан: живой очереди нет ──
+    { key: 'kg-torugart', reg: 'central', title: 'Торугарт', border: 'Кыргызстан — Китай', lat: 40.592, lng: 75.413, src: 'link',
+      note: 'Очередь на этом переходе не публикуется. Пункт закрыт в выходные и праздники КНР, работает по китайскому времени; закрытия объявляет Пограничная служба Кыргызстана. В сентябре 2026 Кыргызстан и Китай договорились ежедневно обмениваться данными о числе ждущих машин, публичного табло пока нет.' },
+    { key: 'kg-irkeshtam', reg: 'central', title: 'Иркештам', border: 'Кыргызстан — Китай', lat: 39.679, lng: 73.899, src: 'link',
+      note: 'Очередь на этом переходе не публикуется. Пункт закрыт в выходные и праздники КНР, работает по китайскому времени; закрытия объявляет Пограничная служба Кыргызстана. Это путь из Китая в Кыргызстан и дальше в Узбекистан.' },
+    { key: 'tj-kulma', reg: 'central', title: 'Кульма / Карасу', border: 'Таджикистан — Китай', lat: 38.149, lng: 74.801, src: 'link',
+      note: 'Единственный переход Таджикистан — Китай, горный перевал на высоте около 4360 м. Очередь не публикуется; режим работы и сезон уточняйте у таможни Таджикистана и перевозчиков.' },
+    // ── Дальний Восток: Россия — Китай (данные только после входа в ГИС ЭПД) ──
+    { key: 'cn-zab', reg: 'far', title: 'Забайкальск / Маньчжурия', border: 'Россия — Китай', lat: 49.645, lng: 117.329, src: 'link', link2: [EPD_LINK, 'ГИС ЭПД: бронирование (Забайкальск)'],
+      note: 'Очередь на выезд из России идёт через электронную систему ГИС ЭПД; цифры доступны только после входа в систему. Для Забайкальска бронирование слота обязательно.' },
+    { key: 'cn-pogr', reg: 'far', title: 'Пограничный / Суйфэньхэ', border: 'Россия — Китай', lat: 44.411, lng: 131.375, src: 'link', link2: [RGS_LINK, 'Росгранстрой: пункты пропуска'],
+      note: 'Публичной очереди для грузовиков нет. Информацию даёт Росгранстрой и перевозчики на пункте.' },
+    { key: 'cn-blag', reg: 'far', title: 'Благовещенск / Хэйхэ', border: 'Россия — Китай', lat: 50.260, lng: 127.534, src: 'link', link2: [RGS_LINK, 'Росгранстрой: пункты пропуска'],
+      note: 'Публичной очереди для грузовиков нет. Информацию даёт Росгранстрой и перевозчики на пункте.' },
   ];
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const fmt = n => Number(n || 0).toLocaleString('ru');
   const ago = iso => { if (!iso) return '—'; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'только что' : m < 60 ? m + ' мин назад' : Math.round(m / 60) + ' ч назад'; };
   let map = null, layer = null, data = null;
+  const fmtDay = iso => { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '.' + m[2] : ''; };
 
   function loadLeaflet() {
     if (window.L) return Promise.resolve();
@@ -76,7 +109,19 @@
   // Состояние точки: число на пине, цвет, текст
   function stateOf(p) {
     if (p.src === 'link') {
-      return { label: 'i', cls: 'na', text: 'Числа этой очереди смотрите на сайте источника: он не разрешает автоматическое чтение или сейчас недоступен.' };
+      return { label: 'i', cls: 'na', text: p.note || 'Числа этой очереди смотрите на сайте источника: он не разрешает автоматическое чтение или сейчас недоступен.' };
+    }
+    if (p.src === 'kz') {
+      const k = data?.kz?.data?.posts?.[p.kz];
+      if (!k) return { label: '?', cls: 'na', text: 'Нет данных' };
+      const d = k.first_in_days;
+      const cls = d == null ? 'bad' : d <= 1 ? 'ok' : d <= 5 ? 'mid' : 'bad';
+      const label = d == null ? '>60д' : d === 0 ? 'сег.' : d + 'д';
+      const when = d == null ? 'в ближайшие 2 месяца свободных мест по обычной очереди нет'
+        : d === 0 ? 'свободные места есть уже сегодня' : `ближайший свободный слот: <b>${esc(fmtDay(k.first_date))}</b> (через ${d} дн.)`;
+      return { label, cls, at: data.kz.at, asOf: data.kz.data.as_of,
+        text: `Выезд из Казахстана, электронная очередь: ${when}<br>Свободных мест по обычной очереди: сегодня <b>${fmt(k.today_std)}</b>, завтра <b>${fmt(k.tomorrow_std)}</b>, за 7 дней <b>${fmt(k.free_7d)}</b>`
+          + `<div class="bd-note">Приоритетных (внеочередных, 100 МРП) сегодня: ${fmt(k.today_prem)}. Въезд в Казахстан и выезд из России/Китая на этом табло не показываются.</div>` };
     }
     if (p.src === 'eu') {
       const rank = { na: -1, ok: 0, mid: 1, bad: 2 };
@@ -151,7 +196,7 @@
   function popup(p, st) {
     const parks = st.g && st.g.parks && st.g.parks.length
       ? '<div class="bd-parks">' + st.g.parks.map(x => `<div><span>${esc(x.name)}</span><span>${fmt(x.busy)} / своб. ${fmt(x.free)}</span></div>`).join('') + '</div>' : '';
-    const src = p.src === 'link' ? null : p.src === 'eu' ? (p.by ? [BY_LINK, 'Госпогранкомитет Беларуси'] : [PL_LINK, 'Налоговая служба Польши']) : p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
+    const src = p.src === 'kz' ? [CGR_LINK, 'CarGoRuqsat (КГД Казахстана)'] : p.src === 'link' ? null : p.src === 'eu' ? (p.by ? [BY_LINK, 'Госпогранкомитет Беларуси'] : [PL_LINK, 'Налоговая служба Польши']) : p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
@@ -172,10 +217,34 @@
     const tp = data?.tpcentral?.data;
     if (tp) rows.push(`<tr><td><b>TPCentral</b><div class="bd-muted">Стоянка (Грузия)</div></td><td>Занято мест: <b>${fmt(tp.busy)}</b> · свободно: ${fmt(tp.free)} · на обслуживании: ${fmt(tp.in_service)}${tp.suspended ? '<br><b style="color:#A3241B">Вызов на границу временно приостановлен</b>' : ''}</td><td><span class="bd-dot ${tp.suspended ? 'bad' : 'ok'}"></span></td></tr>`);
     document.getElementById('bdList').innerHTML = rows.join('');
+    renderKzTable();
+  }
+  // Все пункты Казахстана (в т.ч. без пина): по странам, самые загруженные сверху
+  function renderKzTable() {
+    const posts = data?.kz?.data?.posts || {};
+    const names = Object.keys(posts);
+    const box = document.getElementById('bdKzCard');
+    if (!names.length) { box.hidden = true; document.getElementById('bdKzTitle').hidden = true; return; }
+    const CC = { cn: 'Китай', ru: 'Россия', kg: 'Кыргызстан', uz: 'Узбекистан', tm: 'Туркменистан' };
+    const order = ['cn', 'ru', 'kg', 'uz', 'tm'];
+    const rank = k => k.first_in_days == null ? 999 : k.first_in_days;
+    let html = '';
+    order.concat([...new Set(names.map(n => posts[n].cc))].filter(x => !order.includes(x))).forEach(cc => {
+      const list = names.filter(n => posts[n].cc === cc).sort((a, b) => rank(posts[b]) - rank(posts[a]));
+      if (!list.length) return;
+      html += `<tr class="bd-grp"><td colspan="3">Казахстан — ${esc(CC[cc] || cc.toUpperCase())}</td></tr>` + list.map(n => {
+        const k = posts[n], d = k.first_in_days;
+        const cls = d == null ? 'bad' : d <= 1 ? 'ok' : d <= 5 ? 'mid' : 'bad';
+        const txt = d == null ? 'свободных мест нет 2 месяца' : d === 0 ? 'места есть сегодня' : `ближайший слот ${esc(fmtDay(k.first_date))} (через ${d} дн.)`;
+        return `<tr><td><b>${esc(n)}</b></td><td>${txt}<div class="bd-muted">за 7 дней свободно мест: ${fmt(k.free_7d)}</div></td><td><span class="bd-dot ${cls}"></span></td></tr>`;
+      }).join('');
+    });
+    document.getElementById('bdKzList').innerHTML = html;
+    box.hidden = false; document.getElementById('bdKzTitle').hidden = false;
   }
 
   const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
-                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог']];
+                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог'], ['kz-khorgos', 'Хоргос'], ['kz-dostyk', 'Достык'], ['kz-orsk', 'Орск']];
   let expanded = localStorage.getItem('gl_borders_open') === '1';
 
   function renderSummary() {
@@ -194,7 +263,7 @@
       renderSummary();
       document.getElementById('bdTime').textContent = 'Обновлено ' + ago(data.updated_at) + (data.errors && data.errors.length ? ' · часть источников недоступна, показаны последние данные' : '');
       // состояние каждого источника
-      const SRC = [['georgia', 'Грузия'], ['tpcentral', 'TPCentral'], ['turkey', 'Турция (GTI)'], ['bulgaria', 'Болгария'], ['lars', 'Верхний Ларс'], ['belarus', 'Беларусь'], ['poland', 'Польша']];
+      const SRC = [['georgia', 'Грузия'], ['tpcentral', 'TPCentral'], ['turkey', 'Турция (GTI)'], ['bulgaria', 'Болгария'], ['lars', 'Верхний Ларс'], ['belarus', 'Беларусь'], ['poland', 'Польша'], ['kz', 'Казахстан']];
       const errs = data.errors || [];
       document.getElementById('bdSources').innerHTML = 'Источники: ' + SRC.map(([k, n]) => {
         const e = errs.find(x => x.startsWith(k + ':'));
@@ -206,6 +275,14 @@
     btn.disabled = false; btn.textContent = 'Обновить';
   }
 
+  const REGIONS = { west: 'Европа, Турция, Кавказ', central: 'Казахстан, Китай, Центр. Азия', far: 'Дальний Восток' };
+  function fitRegion(r) {
+    if (!map) return;
+    localStorage.setItem('gl_borders_region', r);
+    const pts = POINTS.filter(p => (p.reg || 'west') === r && p.key !== 'Джилвегёзю');
+    if (pts.length) map.fitBounds(pts.map(p => [p.lat, p.lng]), { padding: [24, 24], maxZoom: r === 'far' ? 5 : 8 });
+    document.querySelectorAll('#bdRegions button').forEach(b => b.classList.toggle('on', b.dataset.reg === r));
+  }
   async function setExpanded(v, focusKey) {
     expanded = v; localStorage.setItem('gl_borders_open', v ? '1' : '0');
     document.getElementById('bdBody').hidden = !v;
@@ -220,11 +297,11 @@
     setTimeout(() => {
       map.invalidateSize();
       if (!map._glFitted) {   // масштаб считаем, когда карта уже видна и имеет размер
-        map.fitBounds(POINTS.filter(p => p.key !== 'Джилвегёзю').map(p => [p.lat, p.lng]), { padding: [24, 24] });
+        fitRegion(localStorage.getItem('gl_borders_region') || 'west');
         map._glFitted = true;
       }
       if (data) render();
-      if (focusKey) { const p = POINTS.find(x => x.key === focusKey); if (p) map.setView([p.lat, p.lng], 9); }
+      if (focusKey) { const p = POINTS.find(x => x.key === focusKey); if (p) { fitRegion(p.reg || 'west'); map.setView([p.lat, p.lng], 8); } }
     }, 60);
   }
 
@@ -243,11 +320,16 @@
       <div class="bd-chips" id="bdChips"></div>
       <div class="bd-src" id="bdSources"></div>
       <div id="bdBody" hidden>
-        <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики в очереди или на стоянках перед границей; «ч» — часы ожидания (Польша); «i» — только ссылка на источник.</span></div>
+        <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики в очереди или на стоянках перед границей; «ч» — часы ожидания (Польша); «д» — дни до ближайшего свободного слота (Казахстан); «i» — только ссылка на источник.</span></div>
+        <div class="bd-regions" id="bdRegions" role="group" aria-label="Область карты"></div>
         <div id="bdMap"></div>
         <div class="bd-card"><table class="bd-table"><thead><tr><th>Пункт</th><th>Состояние</th><th></th></tr></thead><tbody id="bdList"></tbody></table></div>
+        <h4 class="bd-h4" id="bdKzTitle" hidden>Казахстан: все пункты, выезд из РК (электронная очередь)</h4>
+        <div class="bd-card" id="bdKzCard" hidden><table class="bd-table"><thead><tr><th>Пункт</th><th>Ближайший свободный слот</th><th></th></tr></thead><tbody id="bdKzList"></tbody></table></div>
       </div>`;
     right.insertBefore(card, detail);
+    document.getElementById('bdRegions').innerHTML = Object.entries(REGIONS).map(([k, l]) => `<button type="button" class="bd-reg" data-reg="${k}">${l}</button>`).join('');
+    document.getElementById('bdRegions').addEventListener('click', e => { const b = e.target.closest('[data-reg]'); if (b) fitRegion(b.dataset.reg); });
     document.getElementById('bdRefresh').addEventListener('click', () => load(true));
     document.getElementById('bdToggle').addEventListener('click', () => setExpanded(!expanded));
     document.getElementById('bdChips').addEventListener('click', e => { const b = e.target.closest('[data-key]'); if (b) setExpanded(true, b.dataset.key); });
@@ -264,6 +346,12 @@
       .bd-btn:disabled { opacity: .6; }
       .bd-src { font-size: 12px; color: #5B6670; } .bd-src .ok { color: #1B6B3F; } .bd-src .bad { color: #A3241B; font-weight: 600; }
       .bd-errs { margin-top: 4px; font-size: 11.5px; color: #A3241B; word-break: break-word; }
+      .bd-regions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .bd-reg { border: 1px solid #D5DADF; background: #fff; border-radius: 6px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; color: #14202B; }
+      .bd-reg.on { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; }
+      .bd-h4 { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #14202B; }
+      .bd-grp td { background: #F2F6F6; font-size: 12.5px; font-weight: 600; color: #3D4852; padding: 7px 12px; }
+      .bd-note { margin-top: 4px; font-size: 12px; color: #5B6670; }
       .bd-chips { display: flex; gap: 6px; flex-wrap: wrap; }
       .bd-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #E4E7EA; background: #FAFBFB; border-radius: 14px; padding: 4px 10px; font: inherit; font-size: 13px; color: #3D4852; cursor: pointer; }
       .bd-chip b { color: #14202B; font-weight: 600; font-variant-numeric: tabular-nums; }
