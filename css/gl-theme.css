@@ -1,3 +1,4 @@
+/* GL Logistics — общая тема страниц персонала (вариант B). Подключается после gl-shell.css. */
 /* GL Logistics — спокойное деловое оформление (вариант B) */
 body.gl-shell { background: #F6F7F8 !important; color: #14202B; }
 body.gl-shell, body.gl-shell button, body.gl-shell input, body.gl-shell select, body.gl-shell textarea, body.gl-shell table {
