@@ -3,7 +3,7 @@
   // ── Логисты: только Сделки, Заявки, Инвойс ──
   const staffUser = localStorage.getItem('gl_staff_user');
   if (staffUser && staffUser !== 'TigranMetspagyan') {
-    const ADMIN_ONLY = ['/trip-report', '/staff-dashboard', '/clients', '/files', '/expenses', '/dispatch', '/fleet'];
+    const ADMIN_ONLY = ['/trip-report', '/staff-dashboard', '/clients', '/files', '/expenses', '/dispatch', '/fleet', '/delegation'];
     const isAdminPage = p => ADMIN_ONLY.some(a => p.indexOf(a) === 0);
     if (isAdminPage(location.pathname)) { location.replace('/staff-cargo.html'); return; }
     const hide = () => document.querySelectorAll('.nav-links a, #navLinks a').forEach(a => {
@@ -58,10 +58,9 @@
   function dashboardBlock() {
     if (location.pathname.indexOf('staff-dashboard') === -1 || !alerts || !alerts.length) return;
     if (document.getElementById('glFleetAlerts')) return;
-    const slot = document.getElementById('fleetSlot');
     const anchor = document.getElementById('dashStart');
-    const before = slot ? null : (anchor ? anchor.closest('div') : document.getElementById('statsRowTop'));
-    if (!slot && (!before || !before.parentNode)) return;
+    const before = anchor ? anchor.closest('div') : document.getElementById('statsRowTop');
+    if (!before || !before.parentNode) return;
     const box = document.createElement('a');
     box.id = 'glFleetAlerts';
     box.href = '/fleet.html';
@@ -77,7 +76,7 @@
       alerts.slice(0, 6).map(a => '<div style="font-size:.8rem;padding:3px 0"><b>' + esc(a.plate) + '</b> · ' + esc(a.label) +
         ' · <span style="color:' + (a.status === 'overdue' ? '#C62828' : '#E65100') + '">' + esc(left(a)) + '</span></div>').join('') +
       (alerts.length > 6 ? '<div style="font-size:.75rem;color:#8fa8ab;margin-top:4px">и ещё ' + (alerts.length - 6) + '...</div>' : '');
-    if (slot) slot.appendChild(box); else before.parentNode.insertBefore(box, before);
+    before.parentNode.insertBefore(box, before);
   }
 
   function start() {
