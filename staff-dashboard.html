@@ -151,6 +151,54 @@ body.gl-shell .app-wrapper { max-width: 1320px; padding: 24px 28px 40px !importa
 #fleetSlot #glFleetAlerts { margin: 0 !important; border-radius: 8px !important; border-color: #F0D9C8 !important; }
 @media (max-width: 1100px) { .dash-cols { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { body.gl-shell .app-wrapper { padding: 16px 12px 32px !important; } .dash-side .bank-accounts { grid-template-columns: 1fr !important; } }
+
+/* ── Главная точно по макету B ── */
+.dash-kpis .stats-row { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; gap: 12px !important; }
+.dash-kpis .stat-card { padding: 16px 18px !important; display: flex; flex-direction: column; gap: 6px; text-align: left !important; }
+.dash-kpis .stat-card .lbl { order: 0; font-size: 13px !important; color: #5B6670 !important; margin: 0 !important; font-weight: 500 !important; text-transform: none !important; }
+.dash-kpis .stat-card .num { order: 1; font-size: 26px !important; font-weight: 600 !important; color: #14202B !important; letter-spacing: -.3px; }
+.dash-kpis .stat-card .sub { order: 2; font-size: 12px; color: #5B6670; }
+.dash-kpis .stat-card.neg .num { color: #A3241B !important; }
+.dash-line { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #5B6670; padding: 2px 2px 0; }
+.dash-line b { color: #14202B; font-weight: 600; }
+.dash-line b.pos { color: #1B6B3F; } .dash-line b.neg { color: #A3241B; }
+.dash-cols { grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr) !important; }
+.dash-table th.r, .dash-table td.r { text-align: right; }
+.dash-table td.strong { font-weight: 500; } .dash-table .r.strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+.dash-table td.muted, .muted { color: #5B6670; } .nowrap { white-space: nowrap; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.ok { background: #E7F4EC; color: #1B6B3F; } .pill.wait { background: #FDF1E3; color: #8A4B00; } .pill.bad { background: #FBE9E7; color: #A3241B; }
+/* счета списком */
+.bank-row { border-top: 1px solid #EEF0F2; padding: 8px 0; }
+.bank-row:first-child { border-top: none; }
+.bank-line { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.bank-line .bank-currency { color: #5B6670; flex: 1; }
+.bank-line .bank-currency small { font-size: 11.5px; color: #8A949C; }
+.bank-line .bank-balance { font-weight: 600; color: #14202B; font-variant-numeric: tabular-nums; }
+.bank-row.neg .bank-balance { color: #A3241B; }
+.bank-edit-btn { background: none; border: none; color: #146C72; font: inherit; font-size: 12px; cursor: pointer; padding: 2px 0 2px 6px; }
+.bank-edit { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bank-edit[hidden] { display: none; }
+.bank-edit input { flex: 1; min-width: 110px; height: 32px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px; }
+.bank-edit .btn-save-balance { height: 32px; border: 1px solid #146C72; background: #146C72; color: #fff; border-radius: 6px; padding: 0 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.bank-edit .bank-sub { width: 100%; font-size: 12px; color: #5B6670; }
+.bank-edit .overdraft-label { font-size: 12px; color: #8A4B00; align-self: center; }
+.rate-line { font-size: 12.5px; color: #5B6670; border-top: 1px solid #EEF0F2; padding-top: 10px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.rate-manual { margin-top: 6px; font-size: 12.5px; }
+.rate-manual summary { color: #146C72; cursor: pointer; }
+.rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.rate-grid label { display: flex; flex-direction: column; gap: 2px; color: #5B6670; font-size: 12px; }
+.rate-grid input { height: 30px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; min-width: 0; }
+/* сворачиваемые разделы */
+.dash-more { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow: hidden; }
+.dash-more > summary { padding: 13px 16px; font-size: 15px; font-weight: 600; color: #14202B; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+.dash-more > summary::-webkit-details-marker { display: none; }
+.dash-more > summary::after { content: '+'; color: #5B6670; font-weight: 400; }
+.dash-more[open] > summary::after { content: '−'; }
+.dash-more[open] > summary { border-bottom: 1px solid #E4E7EA; }
+.dash-more-body { padding: 14px 16px; }
+.dash-more .table-wrap { border: none !important; margin: 0 !important; border-radius: 0 !important; }
+@media (max-width: 1100px) { .dash-cols { grid-template-columns: minmax(0, 1fr) !important; } }
 </style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#55B7BD">
@@ -188,73 +236,75 @@ body.gl-shell .app-wrapper { max-width: 1320px; padding: 24px 28px 40px !importa
         <input type="date" id="dashStart" aria-label="С">
         <span class="dash-dash">—</span>
         <input type="date" id="dashEnd" aria-label="По">
-        <button type="button" class="dash-btn primary" id="dashApplyBtn">Применить</button>
+        <button type="button" class="dash-btn" id="dashApplyBtn">Применить</button>
         <button type="button" class="dash-btn" id="dashResetBtn">Текущий месяц</button>
-        <a class="dash-btn" href="/staff-cargo.html">+ Новая сделка</a>
+        <button type="button" class="dash-btn" id="autoRatesBtn">Курс ЦБ</button>
+        <a class="dash-btn primary" href="/staff-cargo.html">+ Новая сделка</a>
       </div>
     </header>
 
     <section class="dash-kpis" aria-label="Показатели">
       <div class="stats-row stats-row-top" id="statsRowTop"></div>
-      <div class="stats-row stats-row-bottom" id="statsRowBottom"></div>
+      <div id="statsRowBottom"></div>
     </section>
 
     <div class="dash-cols">
-      <div class="dash-main">
-        <section class="dash-card">
-          <div class="dash-card-head"><h2>Последние сделки</h2><a href="/staff-cargo.html">Все сделки</a></div>
-          <div class="table-wrap"><table><thead><tr><th>#</th><th>Клиент</th><th>Перевозчик</th><th>Товар</th><th>Статус</th><th>Прибыль (AMD)</th><th>Валюты</th><th>Логист</th></tr></thead>
-          <tbody id="recentTable"></tbody></table></div>
-        </section>
-        <section class="dash-card dash-pad">
-          <div class="fin-summary" id="financeSummary"></div>
-        </section>
-        <section class="dash-card">
-          <div class="dash-card-head"><h2>Заработок по логистам</h2></div>
-          <div class="table-wrap"><table><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead>
-          <tbody id="logistTable"></tbody></table></div>
-        </section>
-        <section class="dash-card">
-          <div class="dash-card-head"><h2>История договоров</h2></div>
-          <div class="table-wrap"><table><thead><tr><th>№</th><th>Дата</th><th>Компания</th><th>Подписант</th><th>Email</th><th>Тип</th><th>PDF</th></tr></thead>
-          <tbody id="contractsTable"><tr><td colspan="7" style="text-align:center;color:#5B6670;padding:1rem">Загрузка…</td></tr></tbody></table></div>
-        </section>
-      </div>
+      <section class="dash-card">
+        <div class="dash-card-head"><h2>Последние сделки</h2><a href="/staff-cargo.html">Все сделки</a></div>
+        <div class="table-wrap"><table class="dash-table"><thead><tr><th>Клиент</th><th>Маршрут</th><th>Загрузка</th><th class="r">Сумма</th><th class="r">Оплата</th></tr></thead>
+        <tbody id="recentTable"></tbody></table></div>
+      </section>
 
       <aside class="dash-side" aria-label="Справа">
         <div id="fleetSlot"></div>
         <section class="dash-card dash-pad">
           <h2>Счета</h2>
-          <div class="bank-accounts" id="bankAccounts"></div>
-        </section>
-        <section class="dash-card dash-pad">
-          <div class="dash-card-head flat"><h2>Курсы ЦБ</h2><button type="button" class="dash-btn sm" id="autoRatesBtn">Курс ЦБ Армении</button></div>
-          <div class="rates-block" id="ratesBlock">
-            <div class="rate-row"><span class="rate-currency">USD</span><div class="rate-value" id="rateUSD">…</div><input type="number" id="manualRateUSD" placeholder="Курс" step="0.01" aria-label="Курс USD"></div>
-            <div class="rate-row"><span class="rate-currency">EUR</span><div class="rate-value" id="rateEUR">…</div><input type="number" id="manualRateEUR" placeholder="Курс" step="0.01" aria-label="Курс EUR"></div>
-            <div class="rate-row"><span class="rate-currency">RUB</span><div class="rate-value" id="rateRUB">…</div><input type="number" id="manualRateRUB" placeholder="Курс" step="0.01" aria-label="Курс RUB"></div>
-            <button type="button" class="dash-btn sm" id="saveRatesBtn" style="width:100%;margin-top:8px">Сохранить курсы вручную</button>
-          </div>
+          <div id="bankAccounts"></div>
+          <div class="rate-line">Курс ЦБ: USD <span id="rateUSD">…</span> · EUR <span id="rateEUR">…</span> · RUB <span id="rateRUB">…</span></div>
+          <details class="rate-manual"><summary>Изменить курсы вручную</summary>
+            <div class="rate-grid">
+              <label>USD <input type="number" id="manualRateUSD" step="0.01"></label>
+              <label>EUR <input type="number" id="manualRateEUR" step="0.01"></label>
+              <label>RUB <input type="number" id="manualRateRUB" step="0.001"></label>
+            </div>
+            <button type="button" class="dash-btn sm" id="saveRatesBtn">Сохранить курсы</button>
+          </details>
         </section>
       </aside>
     </div>
 
-    <section class="dash-card dash-pad">
-      <h2>Управление логистами</h2>
-      <div class="form-add">
-        <input type="text" id="newLogistName" placeholder="Имя пользователя" aria-label="Имя пользователя">
-        <div class="pwd-wrap">
-          <input type="password" id="newLogistPass" placeholder="Пароль" aria-label="Пароль">
-          <button type="button" class="pwd-toggle" id="togglePwdBtn">Показать</button>
+    <details class="dash-more">
+      <summary>Получено и оплачено за период</summary>
+      <div class="dash-more-body"><div class="fin-summary" id="financeSummary"></div></div>
+    </details>
+    <details class="dash-more">
+      <summary>Заработок по логистам</summary>
+      <div class="table-wrap"><table class="dash-table"><thead><tr><th>Логист</th><th>Сделок</th><th>Оборот</th><th>Прибыль</th></tr></thead>
+      <tbody id="logistTable"></tbody></table></div>
+    </details>
+    <details class="dash-more">
+      <summary>История договоров</summary>
+      <div class="table-wrap"><table class="dash-table"><thead><tr><th>№</th><th>Дата</th><th>Компания</th><th>Подписант</th><th>Email</th><th>Тип</th><th>PDF</th></tr></thead>
+      <tbody id="contractsTable"><tr><td colspan="7" class="muted" style="padding:14px">Загрузка…</td></tr></tbody></table></div>
+    </details>
+    <details class="dash-more">
+      <summary>Управление логистами</summary>
+      <div class="dash-more-body">
+        <div class="form-add">
+          <input type="text" id="newLogistName" placeholder="Имя пользователя" aria-label="Имя пользователя">
+          <div class="pwd-wrap">
+            <input type="password" id="newLogistPass" placeholder="Пароль" aria-label="Пароль">
+            <button type="button" class="pwd-toggle" id="togglePwdBtn">Показать</button>
+          </div>
+          <button type="button" class="btn-sm" id="addLogistBtn">+ Добавить логиста</button>
         </div>
-        <button type="button" class="btn-sm" id="addLogistBtn">+ Добавить логиста</button>
       </div>
-      <div class="table-wrap"><table><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th>Email для писем</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="dash-table"><thead><tr><th>Логин</th><th>Роль</th><th>Пароль</th><th>Email для писем</th><th></th></tr></thead>
       <tbody id="logistListTable"></tbody></table></div>
-    </section>
+    </details>
   </div>
 </div>
-<script src="js/staff-dashboard.js"></script>
+<script src="js/staff-dashboard.js?v=20"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
