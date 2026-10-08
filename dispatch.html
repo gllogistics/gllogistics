@@ -148,10 +148,10 @@ async function generatePDF() {
   .footer { margin-top: 30px; border-top: 1px solid #e8f4f5; padding-top: 10px; color: #8fa8ab; font-size: 10px; display: flex; justify-content: space-between; }
   @media print { body { margin: 10px; } }
 </style>
-<link rel="stylesheet" href="/css/gl-shell.css?v=7">
+<link rel="stylesheet" href="/css/gl-shell.css?v=9">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
 </head>
-<body>
+<body><script>try{if(localStorage.getItem('gl_staff_user'))document.body.classList.add('gl-shell')}catch(e){}</script>
 <div class="header">
   <div>
     <div class="logo">GL Logistics LLC</div>
@@ -596,6 +596,6 @@ async function generatePDF() {
 
 </script>
 <script src="/js/nav-fleet.js?v=3"></script>
-<script src="/js/layout.js?v=8"></script>
+<script src="/js/layout.js?v=9"></script>
 </body>
 </html>
