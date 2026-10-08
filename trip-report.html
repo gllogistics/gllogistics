@@ -137,7 +137,7 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
   <meta name="apple-mobile-web-app-title" content="GL Logistics">
   <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
 <script src="/js/emoji-remover.js"></script>
-<link rel="stylesheet" href="/css/gl-shell.css?v=7">
+<link rel="stylesheet" href="/css/gl-shell.css?v=9">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
 <style id="tripsB">
 /* ── Рейсы: макет «Рейсы» ── */
@@ -215,7 +215,7 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
 }
 </style>
 </head>
-<body>
+<body><script>try{if(localStorage.getItem('gl_staff_user'))document.body.classList.add('gl-shell')}catch(e){}</script>
 <div class="top-bar">
   <a href="/" class="brand"><img src="images/GL_LOGISTICs_line_-09.jpg.png" alt="GL">GL Logistics · Рейсы</a>
   <div class="nav-links" id="navLinks"></div>
@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script src="/js/nav-fleet.js?v=3"></script>
-<script src="/js/layout.js?v=8"></script>
+<script src="/js/layout.js?v=9"></script>
 <script src="/js/borders.js?v=10"></script>
 </body>
 </html>
