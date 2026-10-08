@@ -58,9 +58,10 @@
   function dashboardBlock() {
     if (location.pathname.indexOf('staff-dashboard') === -1 || !alerts || !alerts.length) return;
     if (document.getElementById('glFleetAlerts')) return;
+    const slot = document.getElementById('fleetSlot');
     const anchor = document.getElementById('dashStart');
-    const before = anchor ? anchor.closest('div') : document.getElementById('statsRowTop');
-    if (!before || !before.parentNode) return;
+    const before = slot ? null : (anchor ? anchor.closest('div') : document.getElementById('statsRowTop'));
+    if (!slot && (!before || !before.parentNode)) return;
     const box = document.createElement('a');
     box.id = 'glFleetAlerts';
     box.href = '/fleet.html';
@@ -76,7 +77,7 @@
       alerts.slice(0, 6).map(a => '<div style="font-size:.8rem;padding:3px 0"><b>' + esc(a.plate) + '</b> · ' + esc(a.label) +
         ' · <span style="color:' + (a.status === 'overdue' ? '#C62828' : '#E65100') + '">' + esc(left(a)) + '</span></div>').join('') +
       (alerts.length > 6 ? '<div style="font-size:.75rem;color:#8fa8ab;margin-top:4px">и ещё ' + (alerts.length - 6) + '...</div>' : '');
-    before.parentNode.insertBefore(box, before);
+    if (slot) slot.appendChild(box); else before.parentNode.insertBefore(box, before);
   }
 
   function start() {
