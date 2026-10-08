@@ -15,11 +15,12 @@
     exp: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     files: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    deleg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/>',
     menu: '<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>',
   };
   const svg = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   const work = [['/staff-dashboard.html', 'Главная', 'home', true], ['/staff-cargo.html', 'Сделки', 'deals'], ['/rateconfirmation', 'Заявки', 'req'],
-                ['/invoice', 'Инвойсы', 'inv'], ['/trip-report', 'Рейсы', 'trip', true], ['/dispatch.html', 'Диспатчинг', 'disp', true]];
+                ['/invoice', 'Инвойсы', 'inv'], ['/trip-report', 'Рейсы', 'trip', true], ['/dispatch.html', 'Диспатчинг', 'disp', true], ['/delegation.html', 'Делегирование', 'deleg', true]];
   const company = [['/clients', 'Клиенты', 'clients'], ['/carriers.html', 'Перевозчики', 'book'], ['/fleet.html', 'Автопарк', 'fleet'], ['/expenses.html', 'Расходы', 'exp'], ['/files', 'Файлы', 'files']];
   const path = location.pathname.replace(/\.html$/, '');
   const link = ([href, label, ic]) => {
@@ -50,20 +51,18 @@
     const shade = document.createElement('div');
     shade.id = 'glShade';
     document.body.appendChild(shade);
-    document.body.classList.add('gl-ready');
     document.getElementById('glMenuBtn').addEventListener('click', () => document.body.classList.toggle('gl-menu-open'));
     shade.addEventListener('click', () => document.body.classList.remove('gl-menu-open'));
     document.getElementById('glLogout').addEventListener('click', () => {
       ['gl_staff_user', 'gl_staff_login_time', 'gl_staff_token', 'gl_staff_last_active', 'gl_staff_role'].forEach(k => localStorage.removeItem(k));
       location.href = '/staff.html';
     });
-    // старая шапка: прячем, если в ней не осталось полезных элементов (шапка появляется позже, ждём разметку)
-    const scanTopBars = () => document.querySelectorAll('.top-bar').forEach(tb => {
+    // старая шапка: прячем, если в ней не осталось полезных элементов
+    document.querySelectorAll('.top-bar').forEach(tb => {
       const useful = [...tb.children].some(ch => !ch.matches('.brand, .btn-logout, .nav-links, #navLinks') &&
         !ch.querySelector('#logoutBtn') && ch.textContent.trim() !== '' && !ch.matches(':empty'));
-      tb.classList.add(useful ? 'gl-keep' : 'gl-empty');
+      if (!useful) tb.classList.add('gl-empty');
     });
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scanTopBars); else scanTopBars();
     if (isAdmin) {
       fetch('https://gl-api.gltransam.workers.dev/api/fleet/alerts').then(r => r.json()).then(a => {
         if (!Array.isArray(a) || !a.length) return;
@@ -73,6 +72,5 @@
       }).catch(() => {});
     }
   }
-  // строим меню сразу, как только есть <body> — до содержимого страницы, чтобы ничего не мелькало
-  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
 })();
