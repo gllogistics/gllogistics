@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script src="/js/auth-fetch.js"></script>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/images/GL_LOGISTICs_line_-09.jpg.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Делегирование (Польша)</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #F6F7F8; color: #14202B; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 28px 48px; }
+h1 { margin: 0; font-size: 24px; font-weight: 600; }
+.sub { margin: 4px 0 14px; font-size: 14px; color: #5B6670; max-width: 820px; }
+.muted { font-size: 12.5px; color: #5B6670; }
+.b { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 6px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #D5DADF; background: #fff; color: #14202B; text-decoration: none; }
+.b.primary { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; }
+.b.primary:hover { background: #0F5A60; }
+.b.primary:disabled { opacity: .6; cursor: default; }
+.b.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+.b.danger { border-color: #E8B4AF; color: #A3241B; }
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tab { border: 1px solid #D5DADF; background: #fff; border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; color: #14202B; }
+.tab.on { background: #146C72; border-color: #146C72; color: #fff; }
+.note { background: #FFF8E6; border: 1px solid #F0DDA8; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #5B4A00; margin-bottom: 14px; max-width: 980px; }
+.note a { color: #146C72; font-weight: 600; }
+.cols { display: grid; grid-template-columns: minmax(340px, 520px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.card { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 16px; }
+.card h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.fg { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.fg label { font-size: 12px; font-weight: 600; color: #5B6670; }
+.fg input, .fg select, .fg textarea { border: 1px solid #D5DADF; border-radius: 6px; padding: 9px 10px; font: inherit; font-size: 14px; color: #14202B; background: #fff; width: 100%; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { outline: 2px solid #146C72; outline-offset: -1px; border-color: #146C72; }
+.fixed { background: #E7F4EC !important; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sep { border-top: 1px solid #EEF0F2; margin: 12px 0; }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.chk input { width: 18px; height: 18px; accent-color: #146C72; }
+#pdfBox { display: flex; flex-direction: column; gap: 10px; }
+#pdfBox[hidden], #pdfEmpty[hidden] { display: none; }
+#pdfFrame { width: 100%; height: 760px; border: 1px solid #E4E7EA; border-radius: 6px; background: #EEF0F2; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pdfhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pdfhead h2 { margin: 0; }
+#pdfEmpty { color: #5B6670; font-size: 14px; padding: 60px 20px; text-align: center; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; }
+td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; vertical-align: top; }
+.r { text-align: right; white-space: nowrap; }
+.empty { text-align: center; color: #5B6670; padding: 36px; }
+.tbl { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; overflow-x: auto; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.pipref { margin-top: 6px; width: 150px; border: 1px solid #D5DADF; border-radius: 6px; padding: 5px 8px; font: inherit; font-size: 13px; }
+.stampPrev { height: 44px; width: auto; }
+.stampBig { height: 110px; width: auto; border: 1px dashed #D5DADF; border-radius: 6px; padding: 4px; background: #fff; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(16,38,42,.45); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 32px 12px; }
+.modal.open { display: flex; }
+.mbox { background: #fff; border-radius: 10px; width: 100%; max-width: 560px; padding: 20px; }
+.mbox h2 { margin: 0 0 14px; font-size: 18px; font-weight: 600; }
+.mfoot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+@media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr); } #pdfFrame { height: 560px; } .wrap { padding: 16px 12px 40px; } .row2 { grid-template-columns: 1fr; } }
+</style>
+<link rel="stylesheet" href="/css/gl-shell.css?v=9">
+<link rel="stylesheet" href="/css/gl-theme.css?v=1">
+</head>
+<body><script src="/js/layout.js?v=11"></script>
+<div class="wrap">
+  <h1>Делегирование водителей (Польша)</h1>
+  <p class="sub">Бланк «Potwierdzenie delegowania» для водителя из третьей страны. Нужен новый перед каждым рейсом в Польшу: выбираете перевозчика и водителя, вводите разрешение, номера машин и получаете готовый PDF для печати.</p>
+  <div class="note">Бланк возит водитель, а <b>перевозчик отдельно подаёт уведомление в PIP</b> через <a href="https://www.biznes.gov.pl" target="_blank" rel="noopener">biznes.gov.pl</a> до начала перевозки. Здесь можно только отметить в истории, что оно подано.</div>
+  <div class="tabs">
+    <button type="button" class="tab on" data-tab="new">Новый бланк</button>
+    <button type="button" class="tab" data-tab="hist">История</button>
+    <button type="button" class="tab" data-tab="car">Перевозчики</button>
+    <button type="button" class="tab" data-tab="drv">Водители</button>
+  </div>
+
+  <section id="tab-new">
+    <div class="cols">
+      <div class="card">
+        <h2>Данные бланка</h2>
+        <div class="row2">
+          <div class="fg"><label for="carrierSel">Перевозчик</label><select id="carrierSel"></select></div>
+          <div class="fg"><label for="driverSel">Водитель</label><select id="driverSel"></select></div>
+        </div>
+        <div class="muted" style="margin:-4px 0 8px">Всё ниже можно поправить вручную. Кириллица и армянские буквы сами переводятся в латиницу.</div>
+        <div class="sep"></div>
+        <div class="fg"><label for="f1">1. Название перевозчика</label><input id="f1"></div>
+        <div class="fg"><label for="f2">2. Адрес перевозчика (улица, индекс, город, страна)</label><input id="f2"></div>
+        <div class="row2">
+          <div class="fg"><label for="f3">3. Телефон (с кодом страны)</label><input id="f3"></div>
+          <div class="fg"><label for="f4">4. Email</label><input id="f4" type="text"></div>
+        </div>
+        <div class="fg"><label for="f5">5. Номер разрешения (ECMT / CEMT) или формуляра</label><input id="f5" list="permitList" placeholder="ECMT / CEMT ARM00152 (Unique Code …)"><datalist id="permitList"></datalist></div>
+        <div class="sep"></div>
+        <div class="fg"><label for="f6">6. Водитель (имя и фамилия латиницей)</label><input id="f6"></div>
+        <div class="fg"><label for="f7">7. Адрес проживания водителя</label><input id="f7"></div>
+        <div class="row2">
+          <div class="fg"><label for="f8">8. Номер водительских прав</label><input id="f8"></div>
+          <div class="fg"><label for="fContract">9. Начало трудового договора</label><input id="fContract" type="date"></div>
+        </div>
+        <div class="fg"><label for="fLaw">Право, применимое к договору</label><select id="fLaw"></select><input id="fLawOther" placeholder="Например: prawo … / law of …" style="margin-top:6px;display:none"></div>
+        <div class="sep"></div>
+        <div class="fg" id="fleetRow"><label for="fleetSel">10. Номера ТС: выбрать тягач из автопарка</label><select id="fleetSel"></select></div>
+        <div class="row2">
+          <div class="fg"><label for="fTractor">Тягач</label><input id="fTractor" list="plateList" placeholder="002 ZF 01"></div>
+          <div class="fg"><label for="fTrailer">Прицеп (если есть)</label><input id="fTrailer" placeholder="020 Z 01"></div>
+        </div>
+        <datalist id="plateList"></datalist>
+        <div class="fg"><label for="fPlatesFree">Или напишите номера своим текстом (заменит тягач и прицеп)</label><input id="fPlatesFree" placeholder="002 BA 01 / 002 X 01 (Armenia)"></div>
+        <div class="fg"><label for="fCarriage">11. Вид перевозки</label><select id="fCarriage"></select></div>
+        <div class="row2">
+          <div class="fg"><label for="f12">12. Место подписания</label><input id="f12" placeholder="Yerevan"></div>
+          <div class="fg"><label for="f13">13. Дата</label><input id="f13" type="date"></div>
+        </div>
+        <div class="sep"></div>
+        <label class="chk"><input type="checkbox" id="fStamp"> Поставить печать перевозчика (п. 15)</label>
+        <div class="muted" id="stampHint" style="margin-top:4px"></div>
+        <div class="actions" style="margin-top:14px"><button type="button" class="b primary" id="makeBtn">Создать PDF</button></div>
+        <div class="muted" style="margin-top:8px">Подписи водителя (п. 14) и перевозчика (п. 15) ставятся от руки после печати, до начала поездки.</div>
+      </div>
+      <div class="card">
+        <div id="pdfEmpty">Здесь появится готовый бланк.<br>Заполните данные слева и нажмите «Создать PDF».</div>
+        <div id="pdfBox" hidden>
+          <div class="pdfhead"><h2 id="pdfTitle">Готовый бланк</h2>
+            <div class="actions"><button type="button" class="b primary" id="printBtn">Печать</button><a class="b" id="dlLink" href="#" download>Скачать PDF</a><button type="button" class="b" id="openBtn">Открыть в новой вкладке</button></div></div>
+          <iframe id="pdfFrame" title="Бланк"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-hist" hidden>
+    <div class="tbl"><table><thead><tr><th>Дата</th><th>Водитель / перевозчик</th><th>Номера ТС</th><th>Уведомление PIP</th><th></th></tr></thead><tbody id="histBody"></tbody></table></div>
+  </section>
+
+  <section id="tab-car" hidden>
+    <div class="bar"><span class="muted">Данные и печать перевозчика сохраняются один раз.</span><button type="button" class="b primary" id="carAdd">+ Перевозчик</button></div>
+    <div class="tbl"><table><thead><tr><th>Перевозчик</th><th>Контакты</th><th>Печать</th><th></th></tr></thead><tbody id="carBody"></tbody></table></div>
+  </section>
+
+  <section id="tab-drv" hidden>
+    <div class="bar"><span class="muted">Водитель выбирается в бланке одним нажатием.</span><button type="button" class="b primary" id="drvAdd">+ Водитель</button></div>
+    <div class="tbl"><table><thead><tr><th>Водитель</th><th>Права</th><th>Трудовой договор с</th><th>Перевозчик</th><th></th></tr></thead><tbody id="drvBody"></tbody></table></div>
+  </section>
+</div>
+
+<div class="modal" id="carModal" role="dialog" aria-modal="true" aria-labelledby="carTitle"><div class="mbox">
+  <h2 id="carTitle">Перевозчик</h2>
+  <div class="fg"><label for="cName">Название (латиницей)</label><input id="cName" placeholder="PROM GROUP LLC"></div>
+  <div class="fg"><label for="cAddr">Адрес (улица, индекс, город, страна)</label><input id="cAddr"></div>
+  <div class="row2"><div class="fg"><label for="cPhone">Телефон</label><input id="cPhone" placeholder="+374 …"></div><div class="fg"><label for="cEmail">Email</label><input id="cEmail"></div></div>
+  <div class="row2"><div class="fg"><label for="cPlace">Место подписания по умолчанию</label><input id="cPlace"></div><div class="fg"><label for="cLaw">Право договоров по умолчанию</label><select id="cLaw"></select></div></div>
+  <div class="fg"><label>Печать перевозчика (необязательно)</label><div id="cStampPrev"></div><input type="file" id="cStampFile" accept="image/*" style="margin-top:6px"><div class="muted">Лучше фото или скан печати на белом фоне: белый фон станет прозрачным.</div></div>
+  <div class="mfoot"><button type="button" class="b danger" id="cDel" style="margin-right:auto">Удалить</button><button type="button" class="b" data-close="carModal">Отмена</button><button type="button" class="b primary" id="cSave">Сохранить</button></div>
+</div></div>
+
+<div class="modal" id="drvModal" role="dialog" aria-modal="true" aria-labelledby="drvTitle"><div class="mbox">
+  <h2 id="drvTitle">Водитель</h2>
+  <div class="fg"><label for="dCar">Перевозчик</label><select id="dCar"></select></div>
+  <div class="fg"><label for="dName">Имя и фамилия (латиницей, как в паспорте)</label><input id="dName"></div>
+  <div class="fg"><label for="dAddr">Адрес проживания</label><input id="dAddr"></div>
+  <div class="row2"><div class="fg"><label for="dLic">Номер водительских прав</label><input id="dLic"></div><div class="fg"><label for="dContract">Начало трудового договора</label><input id="dContract" type="date"></div></div>
+  <div class="mfoot"><button type="button" class="b danger" id="dDel" style="margin-right:auto">Удалить</button><button type="button" class="b" data-close="drvModal">Отмена</button><button type="button" class="b primary" id="dSave">Сохранить</button></div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/delegation.js?v=1"></script>
+<script src="/js/nav-fleet.js?v=3"></script>
+</body>
+</html>
