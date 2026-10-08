@@ -186,6 +186,14 @@
       if (data.error) throw new Error(data.error);
       renderSummary();
       document.getElementById('bdTime').textContent = 'Обновлено ' + ago(data.updated_at) + (data.errors && data.errors.length ? ' · часть источников недоступна, показаны последние данные' : '');
+      // состояние каждого источника
+      const SRC = [['georgia', 'Грузия'], ['tpcentral', 'TPCentral'], ['turkey', 'Турция (GTI)'], ['bulgaria', 'Болгария'], ['lars', 'Верхний Ларс'], ['belarus', 'Беларусь'], ['poland', 'Польша']];
+      const errs = data.errors || [];
+      document.getElementById('bdSources').innerHTML = 'Источники: ' + SRC.map(([k, n]) => {
+        const e = errs.find(x => x.startsWith(k + ':'));
+        const ok = data[k] && data[k].data && !e;
+        return `<span class="${ok ? 'ok' : 'bad'}" title="${esc(e || '')}">${n} ${ok ? '✓' : '✕'}</span>`;
+      }).join(' · ') + (errs.length ? '<div class="bd-errs">' + errs.map(esc).join('<br>') + '</div>' : '');
       if (map) render();
     } catch (e) { document.getElementById('bdTime').textContent = 'Не удалось загрузить: ' + e.message; }
     btn.disabled = false; btn.textContent = 'Обновить';
@@ -222,6 +230,7 @@
         <div class="bd-actions"><button type="button" class="bd-btn" id="bdRefresh">Обновить</button><button type="button" class="bd-btn primary" id="bdToggle" aria-expanded="false" aria-controls="bdBody">Показать карту</button></div>
       </div>
       <div class="bd-chips" id="bdChips"></div>
+      <div class="bd-src" id="bdSources"></div>
       <div id="bdBody" hidden>
         <div class="bd-legend"><span><i class="bd-dot ok"></i>свободно</span><span><i class="bd-dot mid"></i>загружено</span><span><i class="bd-dot bad"></i>очередь / интенсивно</span><span>Число на пине — грузовики в очереди или на стоянках перед границей; «ч» — часы ожидания (Польша); «i» — только ссылка на источник.</span></div>
         <div id="bdMap"></div>
@@ -242,6 +251,8 @@
       .bd-btn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #D5DADF; background: #fff; color: #14202B; font: inherit; font-size: 13px; cursor: pointer; }
       .bd-btn.primary { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; }
       .bd-btn:disabled { opacity: .6; }
+      .bd-src { font-size: 12px; color: #5B6670; } .bd-src .ok { color: #1B6B3F; } .bd-src .bad { color: #A3241B; font-weight: 600; }
+      .bd-errs { margin-top: 4px; font-size: 11.5px; color: #A3241B; word-break: break-word; }
       .bd-chips { display: flex; gap: 6px; flex-wrap: wrap; }
       .bd-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #E4E7EA; background: #FAFBFB; border-radius: 14px; padding: 4px 10px; font: inherit; font-size: 13px; color: #3D4852; cursor: pointer; }
       .bd-chip b { color: #14202B; font-weight: 600; font-variant-numeric: tabular-nums; }
