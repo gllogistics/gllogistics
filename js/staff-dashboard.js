@@ -502,3 +502,22 @@ function sigPreview() {
   document.getElementById('sgPreview').innerHTML = glEmailSignature({ username: document.getElementById('sigModal').dataset.user,
     display_name: v('sgName'), sig_title: v('sgTitle'), sig_phones: v('sgPhones'), email: v('sgEmail') }).html;
 }
+
+// Подпись периода в заголовке Главной
+(function () {
+  const months = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  function label() {
+    const el = document.getElementById('dashPeriodLabel'); if (!el) return;
+    const s = document.getElementById('dashStart')?.value, e = document.getElementById('dashEnd')?.value;
+    if (!s || !e) { el.textContent = 'Сводка за всё время'; return; }
+    const ds = new Date(s), de = new Date(e);
+    const whole = ds.getDate() === 1 && ds.getMonth() === de.getMonth() && ds.getFullYear() === de.getFullYear() && new Date(de.getFullYear(), de.getMonth() + 1, 0).getDate() === de.getDate();
+    el.textContent = whole ? 'Сводка за ' + months[ds.getMonth()] + ' ' + ds.getFullYear()
+      : 'Сводка с ' + ds.toLocaleDateString('ru') + ' по ' + de.toLocaleDateString('ru');
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(label, 50);
+    ['dashStart', 'dashEnd'].forEach(id => document.getElementById(id)?.addEventListener('change', label));
+    ['dashApplyBtn', 'dashResetBtn'].forEach(id => document.getElementById(id)?.addEventListener('click', () => setTimeout(label, 30)));
+  });
+})();
