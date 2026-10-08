@@ -132,6 +132,16 @@ function renderTripTabs() {
   tabs.innerHTML = `<button type="button" data-tab="active" style="${st(tripTab === 'active')}">Активные (${nActive})</button>` +
                    `<button type="button" data-tab="archive" style="${st(tripTab === 'archive')}">Архив (${nArch})</button>`;
 }
+function fmtDate(d) { if (!d) return ''; const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '.' + m[2] + '.' + m[1] : d; }
+function setTripHeader(t, segRoute) {
+  document.getElementById('detailTitle').textContent = t.truck || 'Рейс';
+  const b = document.getElementById('detailBadge');
+  if (b) { b.className = 'badge ' + (t.status === 'closed' ? 'badge-closed' : 'badge-open'); b.textContent = t.status === 'closed' ? 'Закрыт' : 'Открыт'; }
+  const sub = document.getElementById('detailSub');
+  if (sub) sub.textContent = (t.route_from || '') + ' → ' + (t.route_to || '') + (segRoute || '') + ' · ' + (t.date_end ? fmtDate(t.date_start) + ' — ' + fmtDate(t.date_end) : 'с ' + fmtDate(t.date_start));
+  const note = document.getElementById('detailNote');
+  if (note) { note.textContent = t.notes || ''; note.style.display = t.notes ? '' : 'none'; }
+}
 function renderTripsList() {
   const el = document.getElementById('tripsList');
   renderTripTabs();
@@ -140,17 +150,11 @@ function renderTripsList() {
   if (!list.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.8rem">' + (tripTab === 'archive' ? 'В архиве пока нет рейсов. Закрытые рейсы попадают сюда автоматически.' : 'Нет активных рейсов.') + '</p>'; return; }
   el.innerHTML = list.map(t => `
     <div class="trip-card ${currentTrip?.id === t.id ? 'active' : ''}" data-id="${t.id}">
-      <div class="trip-header">
-        <div>
-          <div class="trip-truck">${esc(t.truck)}</div>
-          <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s => s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
-          <div class="trip-dates">${t.date_start || ''} — ${t.date_end || ''}</div>
-        </div>
-        <div style="text-align:right">
-          <span class="badge ${t.status === 'closed' ? 'badge-closed' : 'badge-open'}">${t.status === 'closed' ? '✓ Закрыт' : '● Открыт'}</span>
-          ${t.total_expenses_amd ? `<div style="margin-top:4px;font-size:.72rem;color:#55B7BD;font-weight:700">֏${fmt(t.total_expenses_amd)}</div>` : ''}
-        </div>
-      </div>
+      <div class="tc-top"><span class="trip-truck">${esc(t.truck)}</span>${t.profit_amd != null
+        ? `<span class="tc-profit ${t.profit_amd < 0 ? 'neg' : ''}">֏${fmt(t.profit_amd)}</span>`
+        : (t.total_expenses_amd ? `<span class="tc-exp">расх. ֏${fmt(t.total_expenses_amd)}</span>` : '')}</div>
+      <div class="trip-route">${esc(t.route_from)} → ${esc(t.route_to)}${(t._segments||[]).map(s => s.route_to ? ' → '+esc(s.route_to) : '').join('')}</div>
+      <div class="trip-dates">${fmtDate(t.date_start)} — ${t.date_end ? fmtDate(t.date_end) : '…'}</div>
     </div>`).join('');
 
   document.querySelectorAll('.trip-card').forEach(card => {
@@ -180,7 +184,7 @@ async function openTrip(trip) {
   const segRoute = tripSegments.length
     ? ' → ' + tripSegments.map(s => s.route_to).filter(Boolean).join(' → ')
     : '';
-  document.getElementById('detailTitle').textContent = `${full.truck}: ${full.route_from} → ${full.route_to}${segRoute}`;
+  setTripHeader(full, segRoute);
 
   const segsSnapshot = [...tripSegments]; // снимок до любых изменений
   // Обновляем кнопку закрытия
@@ -247,26 +251,15 @@ function renderTripStats(trip, segs) {
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
-  document.getElementById('tripStats').innerHTML = `
-    <div class="stat"><div class="val">${fmt(trip.wialon_mileage)}<span style="font-size:.6rem"> км</span></div><div class="lbl">Пробег GPS</div></div>
-    <div class="stat ${trip.wialon_fuel_rate > trip.fuel_rate_plan ? 'red' : 'green'}">
-      <div class="val">${fmt(trip.wialon_fuel_rate)}<span style="font-size:.6rem"> л/100</span></div><div class="lbl">Расход факт</div></div>
-    <div class="stat ${diffFuel > 5 ? 'red' : 'green'}">
-      <div class="val">${diffFuel > 0 ? '+' : ''}${fmt(diffFuel)}<span style="font-size:.6rem"> л</span></div><div class="lbl">Перерасход</div></div>
-    <div class="stat green"><div class="val">${trip.client_currency==='AMD'?'֏':'€'}${fmt(trip.client_price)}${segments.length>0?' + '+(segments.map(sg=>(sg.client_currency==='AMD'?'֏':'€')+fmt(sg.client_price)).join(' + ')):''}</div><div class="lbl">Доход (все плечи)</div></div>
-    <div class="stat orange"><div class="val">${trip.advance_currency==='AMD'?'֏':'€'}${fmt(trip.advance_amount)}</div><div class="lbl">Аванс</div></div>
-    <div class="stat orange"><div class="val">${trip.salary_currency==='AMD'?'֏':'€'}${fmt(trip.salary_amount)}</div><div class="lbl">Зарплата</div></div>
-    ${fuelExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(fuelExpAMD)}</div><div class="lbl">Топливо</div></div>`:''}
-    ${tollExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(tollExpAMD)}</div><div class="lbl">Платные дороги</div></div>`:''}
-    ${parkingExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(parkingExpAMD)}</div><div class="lbl">Стоянка</div></div>`:''}
-    ${ferryExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(ferryExpAMD)}</div><div class="lbl">Паром</div></div>`:''}
-    ${transitExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(transitExpAMD)}</div><div class="lbl">Транзитные карты</div></div>`:''}
-    ${adblueExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(adblueExpAMD)}</div><div class="lbl">AdBlue</div></div>`:''}
-    ${partsExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(partsExpAMD)}</div><div class="lbl">Запчасти</div></div>`:''}
-    ${insurExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(insurExpAMD)}</div><div class="lbl">Страховки</div></div>`:''}
-    ${otherExpAMD>0?`<div class="stat yellow"><div class="val">֏${fmt(otherExpAMD)}</div><div class="lbl">Прочие расходы</div></div>`:''}
-    <div class="stat ${profitAMD >= 0 ? 'green' : 'red'}"><div class="val">֏${fmt(profitAMD)}</div><div class="lbl">${profitAMD >= 0 ? 'Прибыль' : 'Убыток'}</div></div>
-`;
+  const kpi = (lbl, val, sub, cls) => `<div class="stat ${cls || ''}"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`;
+  const revParts = [(trip.client_currency==='AMD'?'֏':trip.client_currency==='USD'?'$':'€') + fmt(trip.client_price)].concat(segments.map(sg => (sg.client_currency==='AMD'?'֏':sg.client_currency==='USD'?'$':'€') + fmt(sg.client_price)));
+  const fuelSub = trip.wialon_fuel_rate ? `расход ${fmt(trip.wialon_fuel_rate)} л/100${trip.fuel_rate_plan ? ' (план ' + fmt(trip.fuel_rate_plan) + ')' : ''}${diffFuel > 5 ? ' · перерасход ' + fmt(diffFuel) + ' л' : ''}` : '';
+  document.getElementById('tripStats').innerHTML =
+    kpi('Доход', revParts.join(' + '), segments.length ? 'все плечи · ֏' + fmt(revenueAMD) : '֏' + fmt(revenueAMD))
+    + kpi('Расходы', '֏' + fmt(expensesOnlyAMD), realExp.length + ' ' + (realExp.length % 10 === 1 && realExp.length % 100 !== 11 ? 'чек' : realExp.length % 10 >= 2 && realExp.length % 10 <= 4 && (realExp.length % 100 < 10 || realExp.length % 100 >= 20) ? 'чека' : 'чеков'))
+    + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD), 'аванс ֏' + fmt(advanceAMD) + ' · зарплата ֏' + fmt(salaryAMD))
+    + kpi(profitAMD >= 0 ? 'Прибыль' : 'Убыток', '֏' + fmt(profitAMD), '', profitAMD >= 0 ? 'green' : 'red')
+    + kpi('Пробег GPS', fmt(trip.wialon_mileage) + ' км', fuelSub, diffFuel > 5 ? 'warn' : '');
 
   // Wialon блок
   if (trip.wialon_mileage > 0) {
@@ -296,17 +289,16 @@ function renderExpenses(expenses) {
   const totEl = document.getElementById('expensesTotals');
   if (!expenses.length) { el.innerHTML = '<p style="color:#8fa8ab;font-size:.75rem">Нет расходов</p>'; totEl.innerHTML = ''; return; }
 
-  el.innerHTML = expenses.map(e => `
-    <div class="expense-row" data-id="${e.id}">
-      <span class="expense-cat ${catClass[e.category]}">${catLabel[e.category]}</span>
-      <span class="expense-desc">${esc(e.description || '')}</span>
-      <span class="expense-date">${e.date || ''}</span>
-      ${['advance','salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}
-      <span class="expense-amt">${e.currency==='EUR'?'€':e.currency==='USD'?'$':e.currency==='RUB'?'₽':e.currency==='GEL'?'₾':e.currency==='TRY'?'₺':'֏'}${fmt(e.amount)}</span>
-      ${e.receipt_key ? `<img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : '<div style="width:32px"></div>'}
-      <button class="btn btn-sm" onclick="editExpense(${e.id})" style="background:rgba(85,183,189,.15);color:#55B7BD;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.75rem">✎</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button>
-    </div>`).join('');
+  const sym = c => c==='EUR'?'€':c==='USD'?'$':c==='RUB'?'₽':c==='GEL'?'₾':c==='TRY'?'₺':'֏';
+  el.innerHTML = `<div class="exp-scroll"><table class="exp-table"><thead><tr><th>Категория</th><th>Описание</th><th>Дата</th><th>Оплата</th><th class="r">Сумма</th><th></th></tr></thead><tbody>` +
+    expenses.map(e => `<tr data-id="${e.id}">
+      <td><span class="expense-cat ${catClass[e.category] || ''}">${catLabel[e.category] || e.category}</span></td>
+      <td class="exp-desc">${esc(e.description || '')}${e.receipt_key ? ` <img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : ''}</td>
+      <td class="exp-date">${fmtDate(e.date)}</td>
+      <td>${['advance','salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}</td>
+      <td class="r exp-amt">${sym(e.currency)}${fmt(e.amount)}</td>
+      <td class="r exp-act"><button type="button" class="exp-btn" onclick="editExpense(${e.id})">Изм.</button><button type="button" class="exp-btn del" onclick="deleteExpense(${e.id})">Удалить</button></td>
+    </tr>`).join('') + `</tbody></table></div>`;
 
   // Итоги по категориям
   const bycat = {};
@@ -315,9 +307,9 @@ function renderExpenses(expenses) {
     bycat[e.category] = (bycat[e.category] || 0) + (e.amount_amd || 0);
     totalAMD += (e.amount_amd || 0);
   });
-  totEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
-    ${Object.entries(bycat).map(([cat,amt]) => `<span style="font-size:.72rem;color:#8fa8ab">${catLabel[cat]}: <b style="color:#c8dfe3">֏${fmt(amt)}</b></span>`).join('<span style="color:#2a4a50">·</span>')}
-    <span style="margin-left:auto;font-weight:800;color:#55B7BD">Итого: ֏${fmt(totalAMD)}</span>
+  totEl.innerHTML = `<div class="exp-tot">
+    <span class="exp-cats">${Object.entries(bycat).map(([cat,amt]) => `${catLabel[cat] || cat}: <b>֏${fmt(amt)}</b>`).join(' · ')}</span>
+    <span class="exp-sum">Итого расходов <b>֏${fmt(totalAMD)}</b></span>
   </div>`;
 }
 
@@ -765,8 +757,7 @@ window.closeSeg = async function() {
   }
   tripSegments = [];
   if (currentTrip) {
-    document.getElementById('detailTitle').textContent =
-      '' + currentTrip.truck + ': ' + currentTrip.route_from + ' → ' + currentTrip.route_to;
+    setTripHeader(currentTrip, '');
   }
 };
 
