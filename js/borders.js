@@ -99,7 +99,14 @@
           const k = q.wait_h >= 12 ? 'bad' : q.wait_h >= 3 ? 'mid' : 'ok'; if (rank[k] > rank[cls]) cls = k;
         } else parts.push('Польша, выезд грузовиков: нет данных');
       }
-      if (!parts.length) return { label: '?', cls: 'na', text: 'Нет данных' };
+      if (!parts.length) {
+        // белорусский источник закрыт для зарубежных серверов — даём ссылку, а не «?»
+        const byDown = p.by && !(data?.belarus?.data?.points);
+        return byDown
+          ? { label: 'i', cls: 'na', text: 'Сайт Госпогранкомитета Беларуси не отдаёт данные серверам из-за рубежа. Число фур в очереди на выезд из Беларуси смотрите по ссылке ниже.' }
+          : { label: '?', cls: 'na', text: 'Нет данных' };
+      }
+      if (p.by && !b && !(data?.belarus?.data?.points)) parts.push('Беларусь: смотрите по ссылке ниже (сайт ГПК не отдаёт данные серверам из-за рубежа)');
       if (!label) label = b && b.closed ? 'закр.' : '–';
       return { label, cls, text: parts.join('<br>'), at, asOf };
     }
