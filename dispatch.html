@@ -477,15 +477,6 @@ const now = new Date();
 document.getElementById('filterStart').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
 document.getElementById('filterEnd').value = now.toISOString().slice(0,10);
 
-// Навигация по роли
-document.addEventListener('DOMContentLoaded', function() {
-  var isAdm = localStorage.getItem('gl_staff_role') === 'admin';
-  var an = '<a href="/staff-dashboard.html">Главная</a><a href="/staff-cargo.html">Сделки</a><a href="/rateconfirmation">Заявки</a><a href="/invoice">Инвойс</a><a href="/trip-report">Рейсы</a><a href="/clients">Клиенты</a><a href="/files">Файлы</a><a href="/expenses.html">Расходы</a><a href="/dispatch.html" class="active">Диспатчинг</a>';
-  var ln = '<a href="/staff-cargo.html">Сделки</a><a href="/rateconfirmation">Заявки</a><a href="/invoice">Инвойс</a><a href="/trip-report">Рейсы</a>';
-  var el = document.getElementById('navLinks');
-  if (el) el.innerHTML = isAdm ? an : ln;
-});
-
 load();
 
 document.getElementById('pdfBtn').addEventListener('click', generatePDF);
