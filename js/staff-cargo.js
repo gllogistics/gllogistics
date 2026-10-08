@@ -186,7 +186,7 @@ async function saveCargo() {
       savedId = newCargo?.id || null;
     }
     if (savedId) {
-      await (window.saveSegments||saveSegments)(savedId).catch(()=>{});
+      if (typeof window.saveSegments === 'function') await window.saveSegments(savedId).catch(() => {});
     }
     await refreshData(); toggleForm(false);
   } catch (err) { alert('Ошибка сохранения: ' + err.message); }
