@@ -206,7 +206,7 @@
     if (!v) return;
     try { await loadLeaflet(); } catch (e) { document.getElementById('bdTime').textContent = e.message; return; }
     if (!map) {
-      map = window.L.map('bdMap', { scrollWheelZoom: false });
+      map = window.L.map('bdMap', { scrollWheelZoom: true, wheelPxPerZoomLevel: 90, zoomSnap: 0.5 });  // колесо мыши над картой — приближение / отдаление
       map.fitBounds(POINTS.map(p => [p.lat, p.lng]), { padding: [20, 20] });
       window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
     }
