@@ -50,6 +50,7 @@
     const shade = document.createElement('div');
     shade.id = 'glShade';
     document.body.appendChild(shade);
+    document.body.classList.add('gl-ready');
     document.getElementById('glMenuBtn').addEventListener('click', () => document.body.classList.toggle('gl-menu-open'));
     shade.addEventListener('click', () => document.body.classList.remove('gl-menu-open'));
     document.getElementById('glLogout').addEventListener('click', () => {
@@ -60,7 +61,7 @@
     document.querySelectorAll('.top-bar').forEach(tb => {
       const useful = [...tb.children].some(ch => !ch.matches('.brand, .btn-logout, .nav-links, #navLinks') &&
         !ch.querySelector('#logoutBtn') && ch.textContent.trim() !== '' && !ch.matches(':empty'));
-      if (!useful) tb.classList.add('gl-empty');
+      tb.classList.add(useful ? 'gl-keep' : 'gl-empty');
     });
     if (isAdmin) {
       fetch('https://gl-api.gltransam.workers.dev/api/fleet/alerts').then(r => r.json()).then(a => {
