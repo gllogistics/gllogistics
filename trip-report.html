@@ -140,61 +140,78 @@ input:focus,select:focus,textarea:focus{border-color:#55B7BD;background:#fff}
 <link rel="stylesheet" href="/css/gl-shell.css?v=7">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
 <style id="tripsB">
-/* ── Рейсы, вариант B ── */
+/* ── Рейсы: макет «Рейсы» ── */
 body.gl-shell > .two-col { display: grid !important; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) !important; gap: 20px !important;
   align-items: start; margin: 0 !important; padding: 24px 28px 40px; max-width: 1400px; }
-body.gl-shell > .two-col h2 { font-size: 24px !important; font-weight: 600 !important; color: #14202B !important; margin: 0 !important; }
-#newTripBtn { height: 36px; padding: 0 14px !important; font-size: 14px !important; }
-/* список рейсов */
+body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font-weight: 600 !important; color: #14202B !important; margin: 0 !important; }
+#newTripBtn { height: 36px; padding: 0 14px !important; font-size: 14px !important; border-radius: 6px !important; }
 .trips-grid { gap: 8px !important; }
 .trip-card { background: #fff !important; border: 1px solid #E4E7EA !important; border-radius: 8px !important; padding: 12px 14px !important; box-shadow: none !important; }
 .trip-card:hover { border-color: #9CC5C8 !important; }
 .trip-card.active { border-color: #146C72 !important; background: #E8F1F2 !important; }
+.tc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .trip-truck { font-size: 15px !important; font-weight: 600 !important; color: #14202B !important; }
+.tc-profit { font-weight: 600; color: #1B6B3F; font-variant-numeric: tabular-nums; font-size: 14px; }
+.tc-profit.neg { color: #A3241B; }
+.tc-exp { font-size: 12px; color: #5B6670; }
 .trip-route { font-size: 13px !important; color: #3D4852 !important; margin: 2px 0 !important; }
 .trip-dates { font-size: 12px !important; color: #5B6670 !important; }
-.trip-card .badge { border-radius: 10px !important; font-size: 11.5px !important; padding: 2px 8px !important; }
+#tripTabs button { border-radius: 6px !important; font-size: 13px !important; padding: 6px 12px !important; }
+/* шапка */
+.trip-head { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 16px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.th-top { display: flex; align-items: center; gap: 10px; }
+#detailTitle { font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; color: #14202B !important; }
+.trip-head .badge { border-radius: 10px !important; font-size: 12px !important; padding: 2px 8px !important; font-weight: 600 !important; }
 .badge-open { background: #E8F1F2 !important; color: #0F5A60 !important; }
 .badge-closed { background: #F0F2F4 !important; color: #3D4852 !important; }
-.trip-card [style*="color:#55B7BD"] { color: #5B6670 !important; font-weight: 600 !important; font-size: 12px !important; }
-#tripTabs button { border-radius: 6px !important; font-size: 13px !important; padding: 6px 12px !important; }
-/* шапка рейса */
-#tripDetail > div:first-child { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 16px 18px; margin-bottom: 16px !important; flex-wrap: wrap; gap: 12px; align-items: flex-start !important; }
-#detailTitle { font-size: 18px !important; line-height: 1.35; max-width: 60ch; }
-#tripDetail .btn-sm { height: 36px; padding: 0 14px !important; font-size: 14px !important; border-radius: 6px !important; }
-#tripDetail .btn-danger { background: #fff !important; color: #A3241B !important; border: 1px solid #E8B4AF !important; }
-/* показатели */
-#tripStats { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 10px !important; margin: 0 0 16px !important; }
-#tripStats .stat, #wialonData .stat { background: #fff !important; border: 1px solid #E4E7EA !important; border-radius: 8px !important; text-align: left !important; padding: 12px 14px !important; }
-#tripStats .stat .val, #wialonData .stat .val { font-size: 19px !important; font-weight: 600 !important; color: #14202B !important; letter-spacing: 0 !important; font-variant-numeric: tabular-nums; }
-#tripStats .stat .lbl, #wialonData .stat .lbl { font-size: 12.5px !important; color: #5B6670 !important; text-transform: none !important; font-weight: 500 !important; margin-top: 3px !important; }
+.th-sub { margin-top: 4px; font-size: 14px; color: #3D4852; }
+.th-note { margin-top: 2px; font-size: 13px; color: #5B6670; }
+.th-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.th-actions .btn-sm { height: 38px; padding: 0 14px !important; font-size: 14px !important; border-radius: 6px !important; }
+.th-actions .th-del { background: transparent !important; border: none !important; color: #A3241B !important; padding: 0 6px !important; font-weight: 500 !important; }
+/* пять показателей */
+#tripStats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: 12px !important; margin: 0 0 16px !important; }
+#tripStats .stat, #wialonData .stat { background: #fff !important; border: 1px solid #E4E7EA !important; border-radius: 8px !important; text-align: left !important; padding: 14px 16px !important; }
+#tripStats .stat .lbl, #wialonData .stat .lbl { font-size: 13px !important; color: #5B6670 !important; text-transform: none !important; font-weight: 500 !important; margin: 0 0 4px !important; }
+#tripStats .stat .val, #wialonData .stat .val { font-size: 22px !important; font-weight: 600 !important; color: #14202B !important; letter-spacing: 0 !important; font-variant-numeric: tabular-nums; word-break: break-word; }
+#tripStats .stat .sub { font-size: 12px; color: #5B6670; margin-top: 2px; }
 #tripStats .stat.green .val { color: #1B6B3F !important; }
 #tripStats .stat.red .val { color: #A3241B !important; }
+#tripStats .stat.warn .sub { color: #8A4B00; }
 .wialon-block { background: #fff !important; border: 1px solid #E4E7EA !important; border-radius: 8px !important; margin: 0 0 16px !important; }
 .wialon-title { color: #14202B !important; font-size: 15px !important; font-weight: 600 !important; text-transform: none !important; }
-/* расходы */
+/* таблица расходов */
 #tripDetail .card { border-radius: 8px !important; border: 1px solid #E4E7EA !important; box-shadow: none !important; padding: 0 !important; overflow: hidden; }
 #tripDetail .card > div:first-child { padding: 14px 16px; margin: 0 !important; }
-#tripDetail .card h2 { font-size: 15px !important; }
-#expensesList { padding: 0; }
-.expense-row { background: #fff !important; border: none !important; border-top: 1px solid #EEF0F2 !important; border-radius: 0 !important; margin: 0 !important; padding: 10px 16px !important; gap: 12px !important; }
-.expense-cat { background: #F0F2F4 !important; color: #3D4852 !important; border: none !important; border-radius: 10px !important; font-size: 12px !important; font-weight: 600 !important; padding: 2px 9px !important; min-width: 0; }
-.expense-desc { font-size: 14px !important; color: #3D4852 !important; }
-.expense-date { font-size: 13px !important; color: #5B6670 !important; min-width: 44px; }
-.expense-amt { font-size: 14px !important; font-weight: 600 !important; color: #14202B !important; min-width: 80px; text-align: right; font-variant-numeric: tabular-nums; }
-.pay-tag { border-radius: 10px !important; font-size: 11.5px !important; padding: 2px 8px !important; }
+#tripDetail .card h2 { font-size: 15px !important; font-weight: 600 !important; }
+#addExpenseBtn { height: 34px; padding: 0 12px !important; font-size: 14px !important; border-radius: 6px !important; background: #fff !important; color: #14202B !important; border: 1px solid #D5DADF !important; }
+.exp-scroll { overflow-x: auto; }
+.exp-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.exp-table th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-top: 1px solid #E4E7EA; border-bottom: 1px solid #E4E7EA; }
+.exp-table td { padding: 10px 14px; border-top: 1px solid #EEF0F2; font-size: 14px; color: #14202B; vertical-align: middle; }
+.exp-table tr:first-child td { border-top: none; }
+.exp-table .r { text-align: right; }
+.exp-desc { color: #3D4852; }
+.exp-date { color: #5B6670; white-space: nowrap; }
+.exp-amt { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.exp-act { white-space: nowrap; }
+.exp-btn { background: none; border: none; color: #5B6670; font: inherit; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+.exp-btn:hover { color: #14202B; text-decoration: underline; }
+.exp-btn.del:hover { color: #A3241B; }
+.expense-cat { background: #F0F2F4 !important; color: #3D4852 !important; border: none !important; border-radius: 10px !important; font-size: 12px !important; font-weight: 600 !important; padding: 2px 9px !important; white-space: nowrap; }
+.pay-tag { border-radius: 10px !important; font-size: 12px !important; padding: 2px 8px !important; font-weight: 600; white-space: nowrap; }
 .pay-card { background: #E8F1F2 !important; color: #0F5A60 !important; }
 .pay-cash { background: #FDF1E3 !important; color: #8A4B00 !important; }
-.expense-row .btn-sm { height: 28px !important; padding: 0 8px !important; font-size: 12.5px !important; background: #fff !important; color: #3D4852 !important; border: 1px solid #D5DADF !important; border-radius: 6px !important; }
-.expense-row .btn-danger { color: #A3241B !important; border-color: #E8B4AF !important; }
-.receipt-thumb { border-radius: 4px; }
+.receipt-thumb { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; vertical-align: middle; cursor: pointer; margin-left: 4px; }
+#expensesList > p { padding: 14px 16px; margin: 0; color: #5B6670 !important; }
 #expensesTotals { margin: 0 !important; padding: 12px 16px !important; border-top: 1px solid #E4E7EA !important; background: #FAFBFB; }
-#expensesTotals span { color: #5B6670 !important; font-size: 12.5px !important; }
-#expensesTotals b { color: #14202B !important; }
-#expensesTotals span:last-child { color: #14202B !important; font-size: 14px !important; font-weight: 600 !important; }
+.exp-tot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.exp-cats { font-size: 12.5px; color: #5B6670; }
+.exp-cats b { color: #14202B; font-weight: 600; }
+.exp-sum { font-size: 14px; color: #5B6670; white-space: nowrap; }
+.exp-sum b { color: #14202B; font-weight: 600; margin-left: 12px; font-variant-numeric: tabular-nums; }
 @media (max-width: 960px) {
   body.gl-shell > .two-col { grid-template-columns: minmax(0, 1fr) !important; padding: 16px 12px 32px; }
-  .expense-row { flex-wrap: wrap; }
 }
 </style>
 </head>
@@ -217,15 +234,19 @@ body.gl-shell > .two-col h2 { font-size: 24px !important; font-weight: 600 !impo
 
   <!-- Детали рейса -->
   <div id="tripDetail" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
-      <h2 id="detailTitle">Детали рейса</h2>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn btn-primary btn-sm" id="closeTripBtn">Закрыть рейс</button>
-          <button class="btn btn-ghost btn-sm" id="editTripBtn">Изменить</button>
+    <div class="trip-head">
+      <div class="th-info">
+        <div class="th-top"><h2 id="detailTitle">Рейс</h2><span id="detailBadge" class="badge badge-open"></span></div>
+        <div class="th-sub" id="detailSub"></div>
+        <div class="th-note" id="detailNote" style="display:none"></div>
+      </div>
+      <div class="th-actions">
         <button class="btn btn-ghost btn-sm" id="wialonSyncBtn">Wialon</button>
         <button class="btn btn-ghost btn-sm" id="uploadBankBtn">Выписка</button>
         <input type="file" id="bankFileInput" accept="image/*,application/pdf" style="display:none">
-        <button class="btn btn-danger btn-sm" id="deleteTripBtn">Удалить рейс</button>
+        <button class="btn btn-ghost btn-sm" id="editTripBtn">Изменить</button>
+        <button class="btn btn-primary btn-sm" id="closeTripBtn">Закрыть рейс</button>
+        <button class="btn btn-danger btn-sm th-del" id="deleteTripBtn" title="Удалить рейс">Удалить</button>
       </div>
     </div>
 
@@ -409,7 +430,7 @@ body.gl-shell > .two-col h2 { font-size: 24px !important; font-weight: 600 !impo
   </div>
 </div>
 
-<script src="js/trip-report2.js"></script>
+<script src="js/trip-report2.js?v=20"></script>
 <script src="js/dropzone.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
