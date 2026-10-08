@@ -15,7 +15,8 @@
     { key: 'Садахло', title: 'Садахло / Баграташен', border: 'Грузия — Армения', lat: 41.2436, lng: 44.8017, src: 'ge' },
     { key: 'Красный мост', title: 'Красный мост', border: 'Грузия — Азербайджан', lat: 41.3365, lng: 45.0968, src: 'ge' },
     { key: 'Лагодехи', title: 'Лагодехи', border: 'Грузия — Азербайджан', lat: 41.7555, lng: 46.2949, src: 'ge' },
-    { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge', link2: ['https://zitic.ru/eo/vl/', 'Российская сторона (электронная очередь)'] },
+    { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge' },
+    { key: 'Верхний Ларс', title: 'Верхний Ларс (РФ)', border: 'Россия → Грузия, электронная очередь', lat: 42.8050, lng: 44.6380, src: 'ru' },
     { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'] },
     { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'] },
     { key: 'Джилвегёзю', title: 'Джилвегёзю', border: 'Турция — Сирия', lat: 36.2267, lng: 36.6638, src: 'tr', tr: 'cilvegozu', link2: [GTI_LINK('cilvegozu'), 'TIR-парк Джилвегёзю (GTI)'] },
@@ -41,6 +42,13 @@
 
   // Состояние точки: число на пине, цвет, текст
   function stateOf(p) {
+    if (p.src === 'ru') {
+      const l = data?.lars?.data;
+      if (!l || l.queue == null) return { label: '?', cls: 'na', text: 'Нет данных' };
+      return { label: fmt(l.queue), cls: l.queue >= 400 ? 'bad' : l.queue >= 150 ? 'mid' : 'ok', at: data.lars.at, asOf: l.time ? l.time + ' по Владикавказу' : null,
+        text: `Электронная очередь на выезд из РФ: <b>${fmt(l.queue)}</b> машин, в зелёной зоне <b>${fmt(l.green)}</b> (можно ехать к МАПП)`
+          + (l.areas && l.areas.length ? '<div class="bd-parks">' + l.areas.map(a => `<div><span>${esc(a.name)}</span><span>свободно ${fmt(a.free)}</span></div>`).join('') + '</div>' : '') };
+    }
     if (p.src === 'ge') {
       const g = (data?.georgia?.data || []).find(x => x.name === p.key);
       if (!g) return { label: '?', cls: 'na', text: 'Нет данных' };
@@ -75,7 +83,7 @@
   function popup(p, st) {
     const parks = st.g && st.g.parks && st.g.parks.length
       ? '<div class="bd-parks">' + st.g.parks.map(x => `<div><span>${esc(x.name)}</span><span>${fmt(x.busy)} / своб. ${fmt(x.free)}</span></div>`).join('') + '</div>' : '';
-    const src = p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
+    const src = p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
@@ -98,7 +106,7 @@
     document.getElementById('bdList').innerHTML = rows.join('');
   }
 
-  const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
+  const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
                    ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли']];
   let expanded = localStorage.getItem('gl_borders_open') === '1';
 
