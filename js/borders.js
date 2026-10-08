@@ -207,11 +207,15 @@
     try { await loadLeaflet(); } catch (e) { document.getElementById('bdTime').textContent = e.message; return; }
     if (!map) {
       map = window.L.map('bdMap', { scrollWheelZoom: true, wheelPxPerZoomLevel: 90, zoomSnap: 0.5 });  // колесо мыши над картой — приближение / отдаление
-      map.fitBounds(POINTS.map(p => [p.lat, p.lng]), { padding: [20, 20] });
+      map._glFitted = false;
       window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
     }
     setTimeout(() => {
       map.invalidateSize();
+      if (!map._glFitted) {   // масштаб считаем, когда карта уже видна и имеет размер
+        map.fitBounds(POINTS.filter(p => p.key !== 'Джилвегёзю').map(p => [p.lat, p.lng]), { padding: [24, 24] });
+        map._glFitted = true;
+      }
       if (data) render();
       if (focusKey) { const p = POINTS.find(x => x.key === focusKey); if (p) map.setView([p.lat, p.lng], 9); }
     }, 60);
