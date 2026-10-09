@@ -86,12 +86,13 @@
     .status-onroad { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
     .status-loaded { background: #F0FDFA; color: #0D9488; border: 1px solid #99F6E4; }
     .status-completed { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
-    .btn-pay { background: #55B7BD; color: #0D1F23; border: none; padding: 4px 9px; border-radius: 7px; font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+    .btn-pay { min-width: 30px; background: #55B7BD; color: #0D1F23; border: none; padding: 4px 9px; border-radius: 7px; font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .btn-pay:hover { opacity: 0.8; }
     .btn-pay.paid { background: #D1FAE5; color: #065F46; }
-    .btn-edit { background: none; border: none; cursor: pointer; font-size: 1rem; color: #8fa8ab; transition: color 0.15s; }
+    .btn-edit { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 6px; background: none; border: 1px solid transparent; cursor: pointer; font-size: 1rem; color: #5B6670; transition: color 0.15s, background 0.15s; }
+    .btn-edit:hover, .btn-del:hover { background: #F0F2F4; border-color: #D5DADF; }
     .btn-edit:hover { color: #55B7BD; }
-    .btn-del { background: none; border: none; cursor: pointer; font-size: 1rem; color: #8fa8ab; transition: color 0.15s; }
+    .btn-del { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 6px; background: none; border: 1px solid transparent; cursor: pointer; font-size: 1rem; color: #5B6670; transition: color 0.15s, background 0.15s; }
     .btn-del:hover { color: #ef4444; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -179,7 +180,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="GL Logistics">
   <link rel="apple-touch-icon" href="/images/gl_logo_icon.png">
-<script src="/js/emoji-remover.js"></script>
+<script src="/js/emoji-remover.js?v=2"></script>
 <link rel="stylesheet" href="/css/gl-shell.css?v=9">
 <link rel="stylesheet" href="/css/gl-theme.css?v=1">
 </head>
