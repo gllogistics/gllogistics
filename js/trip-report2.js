@@ -103,7 +103,7 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', advance:'Аванс', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
+const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', advance:'Доплата аванса', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
 const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
@@ -239,7 +239,10 @@ function renderTripStats(trip, segs) {
   const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue','parts','insurance'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
 
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
-  const advanceAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
+  // Доплаты аванса (категория «Аванс» в расходах) прибавляются к изначальному авансу — это не расход
+  const topupAMD = expenses.filter(e=>e.category==='advance').reduce((s,e)=>s+(e.amount_amd||0),0);
+  const advanceInitAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
+  const advanceAMD = advanceInitAMD + topupAMD;
   const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
@@ -257,7 +260,7 @@ function renderTripStats(trip, segs) {
   document.getElementById('tripStats').innerHTML =
     kpi('Доход', revParts.join(' + '), segments.length ? 'все плечи · ֏' + fmt(revenueAMD) : '֏' + fmt(revenueAMD))
     + kpi('Расходы', '֏' + fmt(expensesOnlyAMD), realExp.length + ' ' + (realExp.length % 10 === 1 && realExp.length % 100 !== 11 ? 'чек' : realExp.length % 10 >= 2 && realExp.length % 10 <= 4 && (realExp.length % 100 < 10 || realExp.length % 100 >= 20) ? 'чека' : 'чеков'))
-    + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD), 'аванс ֏' + fmt(advanceAMD) + ' · зарплата ֏' + fmt(salaryAMD))
+    + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD), 'аванс ֏' + fmt(advanceAMD) + (topupAMD ? ' (в т.ч. доплаты ֏' + fmt(topupAMD) + ')' : '') + ' · зарплата ֏' + fmt(salaryAMD))
     + kpi(profitAMD >= 0 ? 'Прибыль' : 'Убыток', '֏' + fmt(profitAMD), '', profitAMD >= 0 ? 'green' : 'red')
     + kpi('Пробег GPS', fmt(trip.wialon_mileage) + ' км', fuelSub, diffFuel > 5 ? 'warn' : '');
 
@@ -295,7 +298,7 @@ function renderExpenses(expenses) {
       <td><span class="expense-cat ${catClass[e.category] || ''}">${catLabel[e.category] || e.category}</span></td>
       <td class="exp-desc">${esc(e.description || '')}${e.receipt_key ? ` <img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : ''}</td>
       <td class="exp-date">${fmtDate(e.date)}</td>
-      <td>${['advance','salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}</td>
+      <td>${e.category === 'advance' ? (e.paid_by === 'company_cash' ? '<span class="pay-tag pay-adv">Обналичено картой фирмы</span>' : '<span class="pay-tag pay-adv">На карту водителю</span>') : ['salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}</td>
       <td class="r exp-amt">${sym(e.currency)}${fmt(e.amount)}</td>
       <td class="r exp-act"><button type="button" class="exp-btn" onclick="editExpense(${e.id})">Изм.</button><button type="button" class="exp-btn del" onclick="deleteExpense(${e.id})">Удалить</button></td>
     </tr>`).join('') + `</tbody></table></div>`;
@@ -305,7 +308,7 @@ function renderExpenses(expenses) {
   let totalAMD = 0;
   expenses.forEach(e => {
     bycat[e.category] = (bycat[e.category] || 0) + (e.amount_amd || 0);
-    totalAMD += (e.amount_amd || 0);
+    if (e.category !== 'advance') totalAMD += (e.amount_amd || 0);   // доплаты аванса — не расход
   });
   totEl.innerHTML = `<div class="exp-tot">
     <span class="exp-cats">${Object.entries(bycat).map(([cat,amt]) => `${catLabel[cat] || cat}: <b>֏${fmt(amt)}</b>`).join(' · ')}</span>
@@ -457,6 +460,28 @@ async function addExpense() {
 }
 
 
+// «Кто оплатил»: для аванса — как передали деньги водителю, для остального — карта фирмы или наличные
+const PAY_OPTS = {
+  normal: [['card', 'Карта фирмы'], ['cash', 'Наличные водителя (из аванса)']],
+  advance: [['driver_card', 'Отправил на карту водителю'], ['company_cash', 'Обналичил по карте фирмы']]
+};
+function syncPaidBy(val) {
+  const sel = document.getElementById('ePaidBy'), cat = document.getElementById('eCat');
+  if (!sel || !cat) return;
+  const kind = cat.value === 'advance' ? 'advance' : 'normal';
+  if (sel.dataset.kind !== kind) {
+    sel.innerHTML = PAY_OPTS[kind].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+    sel.dataset.kind = kind;
+  }
+  if (val && [...sel.options].some(o => o.value === val)) sel.value = val;
+}
+function initPaidBy() {
+  document.getElementById('eCat')?.addEventListener('change', () => syncPaidBy());
+  document.getElementById('addExpenseBtn')?.addEventListener('click', () => setTimeout(() => syncPaidBy(), 0));
+  syncPaidBy();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPaidBy); else initPaidBy();
+
 window.editExpense = function(id) {
   const exp = (currentTrip?.expenses || []).find(e => e.id === id);
   if (!exp) return;
@@ -466,7 +491,7 @@ window.editExpense = function(id) {
   document.getElementById('eCurrency').value = exp.currency || 'AMD';
   document.getElementById('eDate').value = exp.date || '';
   document.getElementById('eDesc').value = exp.description || '';
-  if (document.getElementById('ePaidBy')) document.getElementById('ePaidBy').value = exp.paid_by || 'card';
+  syncPaidBy(exp.paid_by || (exp.category === 'advance' ? 'driver_card' : 'card'));
   // Помечаем что редактируем
   document.getElementById('expenseModal')._editId = id;
   const _t = document.getElementById('expModalTitle'); if(_t) _t.textContent = 'Редактировать расход';
@@ -681,7 +706,7 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
     if (parsed.amount) document.getElementById('eAmount').value = parsed.amount;
     if (parsed.currency) document.getElementById('eCurrency').value = parsed.currency;
     if (parsed.date) document.getElementById('eDate').value = parsed.date;
-    if (parsed.category) document.getElementById('eCat').value = parsed.category;
+    if (parsed.category) { document.getElementById('eCat').value = parsed.category; syncPaidBy(); }
     if (parsed.description) document.getElementById('eDesc').value = parsed.description;
 
     // Копируем файл в dropzone чека
