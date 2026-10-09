@@ -30,5 +30,7 @@
       });
     });
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  // Скрипт подключён в <head>: начинаем следить, когда появилось тело страницы
+  const start = () => observer.observe(document.body, { childList: true, subtree: true });
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
 })();
