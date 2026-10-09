@@ -24,6 +24,7 @@
     { key: 'Красный мост', title: 'Красный мост', border: 'Грузия — Азербайджан', lat: 41.3365, lng: 45.0968, src: 'ge' },
     { key: 'Лагодехи', title: 'Лагодехи', border: 'Грузия — Азербайджан', lat: 41.7555, lng: 46.2949, src: 'ge' },
     { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge' },
+    { key: 'Натахтари', title: 'Натахтари (TPCentral)', border: 'Грузия: стоянка на трассе к Верхнему Ларсу', lat: 41.9212, lng: 44.7299, src: 'tp' },
     { key: 'Верхний Ларс', title: 'Верхний Ларс (РФ)', border: 'Россия → Грузия, электронная очередь', lat: 42.8050, lng: 44.6380, src: 'ru' },
     { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'] },
     { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'] },
@@ -108,6 +109,15 @@
 
   // Состояние точки: число на пине, цвет, текст
   function stateOf(p) {
+    if (p.src === 'tp') {
+      const t = data?.tpcentral?.data;
+      if (!t || t.busy == null) return { label: '?', cls: 'na', text: 'Нет данных' };
+      const load = (t.busy + (t.free || 0)) ? t.busy / (t.busy + (t.free || 0)) : 0;
+      const cls = t.suspended ? 'bad' : load >= 0.85 ? 'bad' : load >= 0.6 ? 'mid' : 'ok';
+      return { label: fmt(t.busy), cls, at: data.tpcentral.at,
+        text: `Стоянка TPCentral: занято мест <b>${fmt(t.busy)}</b>, свободно ${fmt(t.free)}, на обслуживании ${fmt(t.in_service)}`
+          + (t.suspended ? '<br><b style="color:#A3241B">Вызов на границу временно приостановлен</b>' : '<br>Вызов машин на границу идёт') };
+    }
     if (p.src === 'link') {
       return { label: 'i', cls: 'na', text: p.note || 'Числа этой очереди смотрите на сайте источника: он не разрешает автоматическое чтение или сейчас недоступен.' };
     }
@@ -196,7 +206,7 @@
   function popup(p, st) {
     const parks = st.g && st.g.parks && st.g.parks.length
       ? '<div class="bd-parks">' + st.g.parks.map(x => `<div><span>${esc(x.name)}</span><span>${fmt(x.busy)} / своб. ${fmt(x.free)}</span></div>`).join('') + '</div>' : '';
-    const src = p.src === 'kz' ? [CGR_LINK, 'CarGoRuqsat (КГД Казахстана)'] : p.src === 'link' ? null : p.src === 'eu' ? (p.by ? [BY_LINK, 'Госпогранкомитет Беларуси'] : [PL_LINK, 'Налоговая служба Польши']) : p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
+    const src = p.src === 'tp' ? ['https://tpcentral.ge/', 'TPCentral'] : p.src === 'kz' ? [CGR_LINK, 'CarGoRuqsat (КГД Казахстана)'] : p.src === 'link' ? null : p.src === 'eu' ? (p.by ? [BY_LINK, 'Госпогранкомитет Беларуси'] : [PL_LINK, 'Налоговая служба Польши']) : p.src === 'ru' ? ['https://zitic.ru/eo/vl/', 'ЗИТ ЦИ, электронная очередь'] : p.src === 'ge' ? [RS_LINK, 'Налоговая служба Грузии'] : p.src === 'tr' ? [GTI_LINK(p.tr), 'GTI, TIR-парки Турции'] : [BG_LINK, 'Гранична полиция Болгарии'];
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
@@ -214,8 +224,6 @@
       L.marker([p.lat, p.lng], { icon, title: p.title }).bindPopup(popup(p, st), { maxWidth: 300 }).addTo(layer);
       rows.push(`<tr><td><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div></td><td>${st.text}</td><td><span class="bd-dot ${st.cls}"></span></td></tr>`);
     });
-    const tp = data?.tpcentral?.data;
-    if (tp) rows.push(`<tr><td><b>TPCentral</b><div class="bd-muted">Стоянка (Грузия)</div></td><td>Занято мест: <b>${fmt(tp.busy)}</b> · свободно: ${fmt(tp.free)} · на обслуживании: ${fmt(tp.in_service)}${tp.suspended ? '<br><b style="color:#A3241B">Вызов на границу временно приостановлен</b>' : ''}</td><td><span class="bd-dot ${tp.suspended ? 'bad' : 'ok'}"></span></td></tr>`);
     document.getElementById('bdList').innerHTML = rows.join('');
     renderKzTable();
   }
@@ -243,7 +251,7 @@
     box.hidden = false; document.getElementById('bdKzTitle').hidden = false;
   }
 
-  const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
+  const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Натахтари', 'Натахтари'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
                    ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог'], ['kz-khorgos', 'Хоргос'], ['kz-dostyk', 'Достык'], ['kz-orsk', 'Орск']];
   let expanded = localStorage.getItem('gl_borders_open') === '1';
 
