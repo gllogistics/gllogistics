@@ -55,6 +55,9 @@ tr:hover td { background: #f5fbfb; }
 .status-sent     { background: #E3F2FD; color: #1565C0; }
 .status-transit  { background: #FFF3E0; color: #E65100; }
 .status-delivered{ background: #E8F5E9; color: #2E7D32; }
+.status-btn { border: none; cursor: pointer; font-family: inherit; white-space: nowrap; transition: box-shadow .15s; }
+.status-btn:hover { box-shadow: inset 0 0 0 1px currentColor; }
+.status-btn:disabled { opacity: .6; cursor: default; }
 
 /* Modal */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
@@ -269,7 +272,7 @@ function render() {
         <td style="font-size:.78rem">${d.route_from||''} → ${d.route_to||''}</td>
         <td style="font-size:.78rem">${d.cargo || ''}</td>
         <td style="font-weight:700;color:#1E7A80">${curSign[d.rate_currency]||'€'}${fmt(d.rate)}</td>
-        <td><span class="status-badge ${statusClass[d.status]||'status-sent'}">${statusMap[d.status]||d.status}</span></td>
+        <td><button type="button" class="status-badge status-btn ${statusClass[d.status]||'status-sent'}" data-st="${d.id}" title="Нажмите, чтобы сменить статус">${statusMap[d.status]||d.status}</button></td>
         <td>
           <div style="display:flex;gap:4px">
             <button onclick="editDispatch(${d.id})" style="background:#f0f9f9;color:#1E7A80;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.75rem">✏️</button>
@@ -355,6 +358,22 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 });
 
 ['filterStart','filterEnd','filterStatus'].forEach(id => document.getElementById(id).addEventListener('change', load));
+
+// Статус кнопкой: Отправлена → В пути → Доставлена (сохраняется сразу)
+const NEXT_STATUS = { sent: 'transit', transit: 'delivered', delivered: 'sent' };
+document.getElementById('dispatchTable').addEventListener('click', async e => {
+  const b = e.target.closest('[data-st]'); if (!b) return;
+  const d = allData.find(x => x.id == b.dataset.st); if (!d) return;
+  if (d.status === 'delivered' && !confirm('Машина уже доставлена. Вернуть статус «Отправлена»?')) return;
+  const next = NEXT_STATUS[d.status] || 'transit';
+  b.disabled = true;
+  try {
+    await api('/api/dispatches/' + d.id, 'PUT', { date: d.date, truck_number: d.truck_number, driver_name: d.driver_name, client: d.client, route_from: d.route_from,
+      route_to: d.route_to, cargo: d.cargo, rate: d.rate, rate_currency: d.rate_currency, status: next, notes: d.notes });
+    d.status = next;
+    if (document.getElementById('filterStatus').value) load(); else render();
+  } catch (err) { alert('Не удалось сменить статус: ' + err.message); b.disabled = false; }
+});
 
 // Дефолтный период — текущий месяц
 const now = new Date();
