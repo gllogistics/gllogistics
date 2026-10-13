@@ -93,6 +93,7 @@ tr.noname td { background: #FFFBF2; }
 .rq-sum span { font-size: 12.5px; padding: 3px 9px; border-radius: 12px; background: #F0F2F4; color: #3D4852; }
 .rq-sum span.ok { background: #E7F4EC; color: #1B6B3F; }
 .rq-sum span.warn { background: #FDF1E3; color: #8A4B00; }
+.mailbad { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; background: #FBE9E7; color: #A3241B; font-size: 11.5px; font-weight: 600; white-space: nowrap; cursor: help; vertical-align: middle; }
 .waq { border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px; margin-top: 12px; background: #FAFBFB; }
 .waq .who { font-size: 15px; font-weight: 600; margin: 4px 0 10px; }
 @media (max-width: 960px) { .selbar { left: 0; } }
@@ -212,6 +213,15 @@ const WORKER = 'https://gl-api.gltransam.workers.dev';
 const user = localStorage.getItem('gl_staff_user');
 if (!user) { location.replace('/staff.html'); throw ''; }
 const isAdmin = user === 'TigranMetspagyan';
+// Метка «email не работает»: админ может снять её (например, если адрес исправили у получателя)
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-unsup]'); if (!t) return;
+  e.preventDefault();
+  if (!isAdmin) { alert(t.title + '\n\nНа этот адрес запросы больше не отправляются. Если адрес исправлен, попросите администратора снять пометку.'); return; }
+  if (!confirm(t.title + '\n\nСнять пометку и снова отправлять письма на этот адрес?')) return;
+  for (const em of t.dataset.unsup.split(',')) await api('/api/email-suppress?email=' + encodeURIComponent(em), 'DELETE');
+  await load();
+});
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const api = (p, m = 'GET', b) => fetch(WORKER + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
@@ -271,9 +281,20 @@ async function loadLastReq() {
   const r = await api('/api/carrier-requests/last').catch(() => []);
   lastReq = {}; (Array.isArray(r) ? r : []).forEach(x => { lastReq[x.carrier_id] = x.last_at; });
 }
+// Нерабочие адреса: Resend сообщил о возврате письма или жалобе на спам
+let SUP = {};
+async function loadSup() {
+  const r = await api('/api/email-suppress').catch(() => []);
+  SUP = {}; (Array.isArray(r) ? r : []).forEach(x => { SUP[String(x.email).toLowerCase()] = x; });
+}
+const emailsOf = c => String(c.email || '').toLowerCase().split(/[\s,;]+/).filter(x => /@/.test(x));
+const workingEmails = c => emailsOf(c).filter(e => !SUP[e]);
+const badTag = c => { const bad = emailsOf(c).filter(e => SUP[e]); if (!bad.length) return '';
+  const why = bad.map(e => e + ': ' + (SUP[e].reason === 'complained' ? 'пометили письмо как спам' : 'письма возвращаются, адрес не существует')).join('; ');
+  return `<span class="mailbad" data-unsup="${esc(bad.join(','))}" title="${esc(why)}">${bad.length === emailsOf(c).length ? 'email не работает' : 'один email не работает'}</span>`; };
 async function load() {
   api('/api/me').then(m => { if (m && !m.error) me = m; }).catch(() => {});
-  await loadLastReq();
+  await loadLastReq(); await loadSup();
   all = await api('/api/carrier-base').catch(() => []);
   if (!Array.isArray(all)) all = [];
   $('dirList').innerHTML = sections().map(d => `<option value="${esc(d)}">`).join('');
@@ -337,7 +358,7 @@ function render() {
       <td>${esc(c.route)}</td>
       <td>${esc(c.trailer)}</td>
       <td>${phoneCell(c)}</td>
-      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</td>
+      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.email)}</a>${badTag(c)}` : ''}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
       : '<tr><td class="empty" colspan="10">Ничего не найдено. Измените фильтры.</td></tr>';
@@ -346,7 +367,7 @@ function render() {
     $('thead').innerHTML = '<tr><th style="width:110px">Написали</th><th>Email / контакт</th><th>Заметки</th><th></th></tr>';
     $('tbody').innerHTML = list.length ? list.map(c => `<tr>
       <td><input type="checkbox" class="check" data-contacted="${c.id}" ${c.contacted ? 'checked' : ''} aria-label="Написали"></td>
-      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.name)}</a>` : esc(c.name)}</td>
+      <td>${c.email ? `<a class="phone" href="mailto:${esc(c.email)}">${esc(c.name)}</a>${badTag(c)}` : esc(c.name)}</td>
       <td><div class="notes">${esc(c.notes)}</div></td>
       <td><button type="button" class="b sm" data-edit="${c.id}">Изм.</button></td></tr>`).join('')
       : '<tr><td class="empty" colspan="4">Ничего не найдено.</td></tr>';
@@ -392,19 +413,21 @@ function recipients() {
   const re = tr ? new RegExp(tr, 'i') : null;
   const base = all.filter(c => c.status !== 'prospect' && rqSecs.has(dirOf(c)))
     .filter(c => !re || !only || re.test([c.trailer, c.load_type, c.notes].join(' ')));
-  const seenE = new Set(), seenW = new Set(), email = [], wa = [];
+  const seenE = new Set(), seenW = new Set(), email = [], wa = []; let bad = 0;
   for (const c of base) {
-    if (hasEmail(c)) { const k = c.email.toLowerCase().split(/[\s,;]+/)[0]; if (!seenE.has(k)) { seenE.add(k); email.push(c); } }
+    const we = workingEmails(c);
+    if (we.length) { const k = we[0]; if (!seenE.has(k)) { seenE.add(k); email.push(c); } }
+    else if (hasEmail(c)) bad++;
     const w = firstWa(c); if (w && !seenW.has(w)) { seenW.add(w); wa.push(c); }
   }
-  return { base, email, wa };
+  return { base, email, wa, bad };
 }
 function rqSummary() {
   const r = recipients(), ce = $('rqChEmail').checked, cw = $('rqChWa').checked;
   const none = r.base.filter(c => !hasEmail(c) && !firstWa(c)).length;
   $('rqSum').innerHTML = rqSecs.size
     ? `<span>Перевозчиков в выбранных разделах: ${r.base.length}</span>` + (ce ? `<span class="ok">Email: ${r.email.length}</span>` : '') + (cw ? `<span class="ok">WhatsApp: ${r.wa.length}</span>` : '')
-      + (none ? `<span class="warn">Без контактов: ${none}</span>` : '') + (ce && r.email.length > 100 ? `<span class="warn">Email уйдут первым 100 (дневной лимит)</span>` : '')
+      + (none ? `<span class="warn">Без контактов: ${none}</span>` : '') + (ce && r.bad ? `<span class="warn">Email не работает: ${r.bad} (пропустим)</span>` : '') + (ce && r.email.length > 100 ? `<span class="warn">Email уйдут первым 100 (дневной лимит)</span>` : '')
     : '<span class="warn">Выберите хотя бы один раздел</span>';
   $('rqSend').disabled = !rqSecs.size || (!(ce && r.email.length) && !(cw && r.wa.length));
 }
@@ -475,7 +498,7 @@ $('rqSend').addEventListener('click', async () => {
     b.textContent = 'Отправляю письма…';
     const res = await api('/api/carrier-requests/send-email', 'POST', { ids: r.email.slice(0, 100).map(c => c.id), subject: $('rqSubject').value, text: $('rqText').value }).catch(() => ({ error: 'нет связи' }));
     if (res.error) alert('Письма не отправлены: ' + res.error);
-    else alert(`Отправлено писем: ${res.sent}` + (res.skipped ? `\nПропущено (некорректный адрес): ${res.skipped}` : ''));
+    else alert(`Отправлено писем: ${res.sent}` + (res.skipped ? `\nПропущено (некорректный адрес): ${res.skipped}` : '') + (res.bounced ? `\nПропущено (email не работает): ${res.bounced}` : ''));
   }
   b.textContent = 'Отправить'; b.disabled = false;
   await loadLastReq(); render();
