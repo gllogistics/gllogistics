@@ -347,7 +347,7 @@ function renderAll() {
     return `<tr>
       <td data-label="#">${idx+1}</td><td data-label="Клиент">${esc(c.client_name)}</td><td data-label="Перевозчик">${esc(c.carrier_name)}</td><td data-label="Товар">${esc(c.product)}</td>
       <td data-label="Откуда">${load}</td><td data-label="Куда">${unload}</td><td data-label="Дата">${c.load_date||'-'}</td>
-      <td data-label="Статус"><span class="status-badge ${sc[c.status]||''}">${sl[c.status]||c.status}</span></td>
+      <td data-label="Статус"><button type="button" class="status-badge status-btn ${sc[c.status]||''}" data-st="${c.id}" title="Нажмите, чтобы сменить статус">${sl[c.status]||c.status}</button></td>
       <td data-label="Клиент ₴">${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
       <td data-label="Перевозчик ₴">${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
       <td data-label="Прибыль" class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
@@ -663,4 +663,25 @@ async function exportToExcel() {
   st.textContent = '.my-check{display:inline-block;width:13px;height:13px;border:1.5px solid #55B7BD;border-radius:3px;margin-left:6px;vertical-align:middle;cursor:pointer;background:#fff}' +
                    '.my-check.on{background:#2E7D32;border-color:#2E7D32;box-shadow:inset 0 0 0 2px #fff}';
   document.head.appendChild(st);
+})();
+
+
+// ── Статус сделки кнопкой: На загрузке → Загружен → В пути → Завершён (сохраняется сразу) ──
+(function () {
+  const NEXT = { loading: 'loaded', loaded: 'onroad', onroad: 'completed', completed: 'loading' };
+  const st = document.createElement('style');
+  st.textContent = '.status-btn{cursor:pointer;font-family:inherit;white-space:nowrap;transition:box-shadow .15s}.status-btn:hover{box-shadow:inset 0 0 0 1px currentColor}.status-btn:disabled{opacity:.6;cursor:default}';
+  document.head.appendChild(st);
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('#tableBody [data-st]'); if (!b) return;
+    const c = (typeof allCargoData !== 'undefined' ? allCargoData : []).find(x => x.id == b.dataset.st); if (!c) return;
+    if (c.status === 'completed' && !confirm('Сделка уже завершена. Вернуть статус «На загрузке»?')) return;
+    const next = NEXT[c.status] || 'loaded';
+    b.disabled = true;
+    try {
+      // Отправляем полную запись (старый сервер сохраняет всё как есть), а новый сервер по _only меняет только статус
+      await updateCargo(c.id, Object.assign({}, c, { status: next, _only: 'status' }));
+      await refreshData();
+    } catch (err) { alert('Не удалось сменить статус: ' + err.message); b.disabled = false; }
+  });
 })();
