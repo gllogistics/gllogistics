@@ -253,7 +253,7 @@
 
   const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Натахтари', 'Натахтари'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
                    ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог'], ['kz-khorgos', 'Хоргос'], ['kz-dostyk', 'Достык'], ['kz-orsk', 'Орск']];
-  let expanded = localStorage.getItem('gl_borders_open') === '1';
+  let expanded = localStorage.getItem('gl_borders_open') !== '0';   // по умолчанию карта раскрыта
 
   function renderSummary() {
     document.getElementById('bdChips').innerHTML = SUMMARY.map(([k, short]) => {
@@ -297,6 +297,7 @@
     const t = document.getElementById('bdToggle'); t.textContent = v ? 'Свернуть' : 'Показать карту'; t.setAttribute('aria-expanded', String(v));
     if (!v) return;
     try { await loadLeaflet(); } catch (e) { document.getElementById('bdTime').textContent = e.message; return; }
+    if (document.getElementById('bdMount').offsetParent === null) return;   // вкладка скрыта — карту создадим, когда её откроют
     if (!map) {
       map = window.L.map('bdMap', { scrollWheelZoom: true, wheelPxPerZoomLevel: 90, zoomSnap: 0.5 });  // колесо мыши над картой — приближение / отдаление
       map._glFitted = false;
@@ -314,11 +315,8 @@
   }
 
   function init() {
-    const two = document.querySelector('.two-col'); const detail = document.getElementById('tripDetail');
-    if (!two || !detail) return;
-    // правая колонка: очереди сверху, выбранный рейс под ними
-    const right = document.createElement('div'); right.className = 'right-col';
-    detail.parentNode.insertBefore(right, detail); right.appendChild(detail);
+    // Блок живёт на странице «Маршруты», вкладка «Очереди на границах»
+    const mount = document.getElementById('bdMount'); if (!mount) return;
     const card = document.createElement('section');
     card.id = 'bordersCard'; card.setAttribute('aria-label', 'Очереди на границах');
     card.innerHTML = `<div class="bd-top">
@@ -335,7 +333,7 @@
         <h4 class="bd-h4" id="bdKzTitle" hidden>Казахстан: все пункты, выезд из РК (электронная очередь)</h4>
         <div class="bd-card" id="bdKzCard" hidden><table class="bd-table"><thead><tr><th>Пункт</th><th>Ближайший свободный слот</th><th></th></tr></thead><tbody id="bdKzList"></tbody></table></div>
       </div>`;
-    right.insertBefore(card, detail);
+    mount.appendChild(card);
     document.getElementById('bdRegions').innerHTML = Object.entries(REGIONS).map(([k, l]) => `<button type="button" class="bd-reg" data-reg="${k}">${l}</button>`).join('');
     document.getElementById('bdRegions').addEventListener('click', e => { const b = e.target.closest('[data-reg]'); if (b) fitRegion(b.dataset.reg); });
     document.getElementById('bdRefresh').addEventListener('click', () => load(true));
@@ -387,6 +385,8 @@
     document.head.appendChild(st);
     load(false);
     if (expanded) setExpanded(true);
+    // открыли вкладку «Очереди» на странице «Маршруты» — показать или поправить размер карты
+    window.addEventListener('gl-tab', e => { if (e.detail === 'bd' && expanded) setExpanded(true); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
