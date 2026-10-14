@@ -104,7 +104,9 @@
 
   function init() {
     const detail = $('tripDetail'); if (!detail) return;
-    const anchor = $('bordersCard') ? $('bordersCard').nextSibling : detail;
+    // правая колонка: полезные сайты сверху, выбранный рейс под ними
+    if (!detail.parentNode.classList.contains('right-col')) { const rc = document.createElement('div'); rc.className = 'right-col'; detail.parentNode.insertBefore(rc, detail); rc.appendChild(detail); }
+    const anchor = detail;
     const card = document.createElement('section');
     card.id = 'linksCard'; card.setAttribute('aria-label', 'Полезные сайты');
     card.innerHTML = `<div class="lk-top"><div class="lk-titles"><h3>Полезные сайты</h3><span class="lk-muted" id="lkCount"></span></div>
@@ -124,6 +126,7 @@
     document.body.appendChild(m);
     const st = document.createElement('style');
     st.textContent = `
+      .right-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
       #linksCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
       .lk-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
       .lk-titles { display: flex; align-items: baseline; gap: 10px; } .lk-titles h3 { margin: 0; font-size: 15px; font-weight: 600; color: #14202B; }
