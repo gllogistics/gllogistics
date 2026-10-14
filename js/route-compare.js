@@ -9,9 +9,9 @@
     CZ: 'Чехия', SI: 'Словения', HR: 'Хорватия', IT: 'Италия', FR: 'Франция', LT: 'Литва', LV: 'Латвия', EE: 'Эстония', UA: 'Украина', MD: 'Молдова', GE: 'Грузия', AM: 'Армения',
     BA: 'Босния', ME: 'Черногория', AL: 'Албания', NL: 'Нидерланды', BE: 'Бельгия', LU: 'Люксембург', CH: 'Швейцария', ES: 'Испания', PT: 'Португалия', DK: 'Дания', SE: 'Швеция', BY: 'Беларусь', RU: 'Россия' };
   const STORE = 'gl_route_compare_v1';
-  let fuel = {}, openState = false, last = null;
+  let fuel = {}, last = null, tripsList = [];
 
-  const avgRate = () => { const r = (typeof trips !== 'undefined' ? trips : []).map(t => parseFloat(t.wialon_fuel_rate)).filter(x => x > 10 && x < 60); return r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 10) / 10 : 31; };
+  const avgRate = () => { const r = tripsList.map(t => parseFloat(t.wialon_fuel_rate)).filter(x => x > 10 && x < 60); return r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 10) / 10 : 31; };
 
   function rowHtml(v) {
     return `<div class="rc-var"><input class="rc-name" placeholder="Название, напр. Через Видин" value="${esc(v.name || '')}">
@@ -98,21 +98,10 @@
     } catch (e) { $('rcRes').innerHTML = `<div class="rc-err">Не удалось рассчитать: ${esc(e.message)}</div>`; }
     btn.disabled = false; updCost();
   }
-  function setOpen(v) {
-    openState = v; $('rcCard').hidden = !v; $('rcBtn').classList.toggle('on', v);
-    if (v && $('raCard') && !$('raCard').hidden && $('raClose')) $('raClose').click();   // аналитику закрываем
-    const d = $('tripDetail'); if (d) { d.style.visibility = v ? 'hidden' : ''; d.style.position = v ? 'absolute' : ''; }
-    if (v) {
-      if (!$('rcFrom').value && !$('rcTo').value) { try { fillForm(JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) { fillForm({}); } }
-      fetch(W + '/api/routes/fuel').then(r => r.json()).then(j => { fuel = (j && j.prices) || {}; if (last) render(last.res, readForm()); }).catch(() => {});
-      $('rcCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
   function init() {
-    const detail = $('tripDetail'); if (!detail) return;
-    const card = document.createElement('section'); card.id = 'rcCard'; card.hidden = true; card.setAttribute('aria-label', 'Сравнить пути');
-    card.innerHTML = `<div class="rc-top"><h3>Сравнить пути</h3><div><button type="button" class="rc-btn" id="rcExample">Пример: Видин или Русе</button> <button type="button" class="rc-btn" id="rcClose">Закрыть</button></div></div>
+    const mount = $('rcMount'); if (!mount) return;
+    const card = document.createElement('section'); card.id = 'rcCard'; card.setAttribute('aria-label', 'Сравнить пути');
+    card.innerHTML = `<div class="rc-top"><span class="rc-hint">Расчёт маршрута фуры по странам: дороги, маршрутные карты, мосты, дизель и время.</span><button type="button" class="rc-btn" id="rcExample">Пример: Видин или Русе</button></div>
       <div class="rc-grid">
         <label>Откуда<input id="rcFrom" placeholder="Kapitan Andreevo, Bulgaria"></label>
         <label>Куда<input id="rcTo" placeholder="Bors, Romania"></label>
@@ -126,13 +115,11 @@
       <div id="rcVars"></div>
       <div class="rc-actions"><button type="button" class="rc-btn" id="rcAdd">+ Вариант</button><button type="button" class="rc-btn primary" id="rcGo">Рассчитать</button></div>
       <div id="rcRes"></div>`;
-    detail.parentNode.insertBefore(card, detail.parentNode.firstChild);
-    const btn = document.createElement('button'); btn.type = 'button'; btn.id = 'rcBtn'; btn.className = 'ra-open-btn'; btn.textContent = 'Сравнить пути';
-    const after = $('raBtn') || $('tripTabs'); if (after && after.parentNode) after.parentNode.insertBefore(btn, after.nextSibling);
+    mount.appendChild(card);
     const st = document.createElement('style');
     st.textContent = `
       #rcCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-      #rcCard[hidden] { display: none; } .rc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .rc-top h3 { margin: 0; font-size: 16px; font-weight: 600; }
+      .rc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .rc-top h3 { margin: 0; font-size: 16px; font-weight: 600; }
       .rc-btn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #D5DADF; background: #fff; color: #14202B; font: inherit; font-size: 13px; cursor: pointer; }
       .rc-btn.primary { background: #146C72; border-color: #146C72; color: #fff; font-weight: 600; } .rc-btn:disabled { opacity: .6; }
       .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
@@ -155,15 +142,16 @@
       .rc-notes { font-size: 12px; color: #5B6670; display: flex; flex-direction: column; gap: 3px; } .rc-notes a { color: #146C72; }
       @media (max-width: 900px) { .rc-var { grid-template-columns: 1fr 1fr; } }`;
     document.head.appendChild(st);
-    btn.addEventListener('click', () => setOpen(!openState));
-    $('rcClose').addEventListener('click', () => setOpen(false));
+
     $('rcAdd').addEventListener('click', () => { if (document.querySelectorAll('.rc-var').length >= 4) return alert('Не больше 4 вариантов за раз'); $('rcVars').insertAdjacentHTML('beforeend', rowHtml({})); updCost(); });
     $('rcVars').addEventListener('click', e => { if (e.target.closest('.rc-del')) { e.target.closest('.rc-var').remove(); updCost(); } });
     $('rcGo').addEventListener('click', go);
     $('rcExample').addEventListener('click', () => fillForm({ origin: 'Kapitan Andreevo, Bulgaria', destination: 'Bors, Romania', cargo: 'dry', euro: 'euro6', rate: avgRate(),
       variants: [{ name: 'Через Видин', via: ['Vidin, Bulgaria', 'Calafat, Romania'] }, { name: 'Через Русе', via: ['Ruse, Bulgaria', 'Giurgiu, Romania'] }] }));
-    // выбор рейса в списке или открытие аналитики закрывает это окно
-    document.addEventListener('click', e => { if (openState && (e.target.closest('.trip-card') || e.target.closest('#raBtn'))) setOpen(false); }, true);
+    // форма: последнее заполнение; средний расход машин из рейсов; цены дизеля
+    try { fillForm(JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) { fillForm({}); }
+    fetch(W + '/api/trips').then(r => r.json()).then(t => { tripsList = Array.isArray(t) ? t : []; if (!(JSON.parse(localStorage.getItem(STORE) || '{}').rate)) $('rcRate').value = avgRate(); }).catch(() => {});
+    fetch(W + '/api/routes/fuel').then(r => r.json()).then(j => { fuel = (j && j.prices) || {}; if (last) render(last.res, readForm()); }).catch(() => {});
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 20)); else setTimeout(init, 20);
 })();
