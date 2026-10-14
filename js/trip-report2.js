@@ -138,7 +138,7 @@ function setTripHeader(t, segRoute) {
   const b = document.getElementById('detailBadge');
   if (b) { b.className = 'badge ' + (t.status === 'closed' ? 'badge-closed' : 'badge-open'); b.textContent = t.status === 'closed' ? 'Закрыт' : 'Открыт'; }
   const sub = document.getElementById('detailSub');
-  if (sub) sub.textContent = (t.route_from || '') + ' → ' + (t.route_to || '') + (segRoute || '') + ' · ' + (t.date_end ? fmtDate(t.date_start) + ' — ' + fmtDate(t.date_end) : 'с ' + fmtDate(t.date_start)) + (t.route_variant ? ' · ' + t.route_variant : '');
+  if (sub) sub.textContent = (t.route_from || '') + ' → ' + (t.route_to || '') + (segRoute || '') + ' · ' + (t.date_end ? fmtDate(t.date_start) + ' — ' + fmtDate(t.date_end) : 'с ' + fmtDate(t.date_start)) + (t.route_variant || t.route_variant_back ? ' · ' + (t.route_variant_back && t.route_variant_back !== t.route_variant ? 'туда: ' + (t.route_variant || '—') + ', обратно: ' + t.route_variant_back : t.route_variant) : '');
   const note = document.getElementById('detailNote');
   if (note) { note.textContent = t.notes || ''; note.style.display = t.notes ? '' : 'none'; }
 }
@@ -344,9 +344,10 @@ function openTripModal(trip = null) {
   document.getElementById('fNotes').value = trip?.notes || '';
   // Вариант пути: стартовый список + все, что уже встречались в рейсах
   const VARIANTS = ['По суше через Капыкуле', 'Ro-Ro Пендик — Триест', 'Ro-Ro Пендик — Бари', 'Паром Поти/Батуми — Черноморск/Констанца', 'Через Россию (Верхний Ларс)'];
-  const usedV = trips.map(t => t.route_variant).filter(Boolean);
+  const usedV = trips.flatMap(t => [t.route_variant, t.route_variant_back]).filter(Boolean);
   document.getElementById('fVariantList').innerHTML = [...new Set(VARIANTS.concat(usedV))].map(v => `<option value="${esc(v)}">`).join('');
   document.getElementById('fVariant').value = trip?.route_variant || '';
+  document.getElementById('fVariantBack').value = trip?.route_variant_back || '';
   document.getElementById('tripModal').classList.add('open');
 }
 
@@ -370,6 +371,7 @@ async function saveTrip() {
     fuel_rate_plan: parseFloat(document.getElementById('fFuelRate').value) || 30,
     notes: document.getElementById('fNotes').value,
     route_variant: document.getElementById('fVariant').value.trim(),
+    route_variant_back: document.getElementById('fVariantBack').value.trim(),
     status: (editingTripId && (trips.find(t => t.id === editingTripId) || {}).status) || 'open',   // правка закрытого рейса больше не открывает его
     fuel_cost: 0,
     fuel_cost_currency: 'EUR',
