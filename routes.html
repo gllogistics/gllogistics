@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script src="/js/auth-fetch.js"></script>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/images/GL_LOGISTICs_line_-09.jpg.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Logistics | Маршруты</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #F6F7F8; color: #14202B; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 28px 48px; }
+h1 { margin: 0; font-size: 24px; font-weight: 600; }
+.sub { margin: 4px 0 16px; font-size: 14px; color: #5B6670; max-width: 860px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tab { border: 1px solid #D5DADF; background: #fff; border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; color: #14202B; }
+.tab.on { background: #146C72; border-color: #146C72; color: #fff; }
+[hidden] { display: none !important; }
+@media (max-width: 900px) { .wrap { padding: 16px 12px 40px; } }
+</style>
+<link rel="stylesheet" href="/css/gl-shell.css?v=9">
+<link rel="stylesheet" href="/css/gl-theme.css?v=1">
+</head>
+<body><script src="/js/layout.js?v=12"></script>
+<div class="wrap">
+  <h1>Маршруты</h1>
+  <p class="sub">Сравнение вариантов пути до рейса и разбор того, во что обходились прошлые рейсы. Варианты пути для аналитики указываются в рейсе: «Изменить» → «Путь туда / обратно».</p>
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab on" data-tab="rc" role="tab">Сравнить пути</button>
+    <button type="button" class="tab" data-tab="ra" role="tab">Аналитика маршрутов</button>
+  </div>
+  <div id="rcMount"></div>
+  <div id="raMount" hidden></div>
+</div>
+<script src="/js/route-compare.js?v=2"></script>
+<script src="/js/route-analytics.js?v=3"></script>
+<script src="/js/routes-page.js?v=1"></script>
+<script src="/js/nav-fleet.js?v=3"></script>
+</body>
+</html>
