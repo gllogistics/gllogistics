@@ -7,8 +7,10 @@
   const CLICKABLE = new Set(['BUTTON', 'A', 'LABEL', 'OPTION', 'SUMMARY']);
   function cleanNode(node) {
     if (node.nodeType === 3) { // TEXT_NODE
-      const cleaned = node.textContent.replace(EMOJI_RE, ch => KEEP.has(ch) ? ch : '').replace(/\s+/g, ' ').trimStart();
-      if (cleaned === node.textContent) return;
+      const stripped = node.textContent.replace(EMOJI_RE, ch => KEEP.has(ch) ? ch : '');
+      if (stripped === node.textContent) return;   // эмодзи нет — текст и пробелы не трогаем
+      let cleaned = stripped.replace(/ {2,}/g, ' ');   // убираем только двойной пробел, оставшийся на месте эмодзи
+      if (/^\s/.test(cleaned) && !/^\s/.test(node.textContent)) cleaned = cleaned.trimStart();   // эмодзи стоял в начале
       // Никогда не оставляем кнопку или ссылку пустой: если в ней был только значок — оставляем как есть
       const p = node.parentElement;
       if (!cleaned.trim() && p && CLICKABLE.has(p.tagName) && p.textContent.trim() === node.textContent.trim() && !p.querySelector('svg, img')) return;
