@@ -567,6 +567,13 @@ async function loadTrips() {
     } catch(_) { t._segments = []; }
   }));
   renderTripsList();
+  // Переход со страницы «Маршруты»: /trip-report.html?trip=ID — сразу открываем рейс
+  const want = new URLSearchParams(location.search).get('trip');
+  if (want) {
+    const t = trips.find(x => String(x.id) === want);
+    if (t) openTrip(t);
+    history.replaceState(null, '', location.pathname);
+  }
 }
 
 async function loadCargo() {
