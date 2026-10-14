@@ -5,6 +5,61 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return String(u || ''); } };
   const api = (p, m = 'GET', b) => fetch(API + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
+  // ── Значки сайтов: Google (заглушку 16 px отбрасываем) → /favicon.ico самого сайта; для страниц входа — сайт из redirect_uri ──
+  const ICON_CACHE = 'gl_link_icons_v3', WEEK = 7 * 864e5;
+  const iconCache = (() => { try { return JSON.parse(localStorage.getItem(ICON_CACHE)) || {}; } catch (e) { return {}; } })();
+  const probe = src => new Promise(res => { const i = new Image(); const t = setTimeout(() => res(0), 7000);
+    i.onload = () => { clearTimeout(t); res(i.naturalWidth); }; i.onerror = () => { clearTimeout(t); res(0); }; i.referrerPolicy = 'no-referrer'; i.src = src; });
+  function iconHosts(url) {
+    const out = [];
+    try {
+      const u = new URL(url), ru = u.searchParams.get('redirect_uri');
+      if (ru) { try { out.push(new URL(ru).hostname); } catch (e) {} }
+      out.push(u.hostname);
+      const parts = u.hostname.split('.');
+      for (let i = 1; parts.length - i >= 2; i++) {
+        const c = parts.slice(i).join('.');
+        if (/^(gov|com|org|net|edu|ac|co|gob|gouv)\.[a-z]{2,3}$/.test(c)) break;   // не уходим в «gov.pl», «com.tr» и т.п.
+        out.push(c);
+      }
+    } catch (e) {}
+    return [...new Set(out.map(h => h.toLowerCase()))];
+  }
+  async function findIcon(url) {
+    const c = iconCache[url];
+    if (c && Date.now() - c.t < WEEK) return c.src;
+    let found = '';
+    for (const h of iconHosts(url)) {
+      const g = 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(h);
+      if (await probe(g) > 16) { found = g; break; }
+      const d = 'https://' + h + '/favicon.ico';
+      if (await probe(d) >= 16) { found = d; break; }
+    }
+    if (!found) {   // значок в папке приложения: https://сайт/папка/favicon.ico (так у BIREG)
+      try { const u = new URL(url), seg = u.pathname.split('/').filter(Boolean)[0];
+        if (seg && !/\./.test(seg)) { const p = u.origin + '/' + seg + '/favicon.ico'; if (await probe(p) >= 16) found = p; } } catch (e) {}
+    }
+    iconCache[url] = { src: found, t: Date.now() };
+    try { localStorage.setItem(ICON_CACHE, JSON.stringify(iconCache)); } catch (e) {}
+    return found;
+  }
+  function paintIcons() {
+    links.forEach(l => findIcon(l.url).then(src => {
+      const box = document.querySelector('[data-ico="' + l.id + '"]');
+      if (!src || !box || box.querySelector('img')) return;
+      const img = new Image(); img.alt = ''; img.referrerPolicy = 'no-referrer'; img.src = src; box.appendChild(img);
+    }));
+  }
+  // Адрес страницы входа с одноразовыми параметрами → предлагаем адрес самого сайта; метки статистики убираем
+  function cleanUrl(raw) {
+    let x; try { x = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw); } catch (e) { return { url: raw }; }
+    ['_gl', '_ga', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'yclid'].forEach(p => x.searchParams.delete(p));
+    const ru = x.searchParams.get('redirect_uri');
+    if (ru && (x.searchParams.has('code_challenge') || x.searchParams.has('state') || x.searchParams.has('nonce'))) {
+      try { const r = new URL(ru); return { url: x.toString(), suggest: r.origin + r.pathname.replace(/(authentication\/)?login-callback.*$|login\/oauth2.*$/, '') }; } catch (e) {}
+    }
+    return { url: x.toString() };
+  }
   let links = [], open = localStorage.getItem('gl_links_open') !== '0', editId = null;
 
   function render() {
@@ -19,9 +74,10 @@
     const groups = {}; links.forEach(l => { (groups[l.category || 'Разное'] = groups[l.category || 'Разное'] || []).push(l); });
     $('lkBody').innerHTML = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'ru')).map(cat => `<div class="lk-group"><div class="lk-cat">${esc(cat)}</div><div class="lk-items">` +
       groups[cat].map(l => `<div class="lk-item"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" title="${esc(l.url)}">
-        <span class="lk-ico" aria-hidden="true">${esc((l.title || host(l.url)).trim().charAt(0).toUpperCase())}<img src="https://icons.duckduckgo.com/ip3/${encodeURIComponent(host(l.url))}.ico" alt="" loading="lazy" referrerpolicy="no-referrer"></span>
+        <span class="lk-ico" aria-hidden="true" data-ico="${l.id}">${esc((l.title || host(l.url)).trim().charAt(0).toUpperCase())}</span>
         <span class="lk-txt"><b title="${esc(l.title || host(l.url))}">${esc(l.title || host(l.url))}</b><small>${esc(l.note || host(l.url))}</small></span></a>
         <button type="button" class="lk-edit" data-edit="${l.id}" aria-label="Изменить ${esc(l.title)}" title="Изменить">✎</button></div>`).join('') + '</div></div>').join('');
+    paintIcons();
   }
   async function load() {
     const r = await api('').catch(() => null);
@@ -38,6 +94,8 @@
   async function save() {
     const b = { category: $('lkCatIn').value.trim(), title: $('lkNameIn').value.trim(), url: $('lkUrlIn').value.trim(), note: $('lkNoteIn').value.trim() };
     if (!b.url) return alert('Укажите адрес сайта');
+    const cu = cleanUrl(b.url); b.url = cu.url;
+    if (cu.suggest && confirm('Это адрес страницы входа с одноразовыми параметрами: со временем он может перестать открываться.\n\nСохранить вместо него адрес самого сайта?\n' + cu.suggest)) b.url = cu.suggest;
     if (!b.title) b.title = host(/^https?:/i.test(b.url) ? b.url : 'https://' + b.url);
     const r = editId ? await api('/' + editId, 'PUT', b) : await api('', 'POST', b);
     if (r && r.error) return alert(r.error);
@@ -99,7 +157,6 @@
     $('lkModal').addEventListener('click', e => { if (e.target.id === 'lkModal') $('lkModal').classList.remove('open'); });
     $('lkModal').addEventListener('keydown', e => { if (e.key === 'Escape') $('lkModal').classList.remove('open'); if (e.key === 'Enter' && e.target.tagName === 'INPUT') save(); });
     $('lkDel').addEventListener('click', async () => { if (!confirm('Удалить этот сайт из списка?')) return; await api('/' + editId, 'DELETE'); $('lkModal').classList.remove('open'); await load(); });
-    $('lkBody').addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
     $('lkBody').addEventListener('click', async e => {
       const ed = e.target.closest('[data-edit]'); if (ed) { openModal(links.find(l => l.id == ed.dataset.edit)); return; }
       if (e.target.id === 'lkAdd2') { openModal(null); return; }
