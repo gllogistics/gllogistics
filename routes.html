@@ -24,17 +24,20 @@ h1 { margin: 0; font-size: 24px; font-weight: 600; }
 <body><script src="/js/layout.js?v=12"></script>
 <div class="wrap">
   <h1>Маршруты</h1>
-  <p class="sub">Сравнение вариантов пути до рейса и разбор того, во что обходились прошлые рейсы. Варианты пути для аналитики указываются в рейсе: «Изменить» → «Путь туда / обратно».</p>
+  <p class="sub">Сравнение вариантов пути до рейса, разбор прошлых рейсов и очереди на границах. Варианты пути для аналитики указываются в рейсе: «Изменить» → «Путь туда / обратно».</p>
   <div class="tabs" role="tablist">
     <button type="button" class="tab on" data-tab="rc" role="tab">Сравнить пути</button>
     <button type="button" class="tab" data-tab="ra" role="tab">Аналитика маршрутов</button>
+    <button type="button" class="tab" data-tab="bd" role="tab">Очереди на границах</button>
   </div>
   <div id="rcMount"></div>
   <div id="raMount" hidden></div>
+  <div id="bdMount" hidden></div>
 </div>
 <script src="/js/route-compare.js?v=2"></script>
 <script src="/js/route-analytics.js?v=3"></script>
-<script src="/js/routes-page.js?v=1"></script>
+<script src="/js/borders.js?v=12"></script>
+<script src="/js/routes-page.js?v=2"></script>
 <script src="/js/nav-fleet.js?v=3"></script>
 </body>
 </html>
