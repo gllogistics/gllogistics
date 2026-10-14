@@ -9,6 +9,9 @@
   // «Ереван РА» и «Ереван» — одно и то же место
   const place = s => String(s || '').replace(/\s+/g, ' ').trim().replace(/[,.]?\s*(РА|ՀՀ|РФ|RA|Armenia|Армения)$/i, '').trim();
   const NOVAR = 'Не указан';
+  // Комбинация пути: «туда» и «обратно»; если обратно тем же путём или не указано — просто вариант
+  const combo = r => { const t = r.route_variant || '', b = r.route_variant_back || '';
+    if (!t && !b) return NOVAR; if (!b || b === t) return t + (b ? ' (туда и обратно)' : ''); return 'туда: ' + (t || '—') + ' · обратно: ' + b; };
   let rows = [], openState = false, dir = '', onlyClosed = true, expanded = {};
 
   const avg = (list, f, cond) => { const v = list.filter(cond || (() => true)).map(f).filter(x => x != null && !isNaN(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
@@ -28,7 +31,7 @@
     if (useClosed) list = closed;
     $('raScope').textContent = onlyClosed && !closed.length ? 'Закрытых рейсов на этом направлении нет — считаю по всем.' : '';
     const groups = {};
-    list.forEach(r => { const v = r.route_variant || NOVAR; (groups[v] = groups[v] || []).push(r); });
+    list.forEach(r => { const v = combo(r); (groups[v] = groups[v] || []).push(r); });
     const stat = Object.entries(groups).map(([v, l]) => {
       const kmTrips = l.filter(r => r.km > 0);
       const fuelKm = kmTrips.length ? kmTrips.reduce((s, r) => s + r.fuel, 0) / kmTrips.reduce((s, r) => s + r.km, 0) : null;
@@ -39,7 +42,7 @@
     const known = stat.filter(s => s.v !== NOVAR);
     const cheapest = known.length > 1 ? known.reduce((a, b) => (b.total < a.total ? b : a)).v : null;
     const best = known.length > 1 ? known.reduce((a, b) => (b.profit > a.profit ? b : a)).v : null;
-    const head = '<tr><th>Вариант пути</th><th class="r">Рейсов</th><th class="r">Дней</th><th class="r">Км (GPS)</th><th class="r">Дизель</th><th class="r">Дизель на 1 км</th><th class="r">Дороги, мосты</th><th class="r">Паромы</th><th class="r">Транзит, разрешения</th><th class="r">Прочее</th><th class="r">Экипаж</th><th class="r">Затраты</th><th class="r">Прибыль</th></tr>';
+    const head = '<tr><th>Путь (туда / обратно)</th><th class="r">Рейсов</th><th class="r">Дней</th><th class="r">Км (GPS)</th><th class="r">Дизель</th><th class="r">Дизель на 1 км</th><th class="r">Дороги, мосты</th><th class="r">Паромы</th><th class="r">Транзит, разрешения</th><th class="r">Прочее</th><th class="r">Экипаж</th><th class="r">Затраты</th><th class="r">Прибыль</th></tr>';
     const body = stat.map(s => {
       const tags = (s.v === cheapest ? '<span class="ra-tag ok">дешевле всего</span>' : '') + (s.v === best ? '<span class="ra-tag best">выгоднее всего</span>' : '');
       const trips = expanded[s.v] ? s.l.map(r => `<tr class="ra-trip" data-trip="${r.id}"><td colspan="2">${esc(r.truck)} · ${fd(r.date_start)}${r.date_end ? ' — ' + fd(r.date_end) : ''}${r.status === 'closed' ? '' : ' <span class="ra-open">в пути</span>'}</td>
@@ -52,7 +55,7 @@
         <td class="r b">${A(s.total)}</td><td class="r b ${s.profit < 0 ? 'neg' : 'pos'}">${A(s.profit)}</td></tr>` + trips;
     }).join('');
     $('raTable').innerHTML = list.length ? `<thead>${head}</thead><tbody>${body}</tbody>` : '<tbody><tr><td class="ra-empty">На этом направлении пока нет рейсов.</td></tr></tbody>';
-    const noVar = list.filter(r => !r.route_variant).length, noKm = list.filter(r => !(r.km > 0)).length;
+    const noVar = list.filter(r => !r.route_variant && !r.route_variant_back).length, noKm = list.filter(r => !(r.km > 0)).length;
     $('raNotes').innerHTML = [
       'Средние значения на один рейс. Затраты = все расходы рейса + зарплата и неизрасходованный аванс (как в прибыли рейса).',
       noVar ? `<b>${noVar}</b> ${noVar === 1 ? 'рейс' : 'рейсов'} без варианта пути — откройте рейс → «Изменить» → «Вариант пути», и он попадёт в сравнение.` : '',
