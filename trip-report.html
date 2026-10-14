@@ -291,8 +291,9 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
       <div><label>Откуда</label><input id="fFrom" placeholder="Ереван"></div>
       <div><label>Куда</label><input id="fTo" placeholder="Милан"></div>
     </div>
-    <div class="form-row">
-      <div><label>Вариант пути</label><input id="fVariant" list="fVariantList" placeholder="Например: Ro-Ro Пендик — Триест" autocomplete="off"><datalist id="fVariantList"></datalist></div>
+    <div class="form-row cols-2">
+      <div><label>Путь туда</label><input id="fVariant" list="fVariantList" placeholder="Например: по суше через Капыкуле" autocomplete="off"><datalist id="fVariantList"></datalist></div>
+      <div><label>Путь обратно (если рейс с возвратом)</label><input id="fVariantBack" list="fVariantList" placeholder="Например: Ro-Ro Пендик — Триест" autocomplete="off"></div>
     </div>
     <div class="form-row cols-2">
       <div><label>Дата начала</label><input type="date" id="fDateStart"></div>
@@ -434,7 +435,7 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
   </div>
 </div>
 
-<script src="js/trip-report2.js?v=22"></script>
+<script src="js/trip-report2.js?v=23"></script>
 <script src="js/dropzone.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -454,6 +455,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/js/nav-fleet.js?v=3"></script>
 <script src="/js/borders.js?v=11"></script>
 <script src="/js/links.js?v=3"></script>
-<script src="/js/route-analytics.js?v=1"></script>
+<script src="/js/route-analytics.js?v=2"></script>
 </body>
 </html>
