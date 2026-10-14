@@ -58,7 +58,7 @@
     const noVar = list.filter(r => !r.route_variant && !r.route_variant_back).length, noKm = list.filter(r => !(r.km > 0)).length;
     $('raNotes').innerHTML = [
       'Средние значения на один рейс. Затраты = все расходы рейса + зарплата и неизрасходованный аванс (как в прибыли рейса).',
-      noVar ? `<b>${noVar}</b> ${noVar === 1 ? 'рейс' : 'рейсов'} без варианта пути — откройте рейс → «Изменить» → «Вариант пути», и он попадёт в сравнение.` : '',
+      noVar ? `<b>${noVar}</b> ${noVar === 1 ? 'рейс' : 'рейсов'} без варианта пути — откройте рейс → «Изменить» → «Путь туда / обратно», и он попадёт в сравнение.` : '',
       noKm ? `<b>${noKm}</b> без пробега GPS — нажмите «Wialon» в рейсе, чтобы считался дизель на 1 км.` : '',
       known.length < 2 ? 'Для сравнения нужно хотя бы два разных варианта пути на одном направлении.' : ''
     ].filter(Boolean).map(t => `<div>${t}</div>`).join('');
@@ -68,39 +68,18 @@
     try { const r = await (await fetch(API)).json(); rows = Array.isArray(r) ? r : []; } catch (e) { rows = []; }
     render();
   }
-  function setOpen(v) {
-    openState = v;
-    $('raCard').hidden = !v; $('raBtn').classList.toggle('on', v);
-    const d = $('tripDetail'); if (d) d.style.visibility = v ? 'hidden' : '';
-    if (d) d.style.position = v ? 'absolute' : '';
-    if (v) { load(); $('raCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  }
-
   function init() {
-    const detail = $('tripDetail'); if (!detail) return;
-    const right = detail.parentNode;
-    const card = document.createElement('section');
-    card.id = 'raCard'; card.hidden = true; card.setAttribute('aria-label', 'Аналитика маршрутов');
-    card.innerHTML = `<div class="ra-top"><h3>Аналитика маршрутов</h3><button type="button" class="ra-btn" id="raClose">Закрыть</button></div>
+    const mount = $('raMount'); if (!mount) return;
+    mount.innerHTML = `<section id="raCard" aria-label="Аналитика маршрутов">
       <div class="ra-ctl"><label>Направление <select id="raDir"></select></label><label class="ra-chk"><input type="checkbox" id="raClosed" checked> Только закрытые рейсы</label></div>
       <div class="ra-scope" id="raScope"></div>
       <div class="ra-scroll"><table class="ra-table" id="raTable"></table></div>
-      <div class="ra-notes" id="raNotes"></div>`;
-    right.insertBefore(card, right.firstChild);
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'raBtn'; btn.className = 'ra-open-btn'; btn.textContent = 'Аналитика маршрутов';
-    const tabs = $('tripTabs');
-    (tabs && tabs.parentNode ? tabs.parentNode : detail.parentNode.parentNode).insertBefore(btn, tabs ? tabs.nextSibling : null);
+      <div class="ra-notes" id="raNotes"></div></section>`;
     const st = document.createElement('style');
     st.textContent = `
-      .ra-open-btn { width: 100%; height: 36px; margin: 2px 0 6px; border: 1px solid #D5DADF; background: #fff; color: #14202B; border-radius: 6px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-      .ra-open-btn.on, .ra-open-btn:hover { border-color: #146C72; color: #146C72; }
       #raCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-      #raCard[hidden] { display: none; }
-      .ra-top { display: flex; justify-content: space-between; align-items: center; } .ra-top h3 { margin: 0; font-size: 16px; font-weight: 600; }
-      .ra-btn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #D5DADF; background: #fff; font: inherit; font-size: 13px; cursor: pointer; }
       .ra-ctl { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 13px; color: #5B6670; }
-      .ra-ctl select { height: 34px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 14px; color: #14202B; margin-left: 6px; max-width: 340px; }
+      .ra-ctl select { height: 34px; border: 1px solid #D5DADF; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 14px; color: #14202B; margin-left: 6px; max-width: 380px; }
       .ra-chk { display: flex; align-items: center; gap: 6px; } .ra-chk input { width: 16px; height: 16px; accent-color: #146C72; }
       .ra-scope { font-size: 12.5px; color: #8A4B00; } .ra-scope:empty { display: none; }
       .ra-scroll { overflow-x: auto; border: 1px solid #E4E7EA; border-radius: 8px; }
@@ -108,25 +87,20 @@
       .ra-table th { text-align: left; padding: 9px 10px; font-size: 11.5px; font-weight: 600; color: #5B6670; background: #FAFBFB; border-bottom: 1px solid #E4E7EA; white-space: nowrap; }
       .ra-table td { padding: 9px 10px; border-top: 1px solid #EEF0F2; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .ra-table .r { text-align: right; } .ra-table .b { font-weight: 600; } .ra-table .pos { color: #1B6B3F; } .ra-table .neg { color: #A3241B; }
-      .ra-grp { background: #fff; } .ra-trip td { background: #FAFBFB; color: #3D4852; font-size: 12.5px; } .ra-trip { cursor: pointer; } .ra-trip:hover td { background: #EEF5F5; }
+      .ra-grp { background: #fff; cursor: pointer; } .ra-trip td { background: #FAFBFB; color: #3D4852; font-size: 12.5px; } .ra-trip { cursor: pointer; } .ra-trip:hover td { background: #EEF5F5; }
       .ra-exp { border: none; background: none; cursor: pointer; font-size: 13px; color: #5B6670; width: 20px; }
       .ra-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
       .ra-tag.ok { background: #E7F4EC; color: #1B6B3F; } .ra-tag.best { background: #E8F1F2; color: #0F5A60; }
       .ra-open { font-size: 11px; color: #8A4B00; } .ra-empty { padding: 20px; color: #5B6670; }
       .ra-notes { font-size: 12.5px; color: #5B6670; display: flex; flex-direction: column; gap: 3px; }`;
     document.head.appendChild(st);
-    btn.addEventListener('click', () => setOpen(!openState));
-    $('raClose').addEventListener('click', () => setOpen(false));
     $('raDir').addEventListener('change', () => { dir = $('raDir').value; expanded = {}; render(); });
     $('raClosed').addEventListener('change', () => { onlyClosed = $('raClosed').checked; render(); });
     $('raTable').addEventListener('click', e => {
       const g = e.target.closest('.ra-grp'); if (g) { const v = g.dataset.var; expanded[v] = !expanded[v]; render(); return; }
-      const t = e.target.closest('[data-trip]'); if (!t) return;
-      const trip = (typeof trips !== 'undefined' ? trips : []).find(x => x.id == t.dataset.trip);
-      if (trip && typeof openTrip === 'function') { setOpen(false); openTrip(trip); }
+      const t = e.target.closest('[data-trip]'); if (t) location.href = '/trip-report.html?trip=' + encodeURIComponent(t.dataset.trip);
     });
-    // выбор рейса в списке слева закрывает аналитику
-    document.addEventListener('click', e => { if (openState && e.target.closest('.trip-card')) setOpen(false); });
+    load();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 0)); else setTimeout(init, 0);
 })();
