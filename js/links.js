@@ -19,7 +19,7 @@
     const groups = {}; links.forEach(l => { (groups[l.category || 'Разное'] = groups[l.category || 'Разное'] || []).push(l); });
     $('lkBody').innerHTML = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'ru')).map(cat => `<div class="lk-group"><div class="lk-cat">${esc(cat)}</div><div class="lk-items">` +
       groups[cat].map(l => `<div class="lk-item"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" title="${esc(l.url)}">
-        <span class="lk-ico" aria-hidden="true">${esc((l.title || host(l.url)).trim().charAt(0).toUpperCase())}</span>
+        <span class="lk-ico" aria-hidden="true">${esc((l.title || host(l.url)).trim().charAt(0).toUpperCase())}<img src="https://icons.duckduckgo.com/ip3/${encodeURIComponent(host(l.url))}.ico" alt="" loading="lazy" referrerpolicy="no-referrer"></span>
         <span class="lk-txt"><b title="${esc(l.title || host(l.url))}">${esc(l.title || host(l.url))}</b><small>${esc(l.note || host(l.url))}</small></span></a>
         <button type="button" class="lk-edit" data-edit="${l.id}" aria-label="Изменить ${esc(l.title)}" title="Изменить">✎</button></div>`).join('') + '</div></div>').join('');
   }
@@ -79,7 +79,8 @@
       .lk-item { display: flex; align-items: center; border: 1px solid #E4E7EA; border-radius: 8px; background: #FAFBFB; transition: border-color .15s; }
       .lk-item:hover { border-color: #9CC5C8; background: #fff; }
       .lk-item a { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 10px; text-decoration: none; color: inherit; }
-      .lk-ico { flex-shrink: 0; width: 30px; height: 30px; border-radius: 6px; background: #E8F1F2; color: #0F5A60; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+      .lk-ico { position: relative; flex-shrink: 0; width: 30px; height: 30px; border-radius: 6px; background: #E8F1F2; color: #0F5A60; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; }
+      .lk-ico img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 5px; box-sizing: border-box; background: #fff; border: 1px solid #E4E7EA; border-radius: 6px; object-fit: contain; }
       .lk-txt { min-width: 0; display: flex; flex-direction: column; } .lk-txt b { font-size: 13.5px; font-weight: 600; color: #14202B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .lk-txt small { font-size: 12px; color: #5B6670; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .lk-edit { flex-shrink: 0; width: 32px; height: 32px; margin-right: 4px; border: none; background: none; color: #8A949C; border-radius: 6px; cursor: pointer; font-size: 15px; }
@@ -98,6 +99,7 @@
     $('lkModal').addEventListener('click', e => { if (e.target.id === 'lkModal') $('lkModal').classList.remove('open'); });
     $('lkModal').addEventListener('keydown', e => { if (e.key === 'Escape') $('lkModal').classList.remove('open'); if (e.key === 'Enter' && e.target.tagName === 'INPUT') save(); });
     $('lkDel').addEventListener('click', async () => { if (!confirm('Удалить этот сайт из списка?')) return; await api('/' + editId, 'DELETE'); $('lkModal').classList.remove('open'); await load(); });
+    $('lkBody').addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
     $('lkBody').addEventListener('click', async e => {
       const ed = e.target.closest('[data-edit]'); if (ed) { openModal(links.find(l => l.id == ed.dataset.edit)); return; }
       if (e.target.id === 'lkAdd2') { openModal(null); return; }
