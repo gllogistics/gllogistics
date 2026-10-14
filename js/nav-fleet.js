@@ -3,7 +3,7 @@
   // ── Логисты: только Сделки, Заявки, Инвойс ──
   const staffUser = localStorage.getItem('gl_staff_user');
   if (staffUser && staffUser !== 'TigranMetspagyan') {
-    const ADMIN_ONLY = ['/trip-report', '/staff-dashboard', '/clients', '/files', '/expenses', '/dispatch', '/fleet', '/delegation'];
+    const ADMIN_ONLY = ['/trip-report', '/staff-dashboard', '/clients', '/files', '/expenses', '/dispatch', '/fleet', '/delegation', '/routes'];
     const isAdminPage = p => ADMIN_ONLY.some(a => p.indexOf(a) === 0);
     if (isAdminPage(location.pathname)) { location.replace('/staff-cargo.html'); return; }
     const hide = () => document.querySelectorAll('.nav-links a, #navLinks a').forEach(a => {
