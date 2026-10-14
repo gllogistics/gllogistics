@@ -5,15 +5,6 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return String(u || ''); } };
   const api = (p, m = 'GET', b) => fetch(API + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
-  // Стандартный набор: сайты, с которыми уже работаем (добавляется по кнопке, потом можно править и удалять)
-  const DEFAULTS = [
-    ['Электронные очереди и брони', 'Казахстан: бронь выезда (CarGoRuqsat)', 'https://cgr.qoldau.kz/ru/start', 'Бронь слота на выезд из Казахстана'],
-    ['Электронные очереди и брони', 'Россия: бронь пункта пропуска (ГИС ЭПД)', 'https://public.epd-portal.ru/', 'Забайкальск, Бугристое и др.'],
-    ['Электронные очереди и брони', 'Литва: очередь на границе (EVIS)', 'https://www.ltsiena.lt/', ''],
-    ['Электронные очереди и брони', 'Латвия: электронная очередь', 'https://lvborder.lv/en/', ''],
-    ['Электронные очереди и брони', 'Эстония: очередь на границе (GoSwift)', 'https://www.eestipiir.ee/', ''],
-    ['Документы и уведомления', 'Польша: уведомление о водителе в PIP', 'https://www.biznes.gov.pl/', 'Подаёт перевозчик до начала перевозки']
-  ];
   let links = [], open = localStorage.getItem('gl_links_open') !== '0', editId = null;
 
   function render() {
@@ -22,7 +13,7 @@
     $('lkBody').hidden = !open; $('lkToggle').textContent = open ? 'Свернуть' : 'Показать';
     if (!n) {
       $('lkBody').innerHTML = `<div class="lk-empty">Здесь будут ваши важные сайты: маршрутные карты, оплата дорог, заявки на проезд.<br>
-        <button type="button" class="lk-btn" id="lkDefaults">Добавить стандартный набор</button> <button type="button" class="lk-btn primary" id="lkAdd2">+ Свой сайт</button></div>`;
+        <button type="button" class="lk-btn primary" id="lkAdd2">+ Добавить сайт</button></div>`;
       return;
     }
     const groups = {}; links.forEach(l => { (groups[l.category || 'Разное'] = groups[l.category || 'Разное'] || []).push(l); });
@@ -110,11 +101,6 @@
     $('lkBody').addEventListener('click', async e => {
       const ed = e.target.closest('[data-edit]'); if (ed) { openModal(links.find(l => l.id == ed.dataset.edit)); return; }
       if (e.target.id === 'lkAdd2') { openModal(null); return; }
-      if (e.target.id === 'lkDefaults') {
-        e.target.disabled = true;
-        for (const [category, title, url, note] of DEFAULTS) await api('', 'POST', { category, title, url, note });
-        await load();
-      }
     });
     load();
   }
