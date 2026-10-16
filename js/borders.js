@@ -26,8 +26,8 @@
     { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge' },
     { key: 'Натахтари', title: 'Натахтари (TPCentral)', border: 'Грузия: стоянка на трассе к Верхнему Ларсу', lat: 41.9212, lng: 44.7299, src: 'tp' },
     { key: 'Верхний Ларс', title: 'Верхний Ларс (РФ)', border: 'Россия → Грузия, электронная очередь', lat: 42.8050, lng: 44.6380, src: 'ru' },
-    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'] },
-    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'] },
+    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'], link3: ['https://ibtt.bg/', 'Очередь на выезд из Болгарии (IBTT)'] },
+    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'], link3: ['https://ibtt.bg/', 'Очередь на выезд из Болгарии (IBTT)'] },
     { key: 'Джилвегёзю', title: 'Джилвегёзю', border: 'Турция — Сирия', lat: 36.2267, lng: 36.6638, src: 'tr', tr: 'cilvegozu', link2: [GTI_LINK('cilvegozu'), 'TIR-парк Джилвегёзю (GTI)'] },
     { key: 'Кулата', title: 'Кулата / Промахон', border: 'Болгария — Греция', lat: 41.3940, lng: 23.3643, src: 'bg' },
     { key: 'Калотина', title: 'Калотина / Градина', border: 'Болгария — Сербия', lat: 42.9946, lng: 22.8683, src: 'bg' },
@@ -199,7 +199,12 @@
     const cls = trCls && rank[trCls] > rank[bgCls] ? trCls : bgCls;
     const bgText = 'Болгария, грузовики: выезд — <b>' + (out ? 'интенсивно' : 'нормально') + '</b>, въезд — <b>' + (inn ? 'интенсивно' : 'нормально') + '</b>'
       + (b.cars === 'intense' ? '<br>Легковые: интенсивно' : '');
-    return { label: trLabel || (out || inn ? '!' : 'OK'), cls, b, text: (trText ? trText + '<div style="margin-top:6px">' + bgText + '</div>' : bgText),
+    const dirText = p.tr
+      ? `<div class="bd-dir">Из Турции в Болгарию</div>${trText || 'Турецкий TIR-парк: нет данных'}<div>Въезд в Болгарию: <b>${inn ? 'интенсивно' : 'нормально'}</b></div>`
+        + `<div class="bd-dir">Из Болгарии в Турцию</div><div>Выезд из Болгарии: <b>${out ? 'интенсивно' : 'нормально'}</b> (погранполиция Болгарии)</div>`
+        + `<div class="bd-note">Число фур и время ожидания на стоянке перед границей публикует оператор IBTT — ссылка ниже. Его сайт не разрешает автоматическое чтение, поэтому цифры здесь не показываются.</div>`
+      : null;
+    return { label: trLabel || (out || inn ? '!' : 'OK'), cls, b, text: dirText || (trText ? trText + '<div style="margin-top:6px">' + bgText + '</div>' : bgText),
       at: data.bulgaria.at, asOf: data.bulgaria.data.as_of };
   }
 
@@ -210,7 +215,7 @@
     return `<div class="bd-pop"><b>${esc(p.title)}</b><div class="bd-muted">${esc(p.border)}</div>
       <div style="margin:6px 0">${st.text}</div>${parks}
       <div class="bd-muted">Обновлено: ${ago(st.at)}${st.asOf ? ' · сводка на ' + esc(st.asOf) : ''}</div>
-      <div class="bd-links">${src ? `<a href="${src[0]}" target="_blank" rel="noopener">${src[1]}</a>` : ''}${p.src === 'eu' && p.by && p.pl ? `<a href="${PL_LINK}" target="_blank" rel="noopener">Налоговая служба Польши</a>` : ''}${p.link2 ? `<a href="${p.link2[0]}" target="_blank" rel="noopener">${p.link2[1]}</a>` : ''}</div></div>`;
+      <div class="bd-links">${src ? `<a href="${src[0]}" target="_blank" rel="noopener">${src[1]}</a>` : ''}${p.src === 'eu' && p.by && p.pl ? `<a href="${PL_LINK}" target="_blank" rel="noopener">Налоговая служба Польши</a>` : ''}${p.link2 ? `<a href="${p.link2[0]}" target="_blank" rel="noopener">${p.link2[1]}</a>` : ''}${p.link3 ? `<a href="${p.link3[0]}" target="_blank" rel="noopener">${p.link3[1]}</a>` : ''}</div></div>`;
   }
 
   function render() {
@@ -252,12 +257,24 @@
   }
 
   const SUMMARY = [['Сарпи', 'Сарпи'], ['Казбеги', 'Казбеги'], ['Натахтари', 'Натахтари'], ['Верхний Ларс', 'Ларс РФ'], ['Садахло', 'Садахло'], ['Красный мост', 'Кр. мост'],
-                   ['Капитан Андреево', 'Капыкуле'], ['Лесово', 'Хамзабейли'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог'], ['kz-khorgos', 'Хоргос'], ['kz-dostyk', 'Достык'], ['kz-orsk', 'Орск']];
+                   ['Капитан Андреево', 'Капыкуле → BG', 'tr'], ['Капитан Андреево', 'Кап. Андреево → TR', 'bgout'], ['Лесово', 'Хамзабейли → BG', 'tr'], ['Лесово', 'Лесово → TR', 'bgout'], ['kuk', 'Козловичи'], ['bob', 'Бобровники'], ['sal', 'Бенякони'], ['med', 'Кам. Лог'], ['kz-khorgos', 'Хоргос'], ['kz-dostyk', 'Достык'], ['kz-orsk', 'Орск']];
   let expanded = localStorage.getItem('gl_borders_open') !== '0';   // по умолчанию карта раскрыта
 
+  // Граница Болгария — Турция по направлениям: 'tr' — турецкий TIR-парк (выезд из Турции), 'bgout' — выезд из Болгарии (погранполиция)
+  function dirState(p, mode) {
+    if (mode === 'tr') {
+      const t = p.tr ? data?.turkey?.data?.[p.tr] : null;
+      if (!t) return { label: '?', cls: 'na' };
+      const maxWait = Math.max(0, ...t.cats.map(x => x.total_wait_h || 0));
+      return { label: fmt((t.outer || 0) + (t.inner || 0)), cls: maxWait >= 48 ? 'bad' : maxWait >= 12 ? 'mid' : 'ok' };
+    }
+    const b = data?.bulgaria?.data?.points?.[p.key];
+    if (!b) return { label: '?', cls: 'na' };
+    return b.trucks_out === 'intense' ? { label: 'интенс.', cls: 'bad' } : { label: 'норм.', cls: 'ok' };
+  }
   function renderSummary() {
-    document.getElementById('bdChips').innerHTML = SUMMARY.map(([k, short]) => {
-      const p = POINTS.find(x => x.key === k); const st = stateOf(p);
+    document.getElementById('bdChips').innerHTML = SUMMARY.map(([k, short, mode]) => {
+      const p = POINTS.find(x => x.key === k); const st = mode ? dirState(p, mode) : stateOf(p);
       return `<button type="button" class="bd-chip" data-key="${esc(k)}"><i class="bd-dot ${st.cls}"></i>${esc(short)} <b>${esc(st.label)}</b></button>`;
     }).join('');
   }
@@ -358,6 +375,7 @@
       .bd-h4 { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #14202B; }
       .bd-grp td { background: #F2F6F6; font-size: 12.5px; font-weight: 600; color: #3D4852; padding: 7px 12px; }
       .bd-note { margin-top: 4px; font-size: 12px; color: #5B6670; }
+      .bd-dir { margin-top: 8px; font-weight: 600; color: #14202B; font-size: 12.5px; text-transform: uppercase; letter-spacing: .2px; }
       .bd-chips { display: flex; gap: 6px; flex-wrap: wrap; }
       .bd-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #E4E7EA; background: #FAFBFB; border-radius: 14px; padding: 4px 10px; font: inherit; font-size: 13px; color: #3D4852; cursor: pointer; }
       .bd-chip b { color: #14202B; font-weight: 600; font-variant-numeric: tabular-nums; }
