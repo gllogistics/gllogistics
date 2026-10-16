@@ -26,8 +26,8 @@
     { key: 'Казбеги', title: 'Казбеги / Верхний Ларс', border: 'Грузия — Россия', lat: 42.7444, lng: 44.6261, src: 'ge' },
     { key: 'Натахтари', title: 'Натахтари (TPCentral)', border: 'Грузия: стоянка на трассе к Верхнему Ларсу', lat: 41.9212, lng: 44.7299, src: 'tp' },
     { key: 'Верхний Ларс', title: 'Верхний Ларс (РФ)', border: 'Россия → Грузия, электронная очередь', lat: 42.8050, lng: 44.6380, src: 'ru' },
-    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'], link3: ['https://ibtt.bg/', 'Очередь на выезд из Болгарии (IBTT)'] },
-    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'], link3: ['https://ibtt.bg/', 'Очередь на выезд из Болгарии (IBTT)'] },
+    { key: 'Капитан Андреево', title: 'Капитан Андреево / Капыкуле', border: 'Болгария — Турция', lat: 41.7181, lng: 26.3226, src: 'bg', tr: 'kapikule', link2: [GTI_LINK('kapikule'), 'TIR-парк Капыкуле (GTI)'] },
+    { key: 'Лесово', title: 'Лесово / Хамзабейли', border: 'Болгария — Турция', lat: 41.9719, lng: 26.5652, src: 'bg', tr: 'hamzabeyli', link2: [GTI_LINK('hamzabeyli'), 'TIR-парк Хамзабейли (GTI)'] },
     { key: 'Джилвегёзю', title: 'Джилвегёзю', border: 'Турция — Сирия', lat: 36.2267, lng: 36.6638, src: 'tr', tr: 'cilvegozu', link2: [GTI_LINK('cilvegozu'), 'TIR-парк Джилвегёзю (GTI)'] },
     { key: 'Кулата', title: 'Кулата / Промахон', border: 'Болгария — Греция', lat: 41.3940, lng: 23.3643, src: 'bg' },
     { key: 'Калотина', title: 'Калотина / Градина', border: 'Болгария — Сербия', lat: 42.9946, lng: 22.8683, src: 'bg' },
@@ -202,7 +202,7 @@
     const dirText = p.tr
       ? `<div class="bd-dir">Из Турции в Болгарию</div>${trText || 'Турецкий TIR-парк: нет данных'}<div>Въезд в Болгарию: <b>${inn ? 'интенсивно' : 'нормально'}</b></div>`
         + `<div class="bd-dir">Из Болгарии в Турцию</div><div>Выезд из Болгарии: <b>${out ? 'интенсивно' : 'нормально'}</b> (погранполиция Болгарии)</div>`
-        + `<div class="bd-note">Число фур и время ожидания на стоянке перед границей публикует оператор IBTT — ссылка ниже. Его сайт не разрешает автоматическое чтение, поэтому цифры здесь не показываются.</div>`
+        + `<div class="bd-note">Открытых цифр по очереди на выезд из Болгарии нет: оператор стоянки перед границей (IBTT) передаёт число фур и время ожидания только в новости, своего сайта у него сейчас нет.</div>`
       : null;
     return { label: trLabel || (out || inn ? '!' : 'OK'), cls, b, text: dirText || (trText ? trText + '<div style="margin-top:6px">' + bgText + '</div>' : bgText),
       at: data.bulgaria.at, asOf: data.bulgaria.data.as_of };
