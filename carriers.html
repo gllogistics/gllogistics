@@ -108,6 +108,7 @@ tr.noname td { background: #FFFBF2; }
     <div class="actions">
       <button type="button" class="b" id="exportBtn">Скачать в Excel</button>
       <button type="button" class="b" id="addBtn">+ Перевозчик</button>
+      <a class="b" href="/wa-contacts.html" id="waContactsLink" style="display:none;text-decoration:none;align-items:center">Из WhatsApp</a>
       <button type="button" class="b primary" id="reqBtn">Запрос перевозчикам</button>
     </div>
   </div>
@@ -231,6 +232,7 @@ const WORKER = 'https://gl-api.gltransam.workers.dev';
 const user = localStorage.getItem('gl_staff_user');
 if (!user) { location.replace('/staff.html'); throw ''; }
 const isAdmin = user === 'TigranMetspagyan';
+if (isAdmin) { const l = document.getElementById('waContactsLink'); if (l) l.style.display = 'inline-flex'; }
 // Метка «email не работает»: админ может снять её (например, если адрес исправили у получателя)
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-unsup]'); if (!t) return;
