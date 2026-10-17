@@ -42,13 +42,9 @@ async function wialonLogin() {
   } catch { return false; }
 }
 
+// Wialon — через ваш сервер: браузер напрямую к Wialon не пускают (нет CORS), сеанс держит сервер
 async function wialonCall(svc, params) {
-  if (!wialonSid) await wialonLogin();
-  const r = await fetch(WIALON_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `svc=${svc}&params=${encodeURIComponent(JSON.stringify(params))}&sid=${wialonSid}`
-  });
+  const r = await fetch(WORKER + '/api/wialon/call', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svc, params }) });
   return r.json();
 }
 
