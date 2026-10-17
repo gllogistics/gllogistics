@@ -497,7 +497,7 @@ function rqWaRender() {
   else if (!s.connected) msg = 'Номер ' + s.my_number + ' ещё не подключён к YCloud.';
   else {
     const t = (s.templates || {})[lang] || {}, q = QCOL[s.quality] || [s.quality || 'нет данных', '#5B6670'];
-    const tl = t.status === 'APPROVED' ? 'одобрен' : t.status === 'REJECTED' ? 'отклонён Meta' + (t.reason ? ' (' + t.reason + ')' : '') : t.status ? 'на проверке у Meta' : 'ещё не создан';
+    const tl = t.status === 'APPROVED' ? 'одобрен' + (t.v === 1 && t.v2 && t.v2 !== 'APPROVED' ? ' (новый, без строки «СТОП», ' + (t.v2 === 'REJECTED' ? 'отклонён' : 'на проверке') + ')' : t.v === 2 ? ', без строки «СТОП»' : '') : t.status === 'REJECTED' ? 'отклонён Meta' + (t.reason ? ' (' + t.reason + ')' : '') : t.status ? 'на проверке у Meta' : 'ещё не создан';
     ok = t.status === 'APPROVED' && s.quality !== 'RED';
     msg = `Номер ${s.my_number} · качество: <b style="color:${q[1]}">${q[0]}</b> · шаблон (${lang === 'en' ? 'English' : 'русский'}): ${tl}` + (s.quality === 'RED' ? ' · автоотправка остановлена' : '');
   }
@@ -575,7 +575,7 @@ $('rqSend').addEventListener('click', async () => {
       transport: tr + ($('rqWeight').value.trim() ? ', ' + $('rqWeight').value.trim() : ''), cargo: [$('rqCargo').value.trim(), $('rqNote').value.trim()].filter(Boolean).join('. ') || '—' };
     const res = await api('/api/carrier-requests/send-wa', 'POST', { lang: $('rqLang').value, vars, recipients: r.wa.slice(0, 100).map(c => ({ id: c.id, phone: firstWa(c) })) }).catch(() => ({ error: 'нет связи' }));
     if (res.error) alert('WhatsApp не отправлен: ' + res.error);
-    else alert(`Отправлено в WhatsApp: ${res.sent}` + (res.recent ? `\nПропущено (запрос уже был недавно): ${res.recent}` : '') + (res.optout ? `\nПропущено (просили не писать): ${res.optout}` : '')
+    else alert(`Отправлено в WhatsApp: ${res.sent}` + (res.free ? ` (из них бесплатно: ${res.free} — эти перевозчики писали вам за последние сутки)` : '') + (res.recent ? `\nПропущено (запрос уже был недавно): ${res.recent}` : '') + (res.optout ? `\nПропущено (просили не писать): ${res.optout}` : '')
       + (res.failed && res.failed.length ? `\nНе ушло: ${res.failed.length} (${res.failed[0].error})` : '') + '\n\nОтветы придут в WhatsApp на ваш телефон и письмом на вашу почту.');
   }
   b.textContent = 'Отправить'; b.disabled = false;
