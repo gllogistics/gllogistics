@@ -450,7 +450,7 @@ $('rqSections').addEventListener('click', e => {
 ['rqTrType', 'rqOnlyTr', 'rqChEmail', 'rqChWa'].forEach(id => $(id).addEventListener('change', () => { if (id === 'rqTrType') rqBuild(); rqSummary(); }));
 // ── WhatsApp автоматически (YCloud): статус подключения для текущего пользователя ──
 var waStatus = null;
-const QCOL = { GREEN: ['зелёное', '#1B6B3F'], YELLOW: ['жёлтое', '#8A4B00'], RED: ['красное', '#A3241B'] };
+const QCOL = { GREEN: ['зелёное', '#1B6B3F'], YELLOW: ['жёлтое', '#8A4B00'], RED: ['красное', '#A3241B'], UNKNOWN: ['ещё нет оценки (номер новый)', '#5B6670'] };
 function rqWaRender() {
   const s = waStatus, lang = $('rqLang').value, box = $('rqWaStatus'), auto = $('rqWaAuto');
   let ok = false, msg = '';
