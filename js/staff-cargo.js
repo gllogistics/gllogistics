@@ -315,17 +315,24 @@ function renderAll() {
   });
   const cashGapAMD = paidAMD - receivedAMD;
 
+  const A = n => '֏' + Math.round(n).toLocaleString('ru');
   const statsHTML = `
-    <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">Сделок</div></div>
-    <div class="stat-card stat-profit"><div class="num">֏${Math.round(totalProfitAMD).toLocaleString()}</div><div class="lbl">Прибыль AMD</div></div>
+    <div class="dl-card pos"><div class="lbl">Прибыль</div><div class="num">${A(totalProfitAMD)}</div></div>
     ${isAdmin ? `
-    <div class="stat-card stat-success"><div class="num">֏${Math.round(receivedAMD).toLocaleString()}</div><div class="lbl">Получено</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(paidAMD).toLocaleString()}</div><div class="lbl">Оплачено</div></div>
-    <div class="stat-card ${cashGapAMD > 0 ? 'stat-danger' : 'stat-success'}"><div class="num">֏${Math.round(Math.abs(cashGapAMD)).toLocaleString()}</div><div class="lbl">${cashGapAMD > 0 ? '⚠️ Кассовый разрыв' : 'Свободные средства'}</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingClientsAMD).toLocaleString()}</div><div class="lbl">Ждём от клиентов</div></div>
-    <div class="stat-card stat-warning"><div class="num">֏${Math.round(waitingCarriersAMD).toLocaleString()}</div><div class="lbl">Должны перевозчикам</div></div>
-    ` : ''}
+    <div class="dl-card"><div class="lbl">Получено от клиентов</div><div class="num">${A(receivedAMD)}</div></div>
+    <div class="dl-card"><div class="lbl">Оплачено перевозчикам</div><div class="num">${A(paidAMD)}</div></div>
+    <div class="dl-card ${cashGapAMD > 0 ? 'neg' : ''}"><div class="lbl">${cashGapAMD > 0 ? 'Кассовый разрыв' : 'Свободные средства'}</div><div class="num">${A(Math.abs(cashGapAMD))}</div></div>
+    <div class="dl-line">Ждём от клиентов <b class="w">${A(waitingClientsAMD)}</b> · Должны перевозчикам <b class="d">${A(waitingCarriersAMD)}</b></div>
+    ` : `<div class="dl-card"><div class="lbl">Сделок</div><div class="num">${list.length}</div></div>`}
   `;
+  // подзаголовок: период, логист, число сделок
+  { const st = document.getElementById('filterStart').value, en = document.getElementById('filterEnd').value, lg = document.getElementById('filterLogist').value;
+    const d = x => x ? x.split('-').reverse().join('.') : '';
+    const per = st || en ? (st && en ? d(st) + ' — ' + d(en) : st ? 'с ' + d(st) : 'по ' + d(en)) : 'все даты';
+    const n = list.length, w = n % 10 === 1 && n % 100 !== 11 ? 'сделка' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'сделки' : 'сделок';
+    document.getElementById('dlSub').textContent = per + ' · ' + (lg && lg !== 'all' ? lg : 'все логисты') + ' · ' + n + ' ' + w;
+    const pay = document.getElementById('filterPayment').value, act = (lg && lg !== 'all' ? 1 : 0) + (pay && pay !== 'all' ? 1 : 0);
+    const fb = document.getElementById('dlFiltersBtn'); fb.innerHTML = 'Фильтры' + (act ? `<span class="dl-dot">${act}</span>` : ''); }
   document.getElementById('statsRow').innerHTML = statsHTML;
 
   const sl = { loading:'На загрузке', onroad:'В пути', loaded:'Загружен', completed:'Завершён' };
@@ -339,21 +346,18 @@ function renderAll() {
     const profitAMD = usdToAMD(clientUSD - carrierUSD);
     const load = [c.city_load, c.country_load].filter(Boolean).join(', ') || '-';
     const unload = [c.city_unload, c.country_unload].filter(Boolean).join(', ') || '-';
-    let paymentHTML = '';
-    if (isAdmin) {
-      paymentHTML = `<button class="btn-pay ${c.client_paid?'paid':''}" onclick="togglePaid(${c.id},'client_paid')">${c.client_paid?'✓':'✗'}</button>
-                     <button class="btn-pay ${c.carrier_paid?'paid':''}" onclick="togglePaid(${c.id},'carrier_paid')">${c.carrier_paid?'✓':'✗'}</button>`;
-    }
+    const pc = (paid, who, field) => isAdmin
+      ? `<button type="button" class="pay-chip btn-pay ${paid ? 'paid' : ''}" onclick="togglePaid(${c.id},'${field}')" title="Нажмите, чтобы отметить">${who} ${paid ? '✓' : '✗'}</button>`
+      : `<span class="pay-chip ${paid ? 'paid' : ''}">${who} ${paid ? '✓' : '✗'}</span>`;
+    const dd = c.load_date ? c.load_date.slice(8, 10) + '.' + c.load_date.slice(5, 7) : '';
     return `<tr>
-      <td data-label="#">${idx+1}</td><td data-label="Клиент">${esc(c.client_name)}</td><td data-label="Перевозчик">${esc(c.carrier_name)}</td><td data-label="Товар">${esc(c.product)}</td>
-      <td data-label="Откуда">${load}</td><td data-label="Куда">${unload}</td><td data-label="Дата">${c.load_date||'-'}</td>
+      <td data-label="Клиент"><div class="dl-name">${esc(c.client_name)}</div><div class="dl-s">${esc(c.carrier_name)}${c.product ? ' · ' + esc(c.product) : ''}</div></td>
+      <td data-label="Маршрут">${esc(load)} → ${esc(unload)}<div class="dl-s">${dd ? 'загрузка ' + dd : 'без даты'}${c.logist ? ' · ' + esc(c.logist) : ''}</div></td>
       <td data-label="Статус"><button type="button" class="status-badge status-btn ${sc[c.status]||''}" data-st="${c.id}" title="Нажмите, чтобы сменить статус">${sl[c.status]||c.status}</button></td>
-      <td data-label="Клиент ₴">${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString()}</td>
-      <td data-label="Перевозчик ₴">${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString()}</td>
-      <td data-label="Прибыль" class="profit-positive">֏${Math.round(profitAMD).toLocaleString()}</td>
-      <td data-label="Оплата" style="white-space:nowrap">${paymentHTML}${(isAdmin && /Վալան/i.test(c.client_name||'') && (c.load_date||'') >= '2026-10-01') ? `<span class="my-check ${c.my_check?'on':''}" onclick="togglePaid(${c.id},'my_check')" title="Моя отметка"></span>` : ''}</td>
-      <td data-label="Логист">${esc(c.logist)}</td>
-      <td><button class="btn-edit" onclick="editCargo(${c.id})">✎</button> ${isAdmin?`<button class="btn-del" onclick="deleteCargo(${c.id})">✕️</button>`:''}</td>
+      <td data-label="Клиент / перевоз" class="r">${currencySymbol(clientCur)}${parseFloat(c.client_price||0).toLocaleString('ru')}<div class="dl-s">${currencySymbol(carrierCur)}${parseFloat(c.carrier_price||0).toLocaleString('ru')}</div></td>
+      <td data-label="Прибыль" class="r"><span class="dl-profit ${profitAMD < 0 ? 'neg' : 'pos'}">֏${Math.round(profitAMD).toLocaleString('ru')}</span></td>
+      <td data-label="Оплата"><div class="dl-pays">${pc(c.client_paid, 'клиент', 'client_paid')}${pc(c.carrier_paid, 'перевоз', 'carrier_paid')}${(isAdmin && /Վալան/i.test(c.client_name||'') && (c.load_date||'') >= '2026-10-01') ? `<span class="my-check ${c.my_check?'on':''}" onclick="togglePaid(${c.id},'my_check')" title="Моя отметка"></span>` : ''}</div></td>
+      <td class="dl-acts"><button class="btn-edit" onclick="editCargo(${c.id})" title="Изменить" aria-label="Изменить сделку">✎</button>${isAdmin ? `<button class="btn-del" onclick="deleteCargo(${c.id})" title="Удалить" aria-label="Удалить сделку">✕</button>` : ''}</td>
     </tr>`;
   }).join('');
 }
@@ -368,6 +372,7 @@ function init() {
   document.getElementById('navLinks').innerHTML = isAdmin ? adminNav : logistNav;
   document.getElementById('logoutBtn').addEventListener('click', doLogout);
   document.getElementById('newDealBtn').addEventListener('click', () => toggleForm());
+  document.getElementById('dlFiltersBtn').addEventListener('click', () => { const fb = document.getElementById('filterBar'); fb.hidden = !fb.hidden; document.getElementById('dlFiltersBtn').setAttribute('aria-expanded', String(!fb.hidden)); });
   document.getElementById('cancelBtn').addEventListener('click', () => toggleForm(false));
 
   // Переключатель типа перевозчика
