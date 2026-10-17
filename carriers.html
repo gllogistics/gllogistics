@@ -151,6 +151,13 @@ tr.noname td { background: #FFFBF2; }
             <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:14px"><input type="checkbox" class="check" id="rqChEmail" checked> Email</label>
             <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:14px"><input type="checkbox" class="check" id="rqChWa" checked> WhatsApp</label>
           </div>
+          <div id="rqWaModeBox" style="margin-top:6px;padding:8px 10px;border:1px solid #E4E7EA;border-radius:8px;font-size:13px">
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="rqWaMode" value="manual" checked> вручную (WhatsApp Web, нажимаете «Отправить» сами)</label>
+              <label style="display:flex;align-items:center;gap:6px" id="rqWaAutoLbl"><input type="radio" name="rqWaMode" value="auto" id="rqWaAuto" disabled> автоматически с моего номера</label>
+            </div>
+            <div class="muted" id="rqWaStatus" style="font-size:12px;margin-top:4px">Проверяю подключение WhatsApp…</div>
+          </div>
         </div>
         <div class="fg full"><div class="rq-sum" id="rqSum" style="margin:0"></div></div>
         <div class="fg"><label for="rqLang">Язык</label><select id="rqLang"><option value="ru">Русский</option><option value="en">English</option></select></div>
@@ -441,7 +448,29 @@ $('rqSections').addEventListener('click', e => {
   rqRenderSections(); rqSummary();
 });
 ['rqTrType', 'rqOnlyTr', 'rqChEmail', 'rqChWa'].forEach(id => $(id).addEventListener('change', () => { if (id === 'rqTrType') rqBuild(); rqSummary(); }));
+// ── WhatsApp автоматически (YCloud): статус подключения для текущего пользователя ──
+var waStatus = null;
+const QCOL = { GREEN: ['зелёное', '#1B6B3F'], YELLOW: ['жёлтое', '#8A4B00'], RED: ['красное', '#A3241B'] };
+function rqWaRender() {
+  const s = waStatus, lang = $('rqLang').value, box = $('rqWaStatus'), auto = $('rqWaAuto');
+  let ok = false, msg = '';
+  if (!s) msg = 'Проверяю подключение WhatsApp…';
+  else if (!s.configured) msg = 'Автоматическая отправка пока не подключена' + (s.reason ? ': ' + s.reason : '') + '.';
+  else if (!s.my_number) msg = 'У вас в профиле не указан номер WhatsApp (Главная → Управление логистами → Подпись).';
+  else if (!s.connected) msg = 'Номер ' + s.my_number + ' ещё не подключён к YCloud.';
+  else {
+    const t = (s.templates || {})[lang] || {}, q = QCOL[s.quality] || [s.quality || 'нет данных', '#5B6670'];
+    const tl = t.status === 'APPROVED' ? 'одобрен' : t.status === 'REJECTED' ? 'отклонён Meta' + (t.reason ? ' (' + t.reason + ')' : '') : t.status ? 'на проверке у Meta' : 'ещё не создан';
+    ok = t.status === 'APPROVED' && s.quality !== 'RED';
+    msg = `Номер ${s.my_number} · качество: <b style="color:${q[1]}">${q[0]}</b> · шаблон (${lang === 'en' ? 'English' : 'русский'}): ${tl}` + (s.quality === 'RED' ? ' · автоотправка остановлена' : '');
+  }
+  box.innerHTML = msg; auto.disabled = !ok;
+  if (!ok && auto.checked) document.querySelector('input[name="rqWaMode"][value="manual"]').checked = true;
+}
+async function rqWaLoad() { waStatus = null; rqWaRender(); waStatus = await api('/api/carrier-requests/wa-status').catch(() => ({ configured: false, reason: 'нет связи' })); rqWaRender(); }
+$('rqLang').addEventListener('change', rqWaRender);
 $('reqBtn').addEventListener('click', () => {
+  rqWaLoad();
   $('rqTrType').innerHTML = TRAILERS.map(([k, l]) => `<option value="${k}">${k ? l : 'Любой'}</option>`).join('');
   textEdited = false; rqBuild(); rqRenderSections(); rqSummary();
   $('rqForm').hidden = false; $('rqWaBox').hidden = true;
@@ -491,7 +520,8 @@ $('reqModal').addEventListener('click', e => { if (e.target.id === 'reqModal') $
 $('rqSend').addEventListener('click', async () => {
   if (!$('rqFrom').value.trim() || !$('rqTo').value.trim()) { alert('Укажите, откуда и куда'); return; }
   const r = recipients(), ce = $('rqChEmail').checked && r.email.length, cw = $('rqChWa').checked && r.wa.length;
-  const parts = []; if (ce) parts.push(`email: ${Math.min(r.email.length, 100)}`); if (cw) parts.push(`WhatsApp: ${r.wa.length}`);
+  const waAuto = cw && $('rqWaAuto').checked && !$('rqWaAuto').disabled;
+  const parts = []; if (ce) parts.push(`email: ${Math.min(r.email.length, 100)}`); if (cw) parts.push(`WhatsApp${waAuto ? ' автоматически' : ''}: ${waAuto ? Math.min(r.wa.length, 100) : r.wa.length}`);
   if (!confirm('Отправить запрос (' + parts.join(', ') + ')? Ответы на письма придут на ' + sigMail() + '.')) return;
   const b = $('rqSend'); b.disabled = true;
   if (ce) {
@@ -500,11 +530,23 @@ $('rqSend').addEventListener('click', async () => {
     if (res.error) alert('Письма не отправлены: ' + res.error);
     else alert(`Отправлено писем: ${res.sent}` + (res.skipped ? `\nПропущено (некорректный адрес): ${res.skipped}` : '') + (res.bounced ? `\nПропущено (email не работает): ${res.bounced}` : ''));
   }
+  if (waAuto) {
+    b.textContent = 'Отправляю в WhatsApp…';
+    const en = $('rqLang').value === 'en', opt = $('rqTrType').selectedOptions[0];
+    const tr = $('rqTrType').value ? opt.textContent : (en ? 'any' : 'любой');
+    const vars = { route: $('rqFrom').value.trim() + ' → ' + $('rqTo').value.trim(), date: $('rqDate').value.trim() || (en ? 'by agreement' : 'по договорённости'),
+      transport: tr + ($('rqWeight').value.trim() ? ', ' + $('rqWeight').value.trim() : ''), cargo: [$('rqCargo').value.trim(), $('rqNote').value.trim()].filter(Boolean).join('. ') || '—' };
+    const res = await api('/api/carrier-requests/send-wa', 'POST', { lang: $('rqLang').value, vars, recipients: r.wa.slice(0, 100).map(c => ({ id: c.id, phone: firstWa(c) })) }).catch(() => ({ error: 'нет связи' }));
+    if (res.error) alert('WhatsApp не отправлен: ' + res.error);
+    else alert(`Отправлено в WhatsApp: ${res.sent}` + (res.recent ? `\nПропущено (запрос уже был недавно): ${res.recent}` : '') + (res.optout ? `\nПропущено (просили не писать): ${res.optout}` : '')
+      + (res.failed && res.failed.length ? `\nНе ушло: ${res.failed.length} (${res.failed[0].error})` : '') + '\n\nОтветы придут в WhatsApp на ваш телефон и письмом на вашу почту.');
+  }
   b.textContent = 'Отправить'; b.disabled = false;
   await loadLastReq(); render();
-  if (cw) { waQueue = r.wa; waIdx = 0; $('rqForm').hidden = true; $('rqWaBox').hidden = false; waShow(); }
+  if (cw && !waAuto) { waQueue = r.wa; waIdx = 0; $('rqForm').hidden = true; $('rqWaBox').hidden = false; waShow(); }
   else $('reqModal').classList.remove('open');
 });
+$('rqChWa').addEventListener('change', () => { $('rqWaModeBox').style.display = $('rqChWa').checked ? '' : 'none'; });
 // ── Очередь WhatsApp ──
 var waQueue = [], waIdx = 0;
 function waShow() {
