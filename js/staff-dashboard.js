@@ -423,6 +423,8 @@ function openSigModal(u) {
       <input id="sgPhones" style="width:100%;margin-bottom:10px" placeholder="+37493661454, +37496664454">
       <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px" for="sgEmail">Рабочий email</label>
       <input id="sgEmail" type="email" style="width:100%;margin-bottom:12px" placeholder="armen@gllogistics.org">
+      <label style="display:block;font-size:12px;font-weight:600;color:#5B6670;margin-bottom:4px">Номер WhatsApp для автоматических запросов (должен быть подключён в YCloud)</label>
+      <input id="sgWa" type="tel" style="width:100%;margin-bottom:12px" placeholder="+374 93 000000">
       <div style="font-size:12px;font-weight:600;color:#5B6670;margin-bottom:6px">Так подпись будет выглядеть в письме</div>
       <div id="sgPreview" style="border:1px solid #E4E7EA;border-radius:8px;padding:10px 12px;margin-bottom:14px;background:#fff;overflow-x:auto"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -447,7 +449,8 @@ function openSigModal(u) {
         display_name: document.getElementById('sgName').value.trim(),
         sig_title: document.getElementById('sgTitle').value.trim(),
         sig_phones: document.getElementById('sgPhones').value.trim(),
-        email: document.getElementById('sgEmail').value.trim()
+        email: document.getElementById('sgEmail').value.trim(),
+        wa_number: document.getElementById('sgWa').value.trim()
       });
       if (r && r.error) return alert(r.error);
       m.style.display = 'none';
@@ -460,6 +463,7 @@ function openSigModal(u) {
   document.getElementById('sgTitle').value = u.sig_title || '';
   document.getElementById('sgPhones').value = u.sig_phones || '';
   document.getElementById('sgEmail').value = u.email || '';
+  document.getElementById('sgWa').value = u.wa_number || '';
   document.getElementById('sgTest').style.display = u.username === localStorage.getItem('gl_staff_user') ? '' : 'none';
   sigPreview();
   m.style.display = 'flex';
