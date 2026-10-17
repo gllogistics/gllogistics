@@ -141,9 +141,20 @@ tr.noname td { background: #FFFBF2; }
         <div class="fg"><label for="rqTrType">Тип прицепа</label><select id="rqTrType"></select></div>
         <div class="fg full"><label for="rqNote">Дополнительно</label><input id="rqNote" placeholder="Режим +2…+4 °C, ADR, таможня, оплата и т.п."></div>
         <div class="fg full">
-          <label>Кому отправить: разделы</label>
-          <div id="rqSections" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:13px;margin-top:6px"><input type="checkbox" class="check" id="rqOnlyTr" checked> Только перевозчикам с выбранным типом прицепа</label>
+          <label>Кому отправить</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;font-size:14px">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:500;color:#14202B"><input type="radio" name="rqWho" value="sec" checked> По разделам</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:500;color:#14202B"><input type="radio" name="rqWho" value="pick"> Выбрать перевозчиков</label>
+          </div>
+          <div id="rqSecBox">
+            <div id="rqSections" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:13px;margin-top:6px"><input type="checkbox" class="check" id="rqOnlyTr" checked> Только перевозчикам с выбранным типом прицепа</label>
+          </div>
+          <div id="rqPickBox" hidden>
+            <input id="rqPickQ" placeholder="Поиск: название, страна, телефон, email" style="width:100%;margin-bottom:6px" autocomplete="off">
+            <div id="rqPickList" style="max-height:240px;overflow-y:auto;border:1px solid #E4E7EA;border-radius:8px"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:12.5px"><span class="muted" id="rqPickInfo"></span><button type="button" class="b sm" id="rqPickClear">Снять все</button></div>
+          </div>
         </div>
         <div class="fg full">
           <label>Как отправить</label>
@@ -418,8 +429,9 @@ const rqSecs = new Set();
 function recipients() {
   const tr = $('rqTrType').value, only = $('rqOnlyTr').checked;
   const re = tr ? new RegExp(tr, 'i') : null;
-  const base = all.filter(c => c.status !== 'prospect' && rqSecs.has(dirOf(c)))
-    .filter(c => !re || !only || re.test([c.trailer, c.load_type, c.notes].join(' ')));
+  const base = rqWho === 'pick' ? all.filter(c => rqPick.has(c.id))
+    : all.filter(c => c.status !== 'prospect' && rqSecs.has(dirOf(c)))
+      .filter(c => !re || !only || re.test([c.trailer, c.load_type, c.notes].join(' ')));
   const seenE = new Set(), seenW = new Set(), email = [], wa = []; let bad = 0;
   for (const c of base) {
     const we = workingEmails(c);
@@ -432,12 +444,35 @@ function recipients() {
 function rqSummary() {
   const r = recipients(), ce = $('rqChEmail').checked, cw = $('rqChWa').checked;
   const none = r.base.filter(c => !hasEmail(c) && !firstWa(c)).length;
-  $('rqSum').innerHTML = rqSecs.size
-    ? `<span>Перевозчиков в выбранных разделах: ${r.base.length}</span>` + (ce ? `<span class="ok">Email: ${r.email.length}</span>` : '') + (cw ? `<span class="ok">WhatsApp: ${r.wa.length}</span>` : '')
+  const chosen = rqWho === 'pick' ? rqPick.size : rqSecs.size;
+  $('rqSum').innerHTML = chosen
+    ? `<span>${rqWho === 'pick' ? 'Выбрано перевозчиков' : 'Перевозчиков в выбранных разделах'}: ${r.base.length}</span>` + (ce ? `<span class="ok">Email: ${r.email.length}</span>` : '') + (cw ? `<span class="ok">WhatsApp: ${r.wa.length}</span>` : '')
       + (none ? `<span class="warn">Без контактов: ${none}</span>` : '') + (ce && r.bad ? `<span class="warn">Email не работает: ${r.bad} (пропустим)</span>` : '') + (ce && r.email.length > 100 ? `<span class="warn">Email уйдут первым 100 (дневной лимит)</span>` : '')
-    : '<span class="warn">Выберите хотя бы один раздел</span>';
-  $('rqSend').disabled = !rqSecs.size || (!(ce && r.email.length) && !(cw && r.wa.length));
+    : `<span class="warn">${rqWho === 'pick' ? 'Отметьте хотя бы одного перевозчика' : 'Выберите хотя бы один раздел'}</span>`;
+  $('rqSend').disabled = !chosen || (!(ce && r.email.length) && !(cw && r.wa.length));
 }
+// ── Выбор конкретных перевозчиков ──
+var rqWho = 'sec', rqPick = new Set();
+function rqRenderPick() {
+  const q = $('rqPickQ').value.trim().toLowerCase();
+  const list = all.filter(c => !q || [c.name, c.country, c.phone, c.email, dirOf(c)].join(' ').toLowerCase().includes(q))
+    .sort((a, b) => (rqPick.has(b.id) - rqPick.has(a.id)) || String(a.name || '').localeCompare(String(b.name || ''), 'ru'));
+  $('rqPickList').innerHTML = list.slice(0, 200).map(c => `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #EEF0F2;cursor:pointer;font-size:13px">
+      <input type="checkbox" class="check" data-pick="${c.id}" ${rqPick.has(c.id) ? 'checked' : ''}>
+      <span style="flex:1;min-width:0"><b style="font-weight:600">${esc(c.name || 'Без названия')}</b> <span class="muted">${esc([c.country, dirOf(c)].filter(Boolean).join(' · '))}</span></span>
+      <span style="font-size:11.5px;white-space:nowrap">${workingEmails(c).length ? '<span style="color:#1B6B3F">email</span>' : hasEmail(c) ? '<span style="color:#A3241B">email ✗</span>' : ''} ${firstWa(c) ? '<span style="color:#1B6B3F">WhatsApp</span>' : ''}</span></label>`).join('')
+    || '<div class="muted" style="padding:12px">Никого не найдено</div>';
+  $('rqPickInfo').textContent = 'Отмечено: ' + rqPick.size + (list.length > 200 ? ' · показаны первые 200, уточните поиск' : '');
+}
+document.querySelectorAll('input[name="rqWho"]').forEach(r => r.addEventListener('change', () => {
+  rqWho = document.querySelector('input[name="rqWho"]:checked').value;
+  $('rqSecBox').hidden = rqWho === 'pick'; $('rqPickBox').hidden = rqWho !== 'pick';
+  if (rqWho === 'pick') { rqRenderPick(); $('rqPickQ').focus(); }
+  rqSummary();
+}));
+$('rqPickQ').addEventListener('input', rqRenderPick);
+$('rqPickList').addEventListener('change', e => { const cb = e.target.closest('[data-pick]'); if (!cb) return; const id = +cb.dataset.pick; cb.checked ? rqPick.add(id) : rqPick.delete(id); $('rqPickInfo').textContent = 'Отмечено: ' + rqPick.size; rqSummary(); });
+$('rqPickClear').addEventListener('click', () => { rqPick.clear(); rqRenderPick(); rqSummary(); });
 function rqRenderSections() {
   const act = all.filter(c => c.status !== 'prospect');
   $('rqSections').innerHTML = sections().map(d => `<button type="button" class="chip ${rqSecs.has(d) ? 'on' : ''}" data-sec="${esc(d)}" aria-pressed="${rqSecs.has(d)}">${esc(d)} · ${act.filter(c => dirOf(c) === d).length}</button>`).join('');
