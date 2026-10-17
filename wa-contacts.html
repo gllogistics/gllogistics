@@ -48,11 +48,18 @@ td { padding: 10px 12px; border-top: 1px solid #EEF0F2; vertical-align: top; }
   <p class="sub">Робот читает контакты и переписку вашего WhatsApp Business и раскладывает людей: перевозчиков и экспедиторов — в базу перевозчиков, клиентов — в клиенты. Сомнительные попадают сюда на проверку. Переписка личных чатов не хранится.</p>
   <div class="bar">
     <button type="button" class="btn" id="wcImport">Загрузить контакты из WhatsApp</button>
-    <button type="button" class="btn primary" id="wcClassify">Разобрать с Claude</button>
+    <button type="button" class="btn primary" id="wcClassify">Разобрать всех с Claude</button>
     <span class="msg" id="wcMsg"></span>
   </div>
   <div class="tabs" id="wcTabs"></div>
-  <div class="card"><table><thead><tr><th style="width:20%">Контакт</th><th style="width:12%">Кто</th><th>Подробности</th><th style="width:14%">Где</th><th style="width:26%">Действия</th></tr></thead><tbody id="wcBody"></tbody></table></div>
+  <div class="tabs" id="wcFilter" style="align-items:center"></div>
+  <div class="bar" id="wcBulk" hidden style="background:#F2F8F8;border:1px solid #9CC5C8;border-radius:8px;padding:8px 10px">
+    <b id="wcBulkN" style="font-size:13.5px">Отмечено: 0</b>
+    <button type="button" class="btn sm" data-bulk="carrier">В перевозчики</button><button type="button" class="btn sm" data-bulk="forwarder">В экспедиторы</button>
+    <button type="button" class="btn sm" data-bulk="client">В клиенты</button><button type="button" class="btn sm" data-bulk="ignore">Скрыть</button>
+    <button type="button" class="btn sm" data-bulk="private">Личные</button><button type="button" class="btn sm" id="wcBulkClear" style="margin-left:auto">Снять отметки</button>
+  </div>
+  <div class="card"><table><thead><tr><th style="width:22%"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="wcAll" style="width:16px;height:16px;accent-color:#146C72" title="Отметить всех на экране"> Контакт</label></th><th style="width:12%">Кто</th><th>Подробности</th><th style="width:14%">Где</th><th style="width:26%">Действия</th></tr></thead><tbody id="wcBody"></tbody></table></div>
 </div>
 <div class="modal" id="wcModal" role="dialog" aria-modal="true" aria-labelledby="wcMTitle"><div class="box">
   <h2 id="wcMTitle">В базу перевозчиков</h2>
@@ -61,7 +68,7 @@ td { padding: 10px 12px; border-top: 1px solid #EEF0F2; vertical-align: top; }
   <label>Тип прицепа<input id="wcMTr" placeholder="Реф, Тент…"></label>
   <div class="foot"><button type="button" class="btn" id="wcMCancel">Отмена</button><button type="button" class="btn primary" id="wcMSave">Добавить</button></div>
 </div></div>
-<script src="/js/wa-contacts.js?v=1"></script>
+<script src="/js/wa-contacts.js?v=2"></script>
 <script src="/js/nav-fleet.js?v=5"></script>
 </body>
 </html>
