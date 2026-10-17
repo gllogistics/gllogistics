@@ -1,11 +1,10 @@
 // GL Logistics — «Машины на карте»: последние координаты машин из Wialon на карте OpenStreetMap
 (function () {
   const W = 'https://gl-api.gltransam.workers.dev';
-  const WIALON = 'https://hst-api.wialon.com/wialon/ajax.html';
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const norm = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');   // «284 HT 61» = «284HT61»
-  let sid = null, map = null, layer = null, units = [], trips = [], timer = null, fitted = false, active = false;
+  let map = null, layer = null, units = [], trips = [], timer = null, fitted = false, active = false;
   const PLACE_KEY = 'gl_fm_places_v1';
   const places = (() => { try { return JSON.parse(localStorage.getItem(PLACE_KEY)) || {}; } catch (e) { return {}; } })();
 
@@ -18,15 +17,12 @@
     if (p.s > 5) return { cls: 'move', text: 'едет, ' + p.s + ' км/ч' };
     return { cls: 'stop', text: 'стоит' }; };
 
+  // Wialon — через ваш сервер (браузер напрямую к Wialon не пускают)
   async function wialon(svc, params) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      if (!sid) { const r = await fetch(W + '/api/wialon/session', { method: 'POST' }).then(r => r.json()); if (!r.sid) throw new Error(r.error || 'нет сеанса Wialon'); sid = r.sid; }
-      const r = await fetch(WIALON, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `svc=${svc}&params=${encodeURIComponent(JSON.stringify(params))}&sid=${sid}` }).then(r => r.json());
-      if (r && r.error === 1) { sid = null; continue; }   // сеанс истёк — берём новый
-      if (r && r.error) throw new Error('Wialon: ошибка ' + r.error);
-      return r;
-    }
-    throw new Error('Wialon: не удалось получить сеанс');
+    const r = await fetch(W + '/api/wialon/call', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svc, params }) }).then(r => r.json());
+    if (r && typeof r.error === 'string') throw new Error(r.error);
+    if (r && r.error) throw new Error('Wialon: ошибка ' + r.error);
+    return r;
   }
   // ближайший населённый пункт (OpenStreetMap Nominatim), запоминаем по округлённым координатам
   async function placeOf(p) {
