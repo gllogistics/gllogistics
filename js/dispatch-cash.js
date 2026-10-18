@@ -30,7 +30,9 @@
     const sum = (list, f) => { let t = 0, miss = 0; list.forEach(o => { if (!f(o)) return; const v = toAmd(o); if (v == null) miss++; else t += v * (o.direction === 'out' ? -1 : 1); }); return { t, miss }; };
     const card = k => {
       const all = sum(ops, o => bucket(o) === k), pin = sum(per, o => bucket(o) === k && o.direction === 'in'), pout = sum(per, o => bucket(o) === k && o.direction === 'out');
-      const eur = rates && rates.EUR ? ' <span class="dc-eur">≈ €' + Math.round(all.t / rates.EUR).toLocaleString('ru') + '</span>' : '';
+      // примерный эквивалент: для T1 — в лари, для остальных — в евро
+      const eqCur = k === 't1' ? 'GEL' : 'EUR', eqSign = k === 't1' ? '₾' : '€';
+      const eur = rates && rates[eqCur] ? ' <span class="dc-eur">≈ ' + eqSign + Math.round(all.t / rates[eqCur]).toLocaleString('ru') + '</span>' : '';
       return `<div class="dc-lbl">${k === 't1' ? 'T1' : k === 'insurance' ? 'Страховка' : 'Другое'}: накоплено</div><div class="dc-num ${all.t < 0 ? 'neg' : ''}">${AMD(all.t)}${eur}</div>
         <div class="dc-per">за период: <b class="pos">+${AMD(pin.t)}</b> · <b class="neg">−${AMD(Math.abs(pout.t))}</b></div>${all.miss ? '<div class="dc-per warn">нет курса для ' + all.miss + ' операций</div>' : ''}`;
     };
