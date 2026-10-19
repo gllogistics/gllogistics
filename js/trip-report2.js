@@ -294,7 +294,7 @@ function renderExpenses(expenses) {
       <td><span class="expense-cat ${catClass[e.category] || ''}">${catLabel[e.category] || e.category}</span></td>
       <td class="exp-desc">${esc(e.description || '')}${e.receipt_key ? ` <img class="receipt-thumb" src="${WORKER}/api/receipt/${e.receipt_key.replace('receipts/','')}" alt="чек" onclick="window.open(this.src)">` : ''}</td>
       <td class="exp-date">${fmtDate(e.date)}</td>
-      <td>${e.category === 'advance' ? (e.paid_by === 'company_cash' ? '<span class="pay-tag pay-adv">Обналичено картой фирмы</span>' : '<span class="pay-tag pay-adv">На карту водителю</span>') : ['salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : '<span class="pay-tag pay-card">Карта</span>')}</td>
+      <td>${e.category === 'advance' ? (e.paid_by === 'company_cash' ? '<span class="pay-tag pay-adv">Обналичено картой фирмы</span>' : '<span class="pay-tag pay-adv">На карту водителю</span>') : ['salary','bank'].includes(e.category) ? '' : (e.paid_by === 'cash' ? '<span class="pay-tag pay-cash">Наличные</span>' : e.paid_by === 'dkv' ? '<span class="pay-tag pay-dkv">DKV</span>' : '<span class="pay-tag pay-card">Карта</span>')}</td>
       <td class="r exp-amt">${sym(e.currency)}${fmt(e.amount)}</td>
       <td class="r exp-act"><button type="button" class="exp-btn" onclick="editExpense(${e.id})">Изм.</button><button type="button" class="exp-btn del" onclick="deleteExpense(${e.id})">Удалить</button></td>
     </tr>`).join('') + `</tbody></table></div>`;
@@ -309,7 +309,12 @@ function renderExpenses(expenses) {
   totEl.innerHTML = `<div class="exp-tot">
     <span class="exp-cats">${Object.entries(bycat).map(([cat,amt]) => `${catLabel[cat] || cat}: <b>֏${fmt(amt)}</b>`).join(' · ')}</span>
     <span class="exp-sum">Итого расходов <b>֏${fmt(totalAMD)}</b></span>
-  </div>`;
+  </div>` + (() => {   // сумма по карте DKV — для сверки со счётом DKV
+    const dkv = expenses.filter(e => e.paid_by === 'dkv');
+    if (!dkv.length) return '';
+    const byCur = {}; dkv.forEach(e => { const c = e.currency || 'EUR'; byCur[c] = (byCur[c] || 0) + (parseFloat(e.amount) || 0); });
+    return `<div class="exp-dkv">Оплачено картой DKV: <b>${Object.entries(byCur).map(([c, a]) => sym(c) + fmt(Math.round(a * 100) / 100)).join(' + ')}</b> (֏${fmt(dkv.reduce((t, e) => t + (e.amount_amd || 0), 0))}) · ${dkv.length} ${(n => n % 10 === 1 && n % 100 !== 11 ? 'операция' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'операции' : 'операций')(dkv.length)}</div>`;
+  })();
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -467,12 +472,14 @@ async function addExpense() {
 // «Кто оплатил»: для аванса — как передали деньги водителю, для остального — карта фирмы или наличные
 const PAY_OPTS = {
   normal: [['card', 'Карта фирмы'], ['cash', 'Наличные водителя (из аванса)']],
+  // топливо, AdBlue и платные дороги можно оплатить топливной картой DKV (счёт DKV приходит фирме — аванс водителя не трогает)
+  dkv: [['card', 'Карта фирмы'], ['dkv', 'Карта DKV'], ['cash', 'Наличные водителя (из аванса)']],
   advance: [['driver_card', 'Отправил на карту водителю'], ['company_cash', 'Обналичил по карте фирмы']]
 };
 function syncPaidBy(val) {
   const sel = document.getElementById('ePaidBy'), cat = document.getElementById('eCat');
   if (!sel || !cat) return;
-  const kind = cat.value === 'advance' ? 'advance' : 'normal';
+  const kind = cat.value === 'advance' ? 'advance' : ['fuel', 'adblue', 'toll'].includes(cat.value) ? 'dkv' : 'normal';
   if (sel.dataset.kind !== kind) {
     sel.innerHTML = PAY_OPTS[kind].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
     sel.dataset.kind = kind;
