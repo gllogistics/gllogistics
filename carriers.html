@@ -577,6 +577,7 @@ $('rqSend').addEventListener('click', async () => {
     if (res.error) alert('Письма не отправлены: ' + res.error);
     else alert(`Отправлено писем: ${res.sent}` + (res.via_brevo ? ` (через Resend: ${res.via_resend}, через Brevo: ${res.via_brevo})` : '')
       + (res.deferred ? `\nНе ушло ${res.deferred} — дневной лимит бесплатной почты исчерпан, отправьте им завтра` : '')
+      + (res.already ? `\nПропущено ${res.already} — уже получили это письмо за последние сутки` : '')
       + (res.skipped ? `\nПропущено (некорректный адрес): ${res.skipped}` : '') + (res.bounced ? `\nПропущено (email не работает): ${res.bounced}` : ''));
   }
   if (waAuto) {
