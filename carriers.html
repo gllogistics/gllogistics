@@ -150,6 +150,8 @@ tr.noname td { background: #FFFBF2; }
           <div id="rqSecBox">
             <div id="rqSections" style="display:flex;flex-wrap:wrap;gap:6px"></div>
             <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:13px;margin-top:6px"><input type="checkbox" class="check" id="rqOnlyTr" checked> Только перевозчикам с выбранным типом прицепа</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:#14202B;font-size:13px;margin-top:4px"><input type="checkbox" class="check" id="rqCtryOn" checked> Только тем, кто работает в стране загрузки (из поля «Откуда»)</label>
+            <div class="muted" id="rqCtryInfo" style="font-size:12px;margin-top:2px"></div>
           </div>
           <div id="rqPickBox" hidden>
             <input id="rqPickQ" placeholder="Поиск: название, страна, телефон, email" style="width:100%;margin-bottom:6px" autocomplete="off">
@@ -429,23 +431,73 @@ const firstWa = c => (phonesOf(c.phone).find(p => p.wa) || {}).wa || '';
 const hasEmail = c => /@/.test(c.email || '');
 const rqSecs = new Set();
 // Получатели: выбранные разделы + тип прицепа; одна компания в двух разделах получит запрос один раз
+// ── Фильтр по стране загрузки: страна берётся из «Откуда» (по-русски или по-английски) ──
+const EU = 'европ|europe|\\beu\\b|\\bес\\b|евросоюз', CIS = 'снг|\\bcis\\b', CAUC = 'кавказ|caucasus', CASIA = 'средн(?:яя|ей|юю) ази|central asia', MEAST = 'ближн(?:ий|его|ем) восток|middle east';
+const COUNTRIES = [
+  ['Греция', 'греци|greece|hellas|афин|athens|салоник|thessalon|пире|piraeus|патры|patras', EU], ['Турция', 'турци|turkey|türkiye|turkiye|стамбул|istanbul|измир|izmir|мерсин|mersin', ''],
+  ['Германия', 'германи|germany|deutschland', EU], ['Италия', 'итали|italy|italia|триест|trieste|милан|milan', EU], ['Польша', 'польш|poland|polska|варшав|warsaw', EU],
+  ['Румыния', 'румыни|romania|бухарест|bucharest', EU], ['Болгария', 'болгари|bulgaria|софи[яи]\\b|sofia', EU], ['Венгрия', 'венгри|hungary|будапешт|budapest', EU],
+  ['Словакия', 'словаки|slovakia', EU], ['Чехия', 'чехи|czech|прага|prague', EU], ['Австрия', 'австри|austria|вена\\b|vienna', EU], ['Франция', 'франци|france|париж|paris', EU],
+  ['Нидерланды', 'нидерланд|голланди|netherlands|holland|бенилюкс|benelux|роттердам|rotterdam', EU], ['Бельгия', 'бельги|belgium|бенилюкс|benelux|антверпен|antwerp', EU],
+  ['Испания', 'испани|spain', EU], ['Португалия', 'португали|portugal', EU], ['Словения', 'словени|slovenia', EU], ['Хорватия', 'хорвати|croatia', EU], ['Сербия', 'серби|serbia', EU],
+  ['Литва', 'литв|lithuania', EU], ['Латвия', 'латви|latvia', EU], ['Эстония', 'эстони|estonia', EU], ['Великобритания', 'великобритани|англи[яи]|britain|england|\\buk\\b', EU],
+  ['Швейцария', 'швейцари|switzerland', EU], ['Швеция', 'швеци|sweden', EU], ['Дания', 'дани[яи]\\b|denmark', EU], ['Финляндия', 'финлянд|finland', EU], ['Норвегия', 'норвеги|norway', EU],
+  ['Украина', 'украин|ukrain', EU], ['Молдова', 'молдов|moldova', EU], ['Беларусь', 'беларус|белорус|belarus', CIS], ['Россия', 'росси|russia|\\bрф\\b|москв|moscow', CIS],
+  ['Казахстан', 'казахстан|kazakhstan|алмат|almaty', CASIA + '|' + CIS], ['Узбекистан', 'узбекистан|uzbekistan|ташкент|tashkent', CASIA + '|' + CIS], ['Кыргызстан', 'кыргызстан|киргиз|kyrgyz', CASIA + '|' + CIS],
+  ['Таджикистан', 'таджикистан|tajikistan', CASIA + '|' + CIS], ['Туркменистан', 'туркменистан|turkmenistan', CASIA],
+  ['Грузия', 'грузи[яи]\\b|georgia|тбилис|tbilisi|поти\\b|батуми|batumi', CAUC], ['Армения', 'армени|armenia|ереван|yerevan', CAUC + '|' + CIS], ['Азербайджан', 'азербайджан|azerbaijan|баку|baku', CAUC + '|' + CIS],
+  ['Иран', 'иран|\\biran', MEAST], ['Ирак', 'ирак|\\biraq', MEAST], ['ОАЭ', 'оаэ|\\buae\\b|emirates|дуба[йи]|dubai', MEAST], ['Китай', 'кита[йяе]|china', ''], ['Индия', 'инди[яи]\\b|india', '']
+];
+const NEG = /(^|[\s(«"])(не|нет|без|not|no|cannot|can't|don't|do not|without)(?=[\s,.!?:)»"]|$)/i;
+function rqCountry() {
+  const t = ' ' + $('rqFrom').value.toLowerCase() + ' ';
+  return COUNTRIES.find(([n, re]) => new RegExp(re, 'i').test(t)) || null;
+}
+// 'yes' — работает там (страна или её регион в маршруте/заметках), 'unknown' — направления не указаны, 'no' — не возит или возит в других странах
+function ctryMatch(c, ct) {
+  const text = [c.route, c.notes].join(' . ').toLowerCase(), reC = new RegExp(ct[1], 'i'), reR = ct[2] ? new RegExp(ct[2], 'i') : null;
+  let pos = false;
+  for (const part of text.split(/[.;·\n]+/)) {
+    if (reC.test(part)) { if (NEG.test(part)) return 'no'; pos = true; }
+    else if (reR && reR.test(part) && !NEG.test(part)) pos = true;
+  }
+  if (pos) return 'yes';
+  return String(c.route || '').trim() ? 'no' : 'unknown';
+}
+var rqCtryStats = null;
 function recipients() {
   const tr = $('rqTrType').value, only = $('rqOnlyTr').checked;
   const re = tr ? new RegExp(tr, 'i') : null;
   const base = rqWho === 'pick' ? all.filter(c => rqPick.has(c.id))
     : all.filter(c => c.status !== 'prospect' && rqSecs.has(dirOf(c)))
       .filter(c => !re || !only || re.test([c.trailer, c.load_type, c.notes].join(' ')));
+  // страна загрузки (только при выборе по разделам; при ручном выборе — кому отметили, тем и уходит)
+  const ct = rqWho === 'pick' ? null : rqCountry();
+  rqCtryStats = null;
+  let base2 = base;
+  if (ct && $('rqCtryOn').checked) {
+    const st = { name: ct[0], yes: 0, unknown: 0, no: 0 };
+    base2 = base.filter(c => { const m = ctryMatch(c, ct); st[m]++; return m !== 'no'; });
+    rqCtryStats = st;
+  } else if (ct) rqCtryStats = { name: ct[0], off: true };
   const seenE = new Set(), seenW = new Set(), email = [], wa = []; let bad = 0;
-  for (const c of base) {
+  for (const c of base2) {
     const we = workingEmails(c);
     if (we.length) { const k = we[0]; if (!seenE.has(k)) { seenE.add(k); email.push(c); } }
     else if (hasEmail(c)) bad++;
     const w = firstWa(c); if (w && !seenW.has(w)) { seenW.add(w); wa.push(c); }
   }
-  return { base, email, wa, bad };
+  return { base: base2, email, wa, bad };
+}
+function rqCtryRender() {
+  const s = rqCtryStats, box = $('rqCtryInfo'); if (!box) return;
+  if (rqWho === 'pick') { box.textContent = ''; return; }
+  if (!s) { box.textContent = $('rqFrom').value.trim() ? 'Страна в поле «Откуда» не распознана — фильтр по стране не применяется' : 'Впишите в «Откуда» город и страну — запрос уйдёт только тем, кто там работает'; return; }
+  box.innerHTML = s.off ? `Страна загрузки: <b>${esc(s.name)}</b> — фильтр выключен` : `Страна загрузки: <b>${esc(s.name)}</b> · работают там: ${s.yes} · направления не указаны: ${s.unknown} (тоже получат) · исключено: ${s.no}`;
 }
 function rqSummary() {
   const r = recipients(), ce = $('rqChEmail').checked, cw = $('rqChWa').checked;
+  rqCtryRender();
   const none = r.base.filter(c => !hasEmail(c) && !firstWa(c)).length;
   const chosen = rqWho === 'pick' ? rqPick.size : rqSecs.size;
   $('rqSum').innerHTML = chosen
@@ -485,7 +537,8 @@ $('rqSections').addEventListener('click', e => {
   const d = b.dataset.sec; rqSecs.has(d) ? rqSecs.delete(d) : rqSecs.add(d);
   rqRenderSections(); rqSummary();
 });
-['rqTrType', 'rqOnlyTr', 'rqChEmail', 'rqChWa'].forEach(id => $(id).addEventListener('change', () => { if (id === 'rqTrType') rqBuild(); rqSummary(); }));
+['rqTrType', 'rqOnlyTr', 'rqChEmail', 'rqChWa', 'rqCtryOn'].forEach(id => $(id).addEventListener('change', () => { if (id === 'rqTrType') rqBuild(); rqSummary(); }));
+$('rqFrom').addEventListener('input', () => { clearTimeout(window.__ctT); window.__ctT = setTimeout(rqSummary, 250); });
 // ── WhatsApp автоматически (YCloud): статус подключения для текущего пользователя ──
 var waStatus = null;
 const QCOL = { GREEN: ['зелёное', '#1B6B3F'], YELLOW: ['жёлтое', '#8A4B00'], RED: ['красное', '#A3241B'], UNKNOWN: ['ещё нет оценки (номер новый)', '#5B6670'] };
