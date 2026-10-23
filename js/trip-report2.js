@@ -99,8 +99,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', advance:'Доплата аванса', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
-const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
+const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', food:'Продукты', advance:'Доплата аванса', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', food:'cat-food', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -232,21 +232,26 @@ function renderTripStats(trip, segs) {
   const realExp = expenses.filter(e=>!['advance','salary','bank'].includes(e.category));
   const cashExpAMD = realExp.filter(e=>e.paid_by==='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
   const cardExpAMD = realExp.filter(e=>e.paid_by!=='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue','parts','insurance'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue','parts','insurance','food'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  // Продукты водителя — часть его оплаты: показываем вместе с зарплатой, а не среди расходов рейса
+  const foodAMD = expenses.filter(e=>e.category==='food').reduce((s,e)=>s+(e.amount_amd||0),0);
 
   const fuelCostAMD = (trip.fuel_cost || 0) * getRate(trip.fuel_cost_currency || 'EUR');
   // Доплаты аванса (категория «Аванс» в расходах) прибавляются к изначальному авансу — это не расход
   const topupAMD = expenses.filter(e=>e.category==='advance').reduce((s,e)=>s+(e.amount_amd||0),0);
   const advanceInitAMD = (trip.advance_amount || 0) * getRate(trip.advance_currency || 'AMD');
   const advanceAMD = advanceInitAMD + topupAMD;
-  const salaryAMD  = (trip.salary_amount  || 0) * getRate(trip.salary_currency  || 'AMD');
+  const salaryMainAMD = (trip.salary_amount || 0) * getRate(trip.salary_currency || 'AMD');
+  let salaryExtra = []; try { salaryExtra = JSON.parse(trip.salary_extra || '[]') || []; } catch (e) {}
+  const salaryExtraAMD = salaryExtra.reduce((t, x) => t + (parseFloat(x.amount) || 0) * getRate(x.currency || 'AMD'), 0);
+  const salaryAMD  = salaryMainAMD + salaryExtraAMD;
   const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
   const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + partsExpAMD + insurExpAMD + otherExpAMD;
   // Наличные чеки водитель оплачивает из аванса, поэтому аванс считаем только в части, не покрытой чеками
   const advanceLeftAMD = advanceAMD - cashExpAMD;
-  const allCostsAMD = expensesOnlyAMD + salaryAMD + Math.max(advanceLeftAMD, 0);
+  const allCostsAMD = expensesOnlyAMD + salaryAMD + foodAMD + Math.max(advanceLeftAMD, 0);
   const profitAMD  = revenueAMD - allCostsAMD;
   const planFuel = trip.wialon_mileage > 0 ? (trip.wialon_mileage * trip.fuel_rate_plan / 100) : 0;
   const diffFuel = trip.wialon_fuel_used > 0 ? (trip.wialon_fuel_used - planFuel) : 0;
@@ -256,7 +261,7 @@ function renderTripStats(trip, segs) {
   document.getElementById('tripStats').innerHTML =
     kpi('Доход', revParts.join(' + '), segments.length ? 'все плечи · ֏' + fmt(revenueAMD) : '֏' + fmt(revenueAMD))
     + kpi('Расходы', '֏' + fmt(expensesOnlyAMD), realExp.length + ' ' + (realExp.length % 10 === 1 && realExp.length % 100 !== 11 ? 'чек' : realExp.length % 10 >= 2 && realExp.length % 10 <= 4 && (realExp.length % 100 < 10 || realExp.length % 100 >= 20) ? 'чека' : 'чеков'))
-    + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD), 'аванс ֏' + fmt(advanceAMD) + (topupAMD ? ' (в т.ч. доплаты ֏' + fmt(topupAMD) + ')' : '') + ' · зарплата ֏' + fmt(salaryAMD))
+    + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD + foodAMD), 'аванс ֏' + fmt(advanceAMD) + (topupAMD ? ' (в т.ч. доплаты ֏' + fmt(topupAMD) + ')' : '') + ' · зарплата ֏' + fmt(salaryAMD) + (salaryExtra.length ? ' (основная ֏' + fmt(salaryMainAMD) + salaryExtra.map(x => ' + ' + (x.label || 'доп.') + ' ֏' + fmt((parseFloat(x.amount) || 0) * getRate(x.currency || 'AMD'))).join('') + ')' : '') + (foodAMD ? ' + продукты ֏' + fmt(foodAMD) + ' = ֏' + fmt(salaryAMD + foodAMD) : ''))
     + kpi(profitAMD >= 0 ? 'Прибыль' : 'Убыток', '֏' + fmt(profitAMD), '', profitAMD >= 0 ? 'green' : 'red')
     + kpi('Пробег GPS', fmt(trip.wialon_mileage) + ' км', fuelSub, diffFuel > 5 ? 'warn' : '');
 
@@ -320,6 +325,19 @@ function renderExpenses(expenses) {
 // ── Actions ──────────────────────────────────────────────────────────────────
 let editingTripId = null;
 
+function addSalaryRow(x) {
+  x = x || {};
+  const row = document.createElement('div'); row.className = 'sal-row';
+  row.innerHTML = `<input class="sal-label" placeholder="За что: второй рейс, простой 3 дня…" value="${esc(x.label || '')}">
+    <input class="sal-amount" type="number" step="0.01" placeholder="Сумма" value="${x.amount || ''}">
+    <select class="sal-cur"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option><option value="USD">USD $</option></select>
+    <button type="button" class="sal-del" title="Убрать строку" aria-label="Убрать строку">✕</button>`;
+  row.querySelector('.sal-cur').value = x.currency || 'AMD';
+  row.querySelector('.sal-del').addEventListener('click', () => row.remove());
+  document.getElementById('fSalaryExtra').appendChild(row);
+  return row;
+}
+document.addEventListener('click', e => { if (e.target.id === 'fSalaryAdd') { const r = addSalaryRow({}); r.querySelector('.sal-label').focus(); } });
 function openTripModal(trip = null) {
   editingTripId = trip?.id || null;
   document.getElementById('tripModalTitle').textContent = trip ? 'Редактировать рейс' : 'Новый рейс';
@@ -342,6 +360,9 @@ function openTripModal(trip = null) {
   document.getElementById('fAdvanceCur').value = trip?.advance_currency || 'AMD';
   document.getElementById('fSalary').value = trip?.salary_amount || '';
   document.getElementById('fSalaryCur').value = trip?.salary_currency || 'AMD';
+  let extra = []; try { extra = JSON.parse(trip?.salary_extra || '[]') || []; } catch (e) {}
+  document.getElementById('fSalaryExtra').innerHTML = '';
+  extra.forEach(addSalaryRow);
   document.getElementById('fNotes').value = trip?.notes || '';
   // Вариант пути: стартовый список + все, что уже встречались в рейсах
   const VARIANTS = ['По суше через Капыкуле', 'Ro-Ro Пендик — Триест', 'Ro-Ro Пендик — Бари', 'Паром Поти/Батуми — Черноморск/Констанца', 'Через Россию (Верхний Ларс)'];
@@ -380,6 +401,8 @@ async function saveTrip() {
     advance_currency: document.getElementById('fAdvanceCur').value,
     salary_amount: parseFloat(document.getElementById('fSalary').value) || 0,
     salary_currency: document.getElementById('fSalaryCur').value,
+    salary_extra: JSON.stringify([...document.querySelectorAll('#fSalaryExtra .sal-row')].map(r => ({ label: r.querySelector('.sal-label').value.trim(),
+      amount: parseFloat(r.querySelector('.sal-amount').value) || 0, currency: r.querySelector('.sal-cur').value })).filter(x => x.amount > 0)),
   };
   if (editingTripId) {
     const existing = trips.find(t => t.id === editingTripId);
@@ -387,7 +410,8 @@ async function saveTrip() {
     await saveTripSegments(editingTripId);
   } else {
     const result = await api('/api/trips', 'POST', body);
-    if (result?.id) { currentTripId = result.id; await saveTripSegments(result.id); }
+    // сервер при создании пишет только основу рейса — сразу дозаписываем все поля (аванс, зарплата, топливо, путь…)
+    if (result?.id) { currentTripId = result.id; await api('/api/trips/' + result.id, 'PUT', body); await saveTripSegments(result.id); }
   }
   document.getElementById('tripModal').classList.remove('open');
   await loadTrips();
@@ -678,10 +702,10 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
   "amount": число (только цифры, без валюты),
   "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
   "date": "YYYY-MM-DD",
-  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "parts" или "insurance" или "other",
+  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "parts" или "insurance" или "food" или "other",
   "description": "краткое описание на русском (название места, тип расхода)"
 }
-Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, parts=запчасти/детали/ремонт/шиномонтаж/автосервис, insurance=страховка/полис/зелёная карта, other=всё остальное.
+Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, parts=запчасти/детали/ремонт/шиномонтаж/автосервис, insurance=страховка/полис/зелёная карта, food=продукты/еда/магазин/супермаркет/кафе для водителя, other=всё остальное.
 Если не можешь определить поле — используй null.`
             }
           ]
