@@ -202,6 +202,11 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
 .pay-tag { border-radius: 10px !important; font-size: 12px !important; padding: 2px 8px !important; font-weight: 600; white-space: nowrap; }
 .pay-card { background: #E8F1F2 !important; color: #0F5A60 !important; }
 .pay-dkv { background: #FFF1D6 !important; color: #8A4B00 !important; }
+.cat-food { background: #EEE8F8 !important; color: #5B2A9E !important; }
+.sal-row { display: grid; grid-template-columns: 2fr 1fr 110px 32px; gap: 8px; margin-bottom: 8px; }
+.sal-row input, .sal-row select { min-width: 0; }
+.sal-add { border: 1px dashed #9CC5C8; background: #F2F8F8; color: #0F5A60; border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sal-del { border: none; background: none; color: #8A949C; cursor: pointer; font-size: 15px; border-radius: 6px; } .sal-del:hover { background: #FBE9E7; color: #A3241B; }
 .exp-dkv { margin-top: 6px; font-size: 13px; color: #5B6670; } .exp-dkv b { color: #8A4B00; }
 .pay-cash { background: #FDF1E3 !important; color: #8A4B00 !important; }
 .pay-adv { background: #EEEBFA !important; color: #4B3FA0 !important; }
@@ -353,6 +358,8 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
         <select id="fSalaryCur"><option value="AMD">AMD ֏</option><option value="EUR">EUR €</option></select>
       </div>
     </div>
+    <div id="fSalaryExtra"></div>
+    <div class="form-row"><div><button type="button" class="sal-add" id="fSalaryAdd">+ строка к зарплате (второй рейс, простой…)</button></div></div>
     <div class="form-row">
       <div><label>Заметки</label><textarea id="fNotes" rows="2" placeholder="Дополнительная информация..."></textarea></div>
     </div>
@@ -387,6 +394,7 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
           <option value="ferry">Паром</option>
           <option value="transit">Транзитные карты</option>
           <option value="adblue">AdBlue</option>
+          <option value="food">Продукты (часть оплаты водителя)</option>
           <option value="parts">Запчасти</option>
           <option value="insurance">Страховки</option>
           <option value="other">Прочее</option>
@@ -437,7 +445,7 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
   </div>
 </div>
 
-<script src="js/trip-report2.js?v=26"></script>
+<script src="js/trip-report2.js?v=28"></script>
 <script src="js/dropzone.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
