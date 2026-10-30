@@ -10,7 +10,7 @@
     if (t === 'tc' && !tc.firstChild) {   // калькулятор ТракКост загружается при первом открытии вкладки
       const f = document.createElement('iframe');
       f.src = '/truckcost.html?embed=1'; f.title = 'Калькулятор стоимости маршрута';
-      f.style.cssText = 'width:100%;height:1100px;border:1px solid #E4E7EA;border-radius:8px;background:#fff;display:block';
+      f.style.cssText = 'width:100%;height:1100px;border:0;background:transparent;display:block';
       tc.appendChild(f);
     }
     localStorage.setItem('gl_routes_tab', t);
