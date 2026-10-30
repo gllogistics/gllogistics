@@ -24,23 +24,25 @@ h1 { margin: 0; font-size: 24px; font-weight: 600; }
 <body><script src="/js/layout.js?v=13"></script>
 <div class="wrap">
   <h1>Маршруты</h1>
-  <p class="sub">Сравнение вариантов пути до рейса, разбор прошлых рейсов, очереди на границах и где сейчас машины. Варианты пути для аналитики указываются в рейсе: «Изменить» → «Путь туда / обратно».</p>
+  <p class="sub">Сравнение вариантов пути до рейса, разбор прошлых рейсов, очереди на границах, где сейчас машины и калькулятор стоимости маршрута. Варианты пути для аналитики указываются в рейсе: «Изменить» → «Путь туда / обратно».</p>
   <div class="tabs" role="tablist">
     <button type="button" class="tab on" data-tab="rc" role="tab">Сравнить пути</button>
     <button type="button" class="tab" data-tab="ra" role="tab">Аналитика маршрутов</button>
     <button type="button" class="tab" data-tab="bd" role="tab">Очереди на границах</button>
     <button type="button" class="tab" data-tab="fm" role="tab">Машины на карте</button>
+    <button type="button" class="tab" data-tab="tc" role="tab">Калькулятор</button>
   </div>
   <div id="rcMount"></div>
   <div id="raMount" hidden></div>
   <div id="bdMount" hidden></div>
   <div id="fmMount" hidden></div>
+  <div id="tcMount" hidden></div>
 </div>
 <script src="/js/route-compare.js?v=4"></script>
 <script src="/js/route-analytics.js?v=3"></script>
 <script src="/js/borders.js?v=14"></script>
 <script src="/js/fleet-map.js?v=2"></script>
-<script src="/js/routes-page.js?v=3"></script>
+<script src="/js/routes-page.js?v=4"></script>
 <script src="/js/nav-fleet.js?v=3"></script>
 </body>
 </html>
