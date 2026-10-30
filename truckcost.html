@@ -106,6 +106,9 @@ details summary{cursor:pointer;color:var(--accent);margin-top:10px}
 .pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .pin span{transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px}
 @media print{header,.noprint,#map{display:none!important}.grid{display:block}}
+.ac-list{position:absolute;left:0;right:0;top:40px;z-index:1500;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);max-height:280px;overflow-y:auto}
+.ac-item{padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;gap:1px;font-size:13px}.ac-item span{color:var(--muted);font-size:12px}
+.ac-item:hover,.ac-item.on{background:var(--accent-soft)}.ac-empty{padding:8px 10px;color:var(--muted);font-size:13px}
 .tc-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 </style>
 <script>if (window.self !== window.top || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
@@ -375,6 +378,39 @@ async function reverse(lat,lon){
   return {city:a.city||a.town||a.village||a.municipality||a.county||"",zip:a.postcode||"",country:(a.country_code||"").toUpperCase().replace("GB","UK")};
 }
 
+/* ================= Подсказки городов при вводе (Nominatim) ================= */
+const acCache=new Map();
+function attachAutocomplete(d,s){
+  const inp=d.querySelector('[data-f="city"]'),box=inp.parentElement;box.style.position="relative";
+  const list=document.createElement("div");list.className="ac-list";list.hidden=true;list.setAttribute("role","listbox");box.appendChild(list);
+  let timer=null,items=[],act=-1,reqId=0;
+  const close=()=>{list.hidden=true;act=-1};
+  const paint=()=>{list.innerHTML=items.length?items.map((x,k)=>`<div class="ac-item${k===act?" on":""}" role="option" data-k="${k}"><b>${esc(x.name)}</b><span>${esc(x.rest)}</span></div>`).join(""):'<div class="ac-empty">Ничего не найдено</div>';list.hidden=false};
+  const pick=x=>{s.city=x.name;s.zip=x.zip||"";if(x.cc&&SELECTABLE.includes(x.cc))s.country=x.cc;s.lat=x.lat;s.lon=x.lon;s.status="ok";s.msg="✓ "+[x.name,x.rest].filter(Boolean).join(", ");
+    inp.value=s.city;const zi=d.querySelector('[data-f="zip"]');if(zi)zi.value=s.zip;const cs=d.querySelector('[data-f="country"]');if(cs)cs.value=s.country||"";
+    const h=d.querySelector(".hint");h.className="hint ok";h.textContent=s.msg;close();drawMarkers();saveHash();
+    if(stops.filter(t=>t.lat!=null).length>=2)map.fitBounds(stops.filter(t=>t.lat!=null).map(t=>[t.lat,t.lon]),{padding:[30,30],maxZoom:9})};
+  async function search(q){
+    const cc=s.country==="UK"?"gb":(s.country||"").toLowerCase(),key=q.toLowerCase()+"|"+cc,id=++reqId;
+    let res=acCache.get(key);
+    if(!res){try{res=await nominatim("search",Object.assign({q,limit:7,addressdetails:1,dedupe:1},cc?{countrycodes:cc}:{}))}catch(e){res=[]}acCache.set(key,res)}
+    if(id!==reqId||document.activeElement!==inp)return;
+    const seen=new Set();items=[];
+    for(const r of res){const a=r.address||{},name=a.city||a.town||a.village||a.hamlet||a.municipality||r.name||"";if(!name)continue;
+      const rest=[a.state||a.county,a.country].filter(Boolean).join(", "),k=name+"|"+rest;if(seen.has(k))continue;seen.add(k);
+      items.push({name,rest,zip:"",cc:(a.country_code||"").toUpperCase().replace("GB","UK"),lat:+r.lat,lon:+r.lon})}
+    act=-1;paint();
+  }
+  inp.addEventListener("input",()=>{clearTimeout(timer);const q=inp.value.trim();if(q.length<3||parseLatLon(q)){close();return}timer=setTimeout(()=>search(q),350)});
+  inp.addEventListener("keydown",e=>{if(list.hidden||!items.length)return;
+    if(e.key==="ArrowDown"){act=(act+1)%items.length;paint();e.preventDefault()}
+    else if(e.key==="ArrowUp"){act=(act-1+items.length)%items.length;paint();e.preventDefault()}
+    else if(e.key==="Enter"&&act>=0){pick(items[act]);e.preventDefault()}
+    else if(e.key==="Escape")close()});
+  list.addEventListener("mousedown",e=>{const it=e.target.closest(".ac-item");if(!it)return;e.preventDefault();pick(items[+it.dataset.k])});
+  inp.addEventListener("blur",()=>setTimeout(close,150));
+}
+
 /* ================= Точки ================= */
 let stops = [];
 const newStop = (o={}) => Object.assign({city:"",zip:"",country:"",lat:null,lon:null,status:""},o);
@@ -390,8 +426,10 @@ function renderStops(){
       <div class="hint ${s.status==="ok"?"ok":s.status==="err"?"err":""}">${esc(s.msg||"")}</div></div>
       <select data-f="country">${opts}</select>
       ${stops.length>2?`<button class="x" title="Удалить" data-del="${i}">×</button>`:"<span></span>"}`;
-    d.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("change",()=>{s[el.dataset.f]=el.value.trim();s.lat=s.lon=null;s.status="";s.msg="";saveHash();
+    d.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("change",()=>{if(s[el.dataset.f]===el.value.trim()&&s.lat!=null)return;
+      s[el.dataset.f]=el.value.trim();s.lat=s.lon=null;s.status="";s.msg="";saveHash();
       d.querySelector(".hint").textContent=""}));
+    attachAutocomplete(d,s);
     wrap.appendChild(d);
   });
   wrap.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{stops.splice(+b.dataset.del,1);renderStops();drawMarkers();saveHash()});
