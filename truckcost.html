@@ -108,7 +108,20 @@ details summary{cursor:pointer;color:var(--accent);margin-top:10px}
 @media print{header,.noprint,#map{display:none!important}.grid{display:block}}
 </style>
 <script>if (window.self !== window.top || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
-<style>html.embed header .logo, html.embed #themeBtn { display: none !important; } html.embed body { background: transparent; }</style>
+<style>
+/* во вкладке «Маршруты» — цвета и формы сайта GL Logistics, всегда светлая тема */
+html.embed { --bg:#F6F7F8 !important; --panel:#fff !important; --text:#14202B !important; --muted:#5B6670 !important; --line:#E4E7EA !important; --soft:#F6F7F8 !important;
+  --accent:#146C72 !important; --accent-2:#0F5A60 !important; --accent-soft:#E8F1F2 !important; --ok:#1B6B3F !important; --warn:#8A4B00 !important; --err:#A3241B !important; --shadow:none !important; color-scheme: light; }
+html.embed header .logo, html.embed #themeBtn { display: none !important; }
+html.embed body { background: var(--bg); }
+html.embed header { position: static; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 12px; padding: 6px 8px; }
+html.embed nav.tabs { margin-left: 0; }
+html.embed nav.tabs button { font-weight: 600; color: #14202B; border-radius: 6px; }
+html.embed nav.tabs button.active { background: #146C72; color: #fff; }
+html.embed main { padding: 0; }
+html.embed .card { border-radius: 8px; }
+html.embed button, html.embed select, html.embed input, html.embed textarea { border-radius: 6px; }
+</style>
 </head>
 <body>
 <header>
@@ -272,8 +285,8 @@ const DEFAULT_TOLLS = {
 const DEFAULT_FUEL = {AT:1.62,BE:1.75,BG:1.30,CH:1.85,CZ:1.48,DE:1.65,DK:1.75,EE:1.55,ES:1.45,FI:1.75,FR:1.68,GR:1.60,HR:1.45,HU:1.52,
   IE:1.70,IT:1.70,LT:1.48,LU:1.42,LV:1.50,NL:1.72,NO:1.85,PL:1.45,PT:1.62,RO:1.48,SE:1.70,SI:1.48,SK:1.50,UK:1.70,AL:1.70,BA:1.35,
   BY:0.85,MD:1.15,ME:1.45,MK:1.25,RS:1.55,RU:0.70,TR:1.30,UA:1.30,CY:1.40,MT:1.21,LI:1.80};
-const PALETTE = ["#2563eb","#e11d48","#16a34a","#d97706","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#4f46e5","#0d9488","#9333ea"];
-const STOP_COLORS = ["#16a34a","#2563eb","#7c3aed","#0891b2","#d97706","#db2777","#4f46e5","#0d9488","#ea580c","#111827"];
+const PALETTE = ["#146C72","#e11d48","#16a34a","#d97706","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#4f46e5","#0d9488","#9333ea"];
+const STOP_COLORS = ["#16a34a","#146C72","#7c3aed","#0891b2","#d97706","#db2777","#4f46e5","#0d9488","#ea580c","#111827"];
 
 const store = {
   get(k,d){try{const v=localStorage.getItem("tc_"+k);return v?JSON.parse(v):d}catch(e){return d}},
