@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-26",
+  "source": "European Commission, Weekly Oil Bulletin (prices with taxes, automotive gas oil)",
+  "prices": {
+    "AT": 2.132,
+    "BE": 2.375,
+    "BG": 1.89,
+    "HR": 2.005,
+    "CY": 2.005,
+    "CZ": 1.95,
+    "DK": 2.502,
+    "EE": 2.101,
+    "FI": 2.547,
+    "FR": 2.352,
+    "DE": 2.298,
+    "GR": 2.127,
+    "HU": 1.93,
+    "IE": 2.137,
+    "IT": 2.247,
+    "LV": 2.084,
+    "LT": 2.222,
+    "LU": 2.054,
+    "MT": 1.21,
+    "NL": 2.469,
+    "PL": 1.781,
+    "PT": 2.189,
+    "RO": 2.037,
+    "SK": 1.97,
+    "SI": 1.909,
+    "ES": 1.888,
+    "SE": 2.037
+  }
+}
