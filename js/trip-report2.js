@@ -245,8 +245,10 @@ function renderTripStats(trip, segs) {
   let salaryExtra = []; try { salaryExtra = JSON.parse(trip.salary_extra || '[]') || []; } catch (e) {}
   const salaryExtraAMD = salaryExtra.reduce((t, x) => t + (parseFloat(x.amount) || 0) * getRate(x.currency || 'AMD'), 0);
   const salaryAMD  = salaryMainAMD + salaryExtraAMD;
-  const revenue1AMD = trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'));
-  const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))), 0);
+  const extraSum = list => list.reduce((t, x) => t + (parseFloat(x.amount) || 0) * getRate(x.currency || 'EUR'), 0);
+  const incomeExtraAMD = extraSum(parseExtra(trip.income_extra)) + segments.reduce((t, sg) => t + extraSum(parseExtra(sg.income_extra)), 0);
+  const revenue1AMD = (trip.client_price_amd || ((trip.client_price || 0) * getRate(trip.client_currency || 'EUR'))) + extraSum(parseExtra(trip.income_extra));
+  const segmentsRevenueAMD = segments.reduce((s,sg) => s + (sg.client_price_amd||((sg.client_price||0)*getRate(sg.client_currency||'EUR'))) + extraSum(parseExtra(sg.income_extra)), 0);
   const revenueAMD = revenue1AMD + segmentsRevenueAMD;
   const expensesOnlyAMD = fuelExpAMD + tollExpAMD + parkingExpAMD + ferryExpAMD + transitExpAMD + adblueExpAMD + partsExpAMD + insurExpAMD + otherExpAMD;
   // Наличные чеки водитель оплачивает из аванса, поэтому аванс считаем только в части, не покрытой чеками
@@ -259,7 +261,7 @@ function renderTripStats(trip, segs) {
   const revParts = [(trip.client_currency==='AMD'?'֏':trip.client_currency==='USD'?'$':'€') + fmt(trip.client_price)].concat(segments.map(sg => (sg.client_currency==='AMD'?'֏':sg.client_currency==='USD'?'$':'€') + fmt(sg.client_price)));
   const fuelSub = trip.wialon_fuel_rate ? `расход ${fmt(trip.wialon_fuel_rate)} л/100${trip.fuel_rate_plan ? ' (план ' + fmt(trip.fuel_rate_plan) + ')' : ''}${diffFuel > 5 ? ' · перерасход ' + fmt(diffFuel) + ' л' : ''}` : '';
   document.getElementById('tripStats').innerHTML =
-    kpi('Доход', revParts.join(' + '), segments.length ? 'все плечи · ֏' + fmt(revenueAMD) : '֏' + fmt(revenueAMD))
+    kpi('Доход', revParts.join(' + '), (segments.length ? 'все плечи · ֏' + fmt(revenueAMD) : '֏' + fmt(revenueAMD)) + (incomeExtraAMD ? ' · в т.ч. простои и доплаты ֏' + fmt(incomeExtraAMD) : ''))
     + kpi('Расходы', '֏' + fmt(expensesOnlyAMD), realExp.length + ' ' + (realExp.length % 10 === 1 && realExp.length % 100 !== 11 ? 'чек' : realExp.length % 10 >= 2 && realExp.length % 10 <= 4 && (realExp.length % 100 < 10 || realExp.length % 100 >= 20) ? 'чека' : 'чеков'))
     + kpi('Аванс и зарплата', '֏' + fmt(advanceAMD + salaryAMD + foodAMD), 'аванс ֏' + fmt(advanceAMD) + (topupAMD ? ' (в т.ч. доплаты ֏' + fmt(topupAMD) + ')' : '') + ' · зарплата ֏' + fmt(salaryAMD) + (salaryExtra.length ? ' (основная ֏' + fmt(salaryMainAMD) + salaryExtra.map(x => ' + ' + (x.label || 'доп.') + ' ֏' + fmt((parseFloat(x.amount) || 0) * getRate(x.currency || 'AMD'))).join('') + ')' : '') + (foodAMD ? ' + продукты ֏' + fmt(foodAMD) + ' = ֏' + fmt(salaryAMD + foodAMD) : ''))
     + kpi(profitAMD >= 0 ? 'Прибыль' : 'Убыток', '֏' + fmt(profitAMD), '', profitAMD >= 0 ? 'green' : 'red')
@@ -325,6 +327,22 @@ function renderExpenses(expenses) {
 // ── Actions ──────────────────────────────────────────────────────────────────
 let editingTripId = null;
 
+function addIncomeRow(containerId, x) {
+  x = x || {};
+  const row = document.createElement('div'); row.className = 'sal-row inc-row';
+  row.innerHTML = `<input class="sal-label" placeholder="За что: простой 2 дня, доплата за 2-ю выгрузку…" value="${esc(x.label || '')}">
+    <input class="sal-amount" type="number" step="0.01" placeholder="Сумма" value="${x.amount || ''}">
+    <select class="sal-cur"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
+    <button type="button" class="sal-del" title="Убрать строку" aria-label="Убрать строку">✕</button>`;
+  row.querySelector('.sal-cur').value = x.currency || 'EUR';
+  row.querySelector('.sal-del').addEventListener('click', () => row.remove());
+  document.getElementById(containerId).appendChild(row);
+  return row;
+}
+const readExtraRows = id => [...document.querySelectorAll('#' + id + ' .sal-row')].map(r => ({ label: r.querySelector('.sal-label').value.trim(),
+  amount: parseFloat(r.querySelector('.sal-amount').value) || 0, currency: r.querySelector('.sal-cur').value })).filter(x => x.amount > 0);
+const parseExtra = t => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+document.addEventListener('click', e => { const b = e.target.closest('[data-income-add]'); if (!b) return; const r = addIncomeRow(b.dataset.incomeAdd, {}); r.querySelector('.sal-label').focus(); });
 function addSalaryRow(x) {
   x = x || {};
   const row = document.createElement('div'); row.className = 'sal-row';
@@ -363,6 +381,8 @@ function openTripModal(trip = null) {
   let extra = []; try { extra = JSON.parse(trip?.salary_extra || '[]') || []; } catch (e) {}
   document.getElementById('fSalaryExtra').innerHTML = '';
   extra.forEach(addSalaryRow);
+  document.getElementById('fIncomeExtra').innerHTML = '';
+  parseExtra(trip?.income_extra).forEach(x => addIncomeRow('fIncomeExtra', x));
   document.getElementById('fNotes').value = trip?.notes || '';
   // Вариант пути: стартовый список + все, что уже встречались в рейсах
   const VARIANTS = ['По суше через Капыкуле', 'Ro-Ro Пендик — Триест', 'Ro-Ro Пендик — Бари', 'Паром Поти/Батуми — Черноморск/Констанца', 'Через Россию (Верхний Ларс)'];
@@ -401,6 +421,7 @@ async function saveTrip() {
     advance_currency: document.getElementById('fAdvanceCur').value,
     salary_amount: parseFloat(document.getElementById('fSalary').value) || 0,
     salary_currency: document.getElementById('fSalaryCur').value,
+    income_extra: JSON.stringify(readExtraRows('fIncomeExtra')),
     salary_extra: JSON.stringify([...document.querySelectorAll('#fSalaryExtra .sal-row')].map(r => ({ label: r.querySelector('.sal-label').value.trim(),
       amount: parseFloat(r.querySelector('.sal-amount').value) || 0, currency: r.querySelector('.sal-cur').value })).filter(x => x.amount > 0)),
   };
@@ -854,6 +875,7 @@ function resetSegForms() {
   ['Client','Price','From','To'].forEach(f => {
     const el = document.getElementById('fSeg1' + f); if (el) el.value = '';
   });
+  document.getElementById('fSeg1IncomeExtra').innerHTML = '';
 }
 
 function getSegFromForm() {
@@ -865,8 +887,9 @@ function getSegFromForm() {
   const client = (document.getElementById('fSeg1Client').value || '').trim();
   const cur    = document.getElementById('fSeg1Currency').value || 'EUR';
   const segNum = parseInt(document.getElementById('fSeg1Type').value) || 1;
-  if (!price && !from && !to && !client) return null;
-  return { segment_num: segNum, route_from: from, route_to: to, client_name: client, client_price: price, client_currency: cur };
+  const extra = readExtraRows('fSeg1IncomeExtra');
+  if (!price && !from && !to && !client && !extra.length) return null;
+  return { segment_num: segNum, route_from: from, route_to: to, client_name: client, client_price: price, client_currency: cur, income_extra: JSON.stringify(extra) };
 }
 
 function fillSegForm(seg) {
@@ -885,6 +908,8 @@ function fillSegForm(seg) {
   document.getElementById('fSeg1Currency').value = seg.client_currency || 'EUR';
   document.getElementById('fSeg1From').value     = seg.route_from || '';
   document.getElementById('fSeg1To').value       = seg.route_to || '';
+  document.getElementById('fSeg1IncomeExtra').innerHTML = '';
+  parseExtra(seg.income_extra).forEach(x => addIncomeRow('fSeg1IncomeExtra', x));
 }
 
 async function loadTripSegments(tripId) {
