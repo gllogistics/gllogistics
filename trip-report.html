@@ -316,6 +316,8 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
         <select id="fClientCurrency"><option value="EUR">EUR €</option><option value="AMD">AMD ֏</option><option value="USD">USD $</option></select>
       </div>
     </div>
+    <div id="fIncomeExtra"></div>
+    <div class="form-row"><div><button type="button" class="sal-add" data-income-add="fIncomeExtra">+ простой / доплата к этому рейсу</button></div></div>
 
     <!-- Промежуточный рейс -->
     <div style="margin:.5rem 0 .3rem">
@@ -343,6 +345,8 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
         <div><label>Откуда</label><input type="text" id="fSeg1From" placeholder="Откуда"></div>
         <div><label>Куда</label><input type="text" id="fSeg1To" placeholder="Куда"></div>
       </div>
+      <div id="fSeg1IncomeExtra"></div>
+      <div><button type="button" class="sal-add" data-income-add="fSeg1IncomeExtra">+ простой / доплата к этому рейсу</button></div>
     </div>
     <div id="segmentsContainer" style="display:none"></div>
 
@@ -445,7 +449,7 @@ body.gl-shell > .two-col > div:first-child h2 { font-size: 24px !important; font
   </div>
 </div>
 
-<script src="js/trip-report2.js?v=28"></script>
+<script src="js/trip-report2.js?v=29"></script>
 <script src="js/dropzone.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
