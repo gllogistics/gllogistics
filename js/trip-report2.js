@@ -232,7 +232,7 @@ function renderTripStats(trip, segs) {
   const realExp = expenses.filter(e=>!['advance','salary','bank'].includes(e.category));
   const cashExpAMD = realExp.filter(e=>e.paid_by==='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
   const cardExpAMD = realExp.filter(e=>e.paid_by!=='cash').reduce((s,e)=>s+(e.amount_amd||0),0);
-  const otherExpAMD   = expenses.filter(e=>!['advance','salary','fuel','toll','parking','ferry','transit','adblue','parts','insurance','food'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
+  const otherExpAMD   = expenses.filter(e=>!['advance','salary','bank','fuel','toll','parking','ferry','transit','adblue','parts','insurance','food'].includes(e.category)).reduce((s,e)=>s+(e.amount_amd||0),0);
   // Продукты водителя — часть его оплаты: показываем вместе с зарплатой, а не среди расходов рейса
   const foodAMD = expenses.filter(e=>e.category==='food').reduce((s,e)=>s+(e.amount_amd||0),0);
 
