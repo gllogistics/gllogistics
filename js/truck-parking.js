@@ -159,7 +159,7 @@
 
   async function show() {
     try {
-      if (!data) data = await fetch('/truck-parking.json?v=2').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); });
+      if (!data) data = await fetch('/truck-parking.json?v=3').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); });
       await loadLeaflet();
     } catch (e) { $('tpCount').textContent = 'Не удалось загрузить ТИР парковки: ' + e.message; return; }
     if (!map) {
