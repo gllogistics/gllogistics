@@ -1,4 +1,4 @@
-// GL Logistics — страница «Маршруты»: вкладки сравнения путей, аналитики, очередей, машин и калькулятора
+// GL Logistics — страница «Маршруты»: вкладки сравнения путей, аналитики, очередей, машин, стоянок для фур и калькулятора
 (function () {
   const show = t => {
     document.querySelectorAll('.tab[data-tab]').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
@@ -6,6 +6,7 @@
     document.getElementById('raMount').hidden = t !== 'ra';
     document.getElementById('bdMount').hidden = t !== 'bd';
     document.getElementById('fmMount').hidden = t !== 'fm';
+    document.getElementById('tpMount').hidden = t !== 'tp';
     const tc = document.getElementById('tcMount'); tc.hidden = t !== 'tc';
     if (t === 'tc' && !tc.firstChild) {   // калькулятор ТракКост загружается при первом открытии вкладки
       const f = document.createElement('iframe');
@@ -17,7 +18,7 @@
     window.dispatchEvent(new CustomEvent('gl-tab', { detail: t }));
   };
   document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab[data-tab]'); if (b) show(b.dataset.tab); });
-  show(location.hash === '#analytics' ? 'ra' : location.hash === '#borders' ? 'bd' : location.hash === '#fleet' ? 'fm' : location.hash === '#calc' ? 'tc' : (localStorage.getItem('gl_routes_tab') || 'rc'));
+  show(location.hash === '#analytics' ? 'ra' : location.hash === '#borders' ? 'bd' : location.hash === '#fleet' ? 'fm' : location.hash === '#parking' ? 'tp' : location.hash === '#calc' ? 'tc' : (localStorage.getItem('gl_routes_tab') || 'rc'));
   // высота калькулятора по его содержимому
   window.addEventListener('message', e => {
     if (e.origin !== location.origin || !e.data || !e.data.tcHeight) return;
