@@ -759,7 +759,7 @@ function tollRate(c,cls,p){
 }
 function splitTrip(trip,p){
   const leg=trip.legs[0],shape=Array.isArray(leg.shape)?leg.shape:decode6(leg.shape);
-  const by={},order=[],segs=[];let hint=null,cur=null,curSeg=null;
+  const by={},order=[],segs=[];let hint=null,cur=null,curSeg=null,first;   // first — страна, если старт на воде/у берега
   const row=c=>{if(!by[c]){by[c]={km:0,h:0,mw:0,nat:0};order.push(c)}return by[c]};
   for(const m of leg.maneuvers){
     const s=m.begin_shape_index,e=m.end_shape_index;if(e<=s)continue;
@@ -768,7 +768,8 @@ function splitTrip(trip,p){
     for(let i=s;i<e;i++){
       const a=shape[i],b=shape[i+1],f=tot?ds[i-s]/tot:1/(e-s);
       const poly=countryOf([(a[0]+b[0])/2,(a[1]+b[1])/2],hint);if(poly)hint=poly;
-      const c=poly?poly.a2:(cur||"??"),r=row(c),km=m.length*f;
+      if(!poly&&!cur&&first===undefined){first=null;for(let j=i;j<shape.length;j+=5){const q=countryOf(shape[j]);if(q){first=q.a2;break}}}
+      const c=poly?poly.a2:(cur||first||"??"),r=row(c),km=m.length*f;
       r.km+=km;r.h+=Math.max(m.time/3600,m.length/p.vmax)*f;   // потолок средней скорости грузовика
       const cls=roadClass(c,m,names);if(cls)r[cls]+=km;
       if(c!==cur){curSeg={c,pts:[[a[1],a[0]]]};segs.push(curSeg);cur=c}
