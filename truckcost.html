@@ -652,8 +652,45 @@ function decode6(s){const pts=[];let i=0,lat=0,lon=0;
     const d=r&1?~(r>>1):r>>1;if(k===0)lat+=d;else lon+=d}pts.push([lon/1e6,lat/1e6])}return pts}
 const DIMS={40:{weight:40,height:4,width:2.55,length:16.5,axle_load:10},12:{weight:12,height:3.8,width:2.55,length:10,axle_load:9},
   7.5:{weight:7.5,height:3.5,width:2.5,length:8,axle_load:6},3.5:{weight:3.5,height:2.8,width:2.1,length:6.5,axle_load:2}};
+/* Публичный Valhalla не строит запросы длиннее 1500 км по прямой. Длинное плечо режем на куски:
+   промежуточные точки берём с дорожного маршрута OSRM (с направлением движения, чтобы не было разворотов),
+   каждый кусок считаем грузовым профилем и склеиваем в один маршрут. */
+const CHUNK_KM=1300,viaCache={};
+const bearing=(p,q)=>{const r=Math.PI/180,y=Math.sin((q[0]-p[0])*r)*Math.cos(q[1]*r),
+  x=Math.cos(p[1]*r)*Math.sin(q[1]*r)-Math.sin(p[1]*r)*Math.cos(q[1]*r)*Math.cos((q[0]-p[0])*r);return Math.round((Math.atan2(y,x)/r+360)%360)};
+async function viaPoints(a,b){
+  const key=[a.lat,a.lon,b.lat,b.lon].join();if(viaCache[key])return viaCache[key];
+  let line=null;
+  try{const r=await fetch(`${OSRM}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson`);
+    const j=await r.json();if(j.routes&&j.routes[0])line=j.routes[0].geometry.coordinates}catch(e){}
+  if(!line){const n=64;line=[];for(let i=0;i<=n;i++)line.push([a.lon+(b.lon-a.lon)*i/n,a.lat+(b.lat-a.lat)*i/n])}  // запасной вариант: по прямой
+  const vias=[];let from=[a.lon,a.lat];
+  for(let i=1;i<line.length;i++){
+    if(hav(from,[b.lon,b.lat])<=CHUNK_KM)break;
+    if(hav(from,line[i])>CHUNK_KM){const pt=line[i-1],nx=line[Math.min(i,line.length-1)];
+      vias.push({lat:pt[1],lon:pt[0],heading:bearing(pt,nx)});from=pt}
+  }
+  return viaCache[key]=vias;
+}
+function mergeTrips(parts){
+  const shape=[],man=[];let len=0,time=0;
+  parts.forEach((t,k)=>{const l=t.legs[0],sh=decode6(l.shape),off=shape.length-(k?1:0);
+    shape.push(...(k?sh.slice(1):sh));
+    l.maneuvers.forEach(m=>man.push(Object.assign({},m,{begin_shape_index:m.begin_shape_index+off,end_shape_index:m.end_shape_index+off})));
+    len+=t.summary.length;time+=t.summary.time});
+  return {legs:[{shape,maneuvers:man}],summary:{length:len,time}};
+}
 async function valhallaLeg(a,b,p,extra,alternates,exclude){
-  const body={locations:[{lat:a.lat,lon:a.lon},{lat:b.lat,lon:b.lon}],costing:"truck",units:"kilometers",alternates,
+  if(hav([a.lon,a.lat],[b.lon,b.lat])>CHUNK_KM+100){
+    const vias=await viaPoints(a,b),pts=[a,...vias,b],parts=[];
+    for(let i=0;i<pts.length-1;i++)parts.push((await valhallaLeg1(pts[i],pts[i+1],p,extra,0,exclude))[0]);
+    return [mergeTrips(parts)];
+  }
+  return valhallaLeg1(a,b,p,extra,alternates,exclude);
+}
+async function valhallaLeg1(a,b,p,extra,alternates,exclude){
+  const loc=x=>Object.assign({lat:x.lat,lon:x.lon},x.heading!=null?{heading:x.heading,heading_tolerance:60}:{});
+  const body={locations:[loc(a),loc(b)],costing:"truck",units:"kilometers",alternates,
     ...(exclude&&exclude.length?{exclude_polygons:exclude}:{}),
     costing_options:{truck:Object.assign({},DIMS[p.truck],{axle_count:p.axles,use_tolls:1,use_highways:1},
       p.height?{height:p.height}:{},p.axleLoad?{axle_load:p.axleLoad}:{},p.adr?{hazmat:true}:{},extra)}};
@@ -721,7 +758,7 @@ function tollRate(c,cls,p){
   return r;
 }
 function splitTrip(trip,p){
-  const leg=trip.legs[0],shape=decode6(leg.shape);
+  const leg=trip.legs[0],shape=Array.isArray(leg.shape)?leg.shape:decode6(leg.shape);
   const by={},order=[],segs=[];let hint=null,cur=null,curSeg=null;
   const row=c=>{if(!by[c]){by[c]={km:0,h:0,mw:0,nat:0};order.push(c)}return by[c]};
   for(const m of leg.maneuvers){
