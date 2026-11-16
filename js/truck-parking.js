@@ -6,6 +6,10 @@
   const KIND = { price: 'цена известна', none: 'платная, цена не найдена', free: 'бесплатная' };
   const ROUTE_KEY = 'gl_tp_route_v1';
   let data = null, map = null, layer = null, markers = [], me = null, meMarker = null;
+  let who = { to: 'вам', from: 'вас' };   // от кого считаем расстояние: от вас или от машины
+  // ваши машины из Wialon (через сервер GL, как во вкладке «Машины на карте»)
+  const W = 'https://gl-api.gltransam.workers.dev';
+  let trucks = [], truckLayer = null, truckTimer = null, truckActive = false;
   let route = null, routeLayer = null;   // route: { line: [[lat,lon]], km, names, near: [{d, km}] по индексу стоянки }
   const f = { mode: 'all', country: 'all', kind: 'all', q: '', corridor: 15 };
 
@@ -106,12 +110,12 @@
     const list = visible();
     const inRoute = f.mode === 'route' && route;
     $('tpCount').textContent = f.mode === 'route' && !route ? 'Напишите маршрут и нажмите «Построить» — покажу парковки вдоль него.'
-      : list.length + (inRoute ? ' вдоль маршрута (до ' + f.corridor + ' км от дороги), по порядку от старта' : ' из ' + data.stops.length + (me ? ' · ближайшие к вам сверху' : ''));
+      : list.length + (inRoute ? ' вдоль маршрута (до ' + f.corridor + ' км от дороги), по порядку от старта' : ' из ' + data.stops.length + (me ? ' · ближайшие к ' + who.to + ' сверху' : ''));
     const rows = f.mode === 'route' && !route ? [] : list;
     $('tpList').innerHTML = rows.length ? rows.map(({ s, i, d, r }) => `<div class="tp-row" data-i="${i}" tabindex="0">
         <i class="tp-dot ${s.kind}" title="${KIND[s.kind]}"></i>
         <div class="tp-main">${r ? `<span class="tp-km">${fmtKm(r.km)}</span>` : ''}<b>${esc(s.name)}</b><div class="tp-sub">${esc(s.where)}</div>
-          ${r || d != null ? `<div class="tp-sub">${r ? (r.d < 1 ? 'у дороги' : '≈ ' + fmtKm(r.d) + ' от дороги') : ''}${r && d != null ? ' · ' : ''}${d != null ? '<b>' + fmtKm(d) + ' от вас</b>' : ''}</div>` : ''}</div>
+          ${r || d != null ? `<div class="tp-sub">${r ? (r.d < 1 ? 'у дороги' : '≈ ' + fmtKm(r.d) + ' от дороги') : ''}${r && d != null ? ' · ' : ''}${d != null ? '<b>' + fmtKm(d) + ' от ' + esc(who.from) + '</b>' : ''}</div>` : ''}</div>
         <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || 'цена не найдена')}</div></div>`).join('')
       : f.mode === 'route' && !route ? '' : '<div class="tp-empty">Ничего не найдено. ' + (inRoute ? 'Увеличьте расстояние от дороги или сбросьте фильтры.' : 'Сбросьте фильтры или измените поиск.') + '</div>';
     if (!map) return;
@@ -145,7 +149,8 @@
     if (!navigator.geolocation) { $('tpCount').textContent = 'Браузер не умеет определять местоположение'; return; }
     $('tpNear').disabled = true; $('tpNear').textContent = 'Определяю…';
     navigator.geolocation.getCurrentPosition(p => {
-      me = [p.coords.latitude, p.coords.longitude];
+      me = [p.coords.latitude, p.coords.longitude]; who = { to: 'вам', from: 'вас' };
+      document.querySelectorAll('.tp-truck-btn.on').forEach(b => b.classList.remove('on'));
       $('tpNear').disabled = false; $('tpNear').textContent = 'Ближайшие ко мне ✓';
       if (map) { if (meMarker) meMarker.remove(); meMarker = L.circleMarker(me, { radius: 8, color: '#fff', weight: 3, fillColor: '#1A73E8', fillOpacity: 1 }).addTo(map).bindPopup('Вы здесь'); }
       render(false);
@@ -155,6 +160,52 @@
       $('tpNear').disabled = false; $('tpNear').textContent = 'Ближайшие ко мне';
       $('tpCount').textContent = err.code === 1 ? 'Нет доступа к местоположению: разрешите его в настройках браузера' : 'Не удалось определить местоположение';
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+  }
+
+  // ——— ваши машины: координаты из Wialon, обновление раз в минуту, «парковки рядом с машиной» ———
+  const ago = ts => { if (!ts) return 'нет данных'; const m = Math.round((Date.now() / 1000 - ts) / 60);
+    return m < 1 ? 'только что' : m < 60 ? m + ' мин назад' : m < 1440 ? Math.floor(m / 60) + ' ч ' + (m % 60) + ' мин назад' : Math.floor(m / 1440) + ' дн. назад'; };
+  const truckState = u => { const p = u.pos; if (!p) return { cls: 'off', text: 'нет координат' };
+    if (Date.now() / 1000 - p.t > 6 * 3600) return { cls: 'off', text: 'нет сигнала ' + ago(p.t).replace(' назад', '') };
+    return p.s > 5 ? { cls: 'move', text: 'едет, ' + p.s + ' км/ч' } : { cls: 'stop', text: 'стоит' }; };
+  async function loadTrucks() {
+    try {
+      const r = await fetch(W + '/api/wialon/call', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ svc: 'core/search_items', params: { spec: { itemsType: 'avl_unit', propName: 'sys_name', propValueMask: '*', sortType: 'sys_name' }, force: 1, flags: 1025, from: 0, to: 0 } }) }).then(r => r.json());
+      if (r && r.error) throw new Error(typeof r.error === 'string' ? r.error : 'Wialon: ошибка ' + r.error);
+      trucks = (r.items || []).map(i => ({ id: i.id, nm: i.nm, pos: i.pos || null }));
+      drawTrucks();
+    } catch (e) { $('tpTrucks').innerHTML = '<span class="tp-sub">Машины: не удалось получить данные (' + esc(e.message) + ')</span>'; }
+  }
+  function drawTrucks() {
+    const on = (document.querySelector('.tp-truck-btn.on') || {}).dataset;
+    $('tpTrucks').innerHTML = trucks.length ? '<span class="tp-sub">Мои машины:</span>' + trucks.map(u => { const st = truckState(u);
+      return `<button type="button" class="tp-truck-btn${on && on.truck == u.id ? ' on' : ''}" data-truck="${u.id}"${u.pos ? '' : ' disabled'}><i class="tp-tdot ${st.cls}"></i><b>${esc(u.nm)}</b> <span>${esc(st.text)}</span></button>`; }).join('')
+      + '<span class="tp-sub">Нажмите на машину, чтобы увидеть ближайшие парковки</span>'
+      : '<span class="tp-sub">Машин в Wialon не найдено</span>';
+    if (!map) return;
+    truckLayer.clearLayers();
+    trucks.forEach(u => { if (!u.pos) return; const st = truckState(u);
+      L.marker([u.pos.y, u.pos.x], { zIndexOffset: 1000, icon: L.divIcon({ className: '', html: `<div class="tp-truck ${st.cls}">${esc(u.nm)}</div>`, iconSize: null }) })
+        .bindPopup(`<div class="tp-pop"><b>${esc(u.nm)}</b><div>${esc(st.text)}</div><div class="tp-sub">Сигнал: ${ago(u.pos.t)}</div>
+          <button type="button" class="tp-btn" data-truck="${u.id}">Парковки рядом</button></div>`).addTo(truckLayer); });
+  }
+  function nearTruck(id) {
+    const u = trucks.find(x => x.id == id); if (!u || !u.pos) return;
+    me = [u.pos.y, u.pos.x]; who = { to: u.nm, from: u.nm };
+    if (meMarker) { meMarker.remove(); meMarker = null; }
+    $('tpNear').textContent = 'Ближайшие ко мне';
+    document.querySelectorAll('.tp-truck-btn').forEach(b => b.classList.toggle('on', b.dataset.truck == id));
+    if (map) map.closePopup();
+    render(false);
+    const first = visible().slice().sort((a, b) => a.d - b.d).slice(0, 5).map(r => [r.s.lat, r.s.lon]);
+    if (map) map.fitBounds([me, ...first], { padding: [40, 40], maxZoom: 11 });
+    $('tpList').scrollTop = 0;
+  }
+  function startTrucks() {
+    truckActive = true; if (!truckLayer) return;
+    loadTrucks(); clearInterval(truckTimer);
+    truckTimer = setInterval(() => { if (truckActive && !document.hidden) loadTrucks(); }, 60000);
   }
 
   async function show() {
@@ -169,8 +220,10 @@
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
       layer = L.layerGroup().addTo(map);
       markers = data.stops.map(s => L.marker([s.lat, s.lon], { title: s.name, icon: L.divIcon({ className: '', html: `<div class="tp-pin ${s.kind}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9] }) }).bindPopup(popup(s), { maxWidth: 300 }));
+      truckLayer = L.layerGroup().addTo(map);
       render(true);
     } else setTimeout(() => map.invalidateSize(), 50);
+    startTrucks();
   }
 
   function init() {
@@ -187,6 +240,7 @@
       <div class="tp-bar"><div class="tp-chips" id="tpKinds"></div>
         <input type="search" id="tpSearch" class="tp-search" placeholder="Поиск: город, трасса, название" aria-label="Поиск ТИР парковки">
         <button type="button" class="tp-btn" id="tpNear">Ближайшие ко мне</button></div>
+      <div class="tp-trucks" id="tpTrucks"><span class="tp-sub">Мои машины: загружаю…</span></div>
       <div id="tpMap"></div>
       <div class="tp-sub" id="tpCount">Загружаю ТИР парковки…</div>
       <div class="tp-list" id="tpList"></div>
@@ -223,6 +277,13 @@
       .tp-main b { font-size: 14px; font-weight: 600; }
       .tp-km { display: inline-block; margin-right: 8px; padding: 1px 7px; border-radius: 4px; background: #E8F2F2; color: #146C72; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
       .tp-price { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; } .tp-price.none { color: #8A949C; font-weight: 400; font-style: italic; }
+      .tp-trucks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+      .tp-truck-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 15px; border: 1px solid #D5DADF; background: #fff; font: inherit; font-size: 13px; cursor: pointer; color: #14202B; }
+      .tp-truck-btn span { color: #5B6670; } .tp-truck-btn.on { border-color: #14202B; box-shadow: inset 0 0 0 1px #14202B; } .tp-truck-btn:disabled { opacity: .6; cursor: default; }
+      .tp-truck-btn:focus-visible { outline: 2px solid #146C72; outline-offset: 2px; }
+      .tp-tdot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; } .tp-tdot.move, .tp-truck.move { background: #1B8A4C; } .tp-tdot.stop, .tp-truck.stop { background: #2B5FB8; } .tp-tdot.off, .tp-truck.off { background: #8A949C; }
+      .tp-truck { display: inline-block; transform: translate(-50%, -50%); padding: 3px 9px; border-radius: 12px; font: 600 12px/1.3 system-ui, sans-serif; color: #fff; white-space: nowrap; border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.45); }
+      .tp-pop .tp-btn { align-self: flex-start; margin-top: 4px; }
       .tp-empty { padding: 20px; text-align: center; color: #5B6670; }
       .tp-pop { display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.4; } .tp-pop .tp-price { text-align: left; } .tp-pop a, .tp-row a { color: #146C72; }
       @media (max-width: 700px) { #tpCard { padding: 12px; } #tpMap { height: 60vh; } .tp-row { grid-template-columns: 12px minmax(0,1fr); } .tp-row .tp-price { grid-column: 2; text-align: left; } .tp-list { max-height: none; } .tp-pt-row { grid-template-columns: 52px minmax(0,1fr) 32px; } }`;
@@ -233,6 +294,7 @@
       const m = e.target.closest('[data-mode]'); if (m) { f.mode = m.dataset.mode; chips(); drawRoute(); render(true); if (f.mode === 'route' && !route) { const i = document.querySelector('.tp-pt'); if (i && !i.value) i.focus(); } return; }
       const c = e.target.closest('[data-country]'); if (c) { f.country = c.dataset.country; chips(); render(true); return; }
       const k = e.target.closest('[data-kind]'); if (k) { f.kind = k.dataset.kind; chips(); render(true); return; }
+      const tr = e.target.closest('[data-truck]'); if (tr) { nearTruck(tr.dataset.truck); return; }
       const x = e.target.closest('[data-del]'); if (x) { const v = ptVals(); v.splice(+x.dataset.del, 1); renderPts(v); return; }
       const r = e.target.closest('.tp-row'); if (r && !e.target.closest('a')) focus(+r.dataset.i);
     });
@@ -243,7 +305,7 @@
     $('tpList').addEventListener('keydown', e => { const r = e.target.closest('.tp-row'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); focus(+r.dataset.i); } });
     let t = null; $('tpSearch').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { f.q = e.target.value; render(true); }, 200); });
     $('tpNear').addEventListener('click', locate);
-    window.addEventListener('gl-tab', e => { if (e.detail === 'tp') show(); });
+    window.addEventListener('gl-tab', e => { if (e.detail === 'tp') show(); else truckActive = false; });
     if (!mount.hidden) show();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
