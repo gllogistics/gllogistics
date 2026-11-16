@@ -67,6 +67,9 @@ details.grp{margin-top:12px;border-top:1px solid var(--line);padding-top:4px}
 details.grp>summary{font-weight:600;color:var(--text)}
 .opts label.wide{grid-column:1/-1}
 .stop .sub2{display:grid;grid-template-columns:1fr 128px;gap:6px}
+.sched tr.ev td{font-size:12.5px;color:var(--muted)}.sched tr.ev-ban td:first-child{color:#dc2626;font-weight:600}
+.sched .pk a{color:inherit;text-decoration:underline dotted}
+.pkm{width:18px;height:18px;border-radius:4px;background:#1d4ed8;color:#fff;font:700 12px/18px system-ui;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .costbar{display:flex;height:14px;border-radius:5px;overflow:hidden;margin:12px 0 4px}
 .tc-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
@@ -205,6 +208,8 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
             <label>Выезд<input type="datetime-local" id="depart"></label>
             <label>Водитель уже за рулём сегодня, мин<input type="number" id="drivenBefore" step="15" min="0" max="540" value="0"></label>
           </div>
+          <label class="switch" style="margin-top:8px"><input type="checkbox" id="bans" checked>
+            <div>Запреты движения в выходные и праздники<small>Грузовик стоит, пока действует запрет в стране, где он находится (DE, AT, FR, IT, CH, CZ, SK, HU, SI, PL).</small></div></label>
           <div class="sub" style="margin-top:6px">Время на погрузку и выгрузку указывается у каждой точки. Перерывы и отдых — по правилам ЕС 561/2006: 45 мин после 4,5 ч за рулём, 11 ч после 9 ч в сутки.</div>
         </details>
 
@@ -286,7 +291,7 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
     <p><b>Дизель.</b> Страны ЕС — еженедельный бюллетень Еврокомиссии (EC Weekly Oil Bulletin), цена с налогами; по умолчанию в расчёте цена без НДС (перевозчик его возмещает). Обновление: <code>node update-diesel.js</code> — скачивает свежий бюллетень и записывает <code>diesel.json</code>. Вне ЕС — оценка. Топливо считается по цене страны, где пройдены километры.</p>
     <p><b>Расход и CO₂.</b> 40 т — 30, 12 т — 21, 7,5 т — 16, 3,5 т — 10 л/100 км; Евро 5 +7%, Евро 4 +12%, Евро 3 +17%; рефрижератор +2/+3 л/ч. CO₂e — 3,24 кг/л (well-to-wheel, ISO 14083).</p>
     <p><b>Режимы.</b> «Кратчайший» — минимум километров; «Без платных» — объезд платных дорог там, где он есть (в Швейцарии и Германии объезда обычно нет); «Сравнить» строит все четыре варианта. Высота, нагрузка на ось и опасный груз (ADR) передаются маршрутизатору. «Избегать стран»: строится несколько вариантов, и отбрасываются те, что проходят через указанные страны. Если обойти не удалось, добавьте промежуточную точку.</p>
-    <p><b>Время и график.</b> Время маршрутизатора с потолком средней скорости 80 км/ч (3,5 т — 110 км/ч). График рейса — по Регламенту ЕС 561/2006: перерыв 45 мин после 4,5 ч за рулём, ежедневный отдых 11 ч после 9 ч вождения за сутки, с учётом времени, которое водитель уже проехал до выезда. Стоянка в точке (погрузка, выгрузка) — рабочее время; стоянка от 11 ч засчитывается как отдых. Пробки, очереди на границах и запреты на выходные не учитываются.</p>
+    <p><b>Время и график.</b> Время маршрутизатора с потолком средней скорости 80 км/ч (3,5 т — 110 км/ч). График рейса — по Регламенту ЕС 561/2006: перерыв 45 мин после 4,5 ч за рулём, ежедневный отдых 11 ч после 9 ч вождения за сутки, с учётом времени, которое водитель уже проехал до выезда. Стоянка в точке (погрузка, выгрузка) — рабочее время; стоянка от 11 ч засчитывается как отдых. Запреты движения в выходные и праздники (DE, AT, FR, IT, CH, CZ, SK, HU, SI, PL — общенациональные окна, праздники с учётом Пасхи) задерживают грузовик в стране, где его застал запрет; простой от 11 ч засчитывается как отдых. У каждого перерыва, отдыха и запрета показаны две ближайшие стоянки из OpenStreetMap (стоянки для грузовиков, зоны обслуживания, площадки отдыха) — без данных о занятости. Пробки и очереди на границах не учитываются.</p>
     <p><b>Себестоимость.</b> Итого = дороги + виньетки + топливо + машина (€/км × км) + время работы (€/ч × езда, перерывы и стоянки, без ночного отдыха) + суточные (€ × начатые сутки рейса) + разовые расходы (паром, стоянка). В режиме «Экономичный» выбирается вариант с минимальной суммой дорог, топлива и времени.</p>
     <p><b>Ссылки.</b> Калькулятор понимает ссылки в формате IMPARGO Planner: <code>?stops[0]=Oradea&amp;stops[1]=44.43,26.10&amp;excludeCountries=RU,BY&amp;routingMode=avoidTolls&amp;waitingTimes[1]=90</code>. Такая ссылка сразу открывает готовый расчёт.</p>
     <p class="note">Сверка с опубликованными примерами RouteCalc: Роттердам → Вена 445 € против 430 € (+4%), Варшава → Лион +2%, Франкфурт → Нюрнберг 0%, Милан → Болонья −1%, TollRo Надлак → Бухарест +3%. Расхождения в основном из-за выбора маршрута. Это расчёт для коммерческих предложений, а не счёт оператора.</p>
@@ -717,7 +722,7 @@ function params(){
     extraKm:parseFloat($("#extraKm").value)||0,margin:parseFloat($("#margin").value)||0,
     hourRate:parseFloat($("#hourRate").value)||0,perDiem:parseFloat($("#perDiem").value)||0,extraFix:parseFloat($("#extraFix").value)||0,
     height:parseFloat($("#height").value)||0,axleLoad:parseFloat($("#axleLoad").value)||0,adr:$("#adr").checked,avoid:avoidList(),
-    depart:$("#depart").value?new Date($("#depart").value):defaultDeparture(),drivenBefore:(parseFloat($("#drivenBefore").value)||0)/60,
+    depart:$("#depart").value?new Date($("#depart").value):defaultDeparture(),drivenBefore:(parseFloat($("#drivenBefore").value)||0)/60,bans:$("#bans").checked,
     euOnly:$("#euOnly").checked,vat:$("#fuelVat").checked};
 }
 // «Избегать стран»: коды ISO через запятую или пробел, неизвестные коды игнорируются
@@ -805,21 +810,78 @@ const SUM_KEYS=["km","h","tolledKm","toll","fixed","vig","liters","fuel","co2","
 function sumRows(rows){const s={};SUM_KEYS.forEach(k=>s[k]=0);rows.forEach(r=>SUM_KEYS.forEach(k=>s[k]+=r[k]));return s}
 // График рейса по правилам ЕС 561/2006: перерыв 45 мин после 4,5 ч езды, ежедневный отдых 11 ч после 9 ч езды за сутки.
 // Стоянка в точке (погрузка, выгрузка) — работа, а не отдых; стоянка от 11 ч засчитывается как ежедневный отдых.
+/* Запреты движения грузовиков в выходные и праздники (основные общенациональные правила; местное время).
+   Для дня d функция страны возвращает окна запрета [с, по] в часах. sun — воскресенье или праздник, eve — завтра воскресенье/праздник. */
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+  h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31);
+  return new Date(y,mo-1,(h+l-7*m+114)%31+1)}
+const HOLI={ // фиксированные даты ММ-ДД и смещения от Пасхи
+  DE:{f:["01-01","05-01","10-03","12-25","12-26"],e:[-2,1,39,50]},
+  AT:{f:["01-01","01-06","05-01","08-15","10-26","11-01","12-08","12-25","12-26"],e:[1,39,50,60]},
+  FR:{f:["01-01","05-01","05-08","07-14","08-15","11-01","11-11","12-25"],e:[1,39,50]},
+  IT:{f:["01-01","01-06","04-25","05-01","06-02","08-15","11-01","12-08","12-25","12-26"],e:[1]},
+  CH:{f:["01-01","08-01","12-25","12-26"],e:[-2,1,39,50]},
+  CZ:{f:["01-01","05-01","05-08","07-05","07-06","09-28","10-28","11-17","12-24","12-25","12-26"],e:[-2,1]},
+  SK:{f:["01-01","01-06","05-01","05-08","07-05","08-29","11-01","11-17","12-24","12-25","12-26"],e:[-2,1]},
+  HU:{f:["01-01","03-15","05-01","08-20","10-23","11-01","12-25","12-26"],e:[-2,1,50]},
+  SI:{f:["01-01","01-02","02-08","04-27","05-01","05-02","06-25","08-15","10-31","11-01","12-25","12-26"],e:[1]},
+  PL:{f:["01-01","01-06","05-01","05-03","08-15","11-01","11-11","12-25","12-26"],e:[0,1,60]}};
+const holiCache={};
+function isHoliday(c,d){const H=HOLI[c];if(!H)return false;const y=d.getFullYear(),k=c+y;
+  if(!holiCache[k]){const s=new Set(H.f),E=easter(y);H.e.forEach(o=>{const x=new Date(E);x.setDate(x.getDate()+o);
+    s.add(String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"))});holiCache[k]=s}
+  return holiCache[k].has(String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))}
+const BANS={ // min — минимальная масса, т, с которой действует запрет
+  DE:{min:7.5,f:(d,s)=>[...(s.sun?[[0,22]]:[]),...(s.dow===6&&(s.m===7||s.m===8)?[[7,20]]:[])]},
+  AT:{min:7.5,f:(d,s)=>[...(s.sun?[[0,22]]:[]),...(s.dow===6?[[15,24]]:[])]},
+  FR:{min:7.5,f:(d,s)=>[...(s.sun?[[0,22]]:[]),...(s.eve?[[22,24]]:[])]},
+  IT:{min:7.5,f:(d,s)=>s.sun?[s.m>=6&&s.m<=9?[7,22]:[9,22]]:[]},
+  CH:{min:3.5,f:(d,s)=>s.sun?[[0,24]]:[[0,5],[22,24]]},
+  CZ:{min:7.5,f:(d,s)=>[...(s.sun?[[13,22]]:[]),...(s.m===7||s.m===8?s.dow===5?[[17,21]]:s.dow===6?[[7,13]]:[]:[])]},
+  SK:{min:7.5,f:(d,s)=>[...(s.sun?[[0,22]]:[]),...(s.dow===6&&(s.m===7||s.m===8)?[[7,19]]:[])]},
+  HU:{min:7.5,f:(d,s)=>[...(s.sun?[[0,22]]:[]),...(s.eve?[[22,24]]:[]),...(s.dow===6&&(s.m===7||s.m===8||(s.m===6&&s.day>=15))?[[15,24]]:[])]},
+  SI:{min:7.5,f:(d,s)=>[...(s.sun?[[8,21]]:[]),...(s.dow===6&&s.m>=7&&s.m<=8?[[8,13]]:[])]},
+  PL:{min:12,f:(d,s)=>{const summer=(s.m===6&&s.day>=26)||s.m===7||s.m===8;
+    if(s.hol)return [[8,22]];if(summer)return s.dow===5?[[18,22]]:s.dow===6?[[8,14]]:s.dow===0?[[8,22]]:[];
+    return s.eveHol?[[18,22]]:[]}}};
+const BAN_NOTE="Учтены общенациональные запреты для грузовиков (DE, AT, FR, IT, CH, CZ, SK, HU, SI, PL) по местному времени выезда; региональные и разовые запреты, исключения для отдельных грузов не учтены.";
+// если в момент t грузовик в стране c попадает под запрет — время окончания запрета (мс), иначе 0
+function banEnd(c,t,p){const B=BANS[c];if(!B||p.truck<=B.min)return 0;let end=0;
+  for(let k=0;k<4;k++){const d=new Date(t),h=d.getHours()+d.getMinutes()/60,nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+    const hol=isHoliday(c,d),s={dow:d.getDay(),m:d.getMonth()+1,day:d.getDate(),hol,sun:d.getDay()===0||hol,
+      eve:nx.getDay()===0||isHoliday(c,nx),eveHol:isHoliday(c,nx)};
+    const w=B.f(d,s).find(x=>h>=x[0]&&h<x[1]);if(!w)break;
+    end=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()+w[1]*3600e3;if(w[1]<24)break;t=end}  // окно до 24:00 — проверяем следующий день
+  return end}
 function schedule(legs,points,p){
-  const H=3600e3,start=p.depart.getTime();let t=start,cont=Math.min(p.drivenBefore,4.5),day=p.drivenBefore,breaks=0,rests=0,waitH=0,driveH=0;
-  const pts=[];
-  const stay=i=>{const w=(points[i].wait||0)/60,arr=t;t+=w*H;waitH+=w;if(w>=11){day=0;cont=0}pts.push({arr:new Date(arr),dep:new Date(t),wait:w})};
+  const H=3600e3,start=p.depart.getTime();let t=start,cont=Math.min(p.drivenBefore,4.5),day=p.drivenBefore,breaks=0,rests=0,waitH=0,driveH=0,km=0;
+  const pts=[],events=[];
+  const stay=i=>{const w=(points[i].wait||0)/60,arr=t;t+=w*H;waitH+=w;if(w>=11){day=0;cont=0}pts.push({arr:new Date(arr),dep:new Date(t),wait:w,km})};
   for(let i=0;i<legs.length;i++){
-    stay(i);let d=legs[i].sum.h;driveH+=d;
-    while(d>1e-6){
-      if(day>=9-1e-6){t+=11*H;rests++;day=0;cont=0;continue}
-      if(cont>=4.5-1e-6){t+=0.75*H;breaks++;cont=0;continue}
-      const step=Math.min(d,4.5-cont,9-day);t+=step*H;d-=step;cont+=step;day+=step;
+    stay(i);const L=legs[i];driveH+=L.sum.h;
+    // участки маршрута с координатами и временем: часы по стране распределяем пропорционально км
+    const hk={};L.rows.forEach(r=>hk[r.c]=r.km?r.h/r.km:0);
+    const pieces=[];let tot=0;
+    L.sp.segs.forEach(s=>{for(let k=0;k<s.pts.length-1;k++){const a=s.pts[k],b=s.pts[k+1],d=hav([a[1],a[0]],[b[1],b[0]]);
+      pieces.push({c:s.c,a,b,km:d,h:d*(hk[s.c]||1/60)});tot+=d*(hk[s.c]||1/60)}});
+    const sc=tot?L.sum.h/tot:1,kmSc=pieces.reduce((x,q)=>x+q.km,0);const kmF=kmSc?L.sum.km/kmSc:1;
+    for(const q of pieces){
+      let d=q.h*sc,done=0;const full=d;
+      const here=()=>{const f=full?done/full:0;return [q.a[0]+(q.b[0]-q.a[0])*f,q.a[1]+(q.b[1]-q.a[1])*f]};
+      const ev=(type,dur,extra)=>{const [lat,lon]=here();events.push(Object.assign({type,t:new Date(t),end:new Date(t+dur*H),dur,lat,lon,c:q.c,km:km+q.km*kmF*(full?done/full:0)},extra||{}))};
+      while(d>1e-7){
+        if(p.bans){const e=banEnd(q.c,t,p);if(e>t){const w=(e-t)/H;ev("ban",w);t=e;
+          if(w>=11){day=0;cont=0}else if(w>=0.75)cont=0;continue}}
+        if(day>=9-1e-6){ev("rest",11);t+=11*H;rests++;day=0;cont=0;continue}
+        if(cont>=4.5-1e-6){ev("break",0.75);t+=0.75*H;breaks++;cont=0;continue}
+        const step=Math.min(d,4.5-cont,9-day);t+=step*H;d-=step;done+=step;cont+=step;day+=step;
+      }
+      km+=q.km*kmF;
     }
   }
   stay(legs.length);
-  const tourH=(t-start)/H;
-  return {pts,breaks,rests,tourH,opH:driveH+waitH+breaks*0.75,days:Math.max(1,Math.ceil(tourH/24))};
+  const tourH=(t-start)/H,banH=events.filter(e=>e.type==="ban").reduce((x,e)=>x+e.dur,0);
+  return {pts,events,breaks,rests,banH,tourH,opH:driveH+waitH+breaks*0.75,days:Math.max(1,Math.ceil(tourH/24))};
 }
 // Себестоимость сверх дорог и топлива: время работы × €/ч, суточные, разовые расходы
 function addCosts(res,p){
@@ -948,9 +1010,13 @@ function renderResult(){
     <div class="sub" style="margin-top:6px">${fmt(grand/s.km,2)} €/км · ${fmt(s.co2/s.km*1000)} г CO₂e/км</div>`;
   // график по точкам
   const dt=d=>d.toLocaleString("ru-RU",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  html+=`<h2 style="margin-top:16px">График рейса</h2><div class="tablewrap"><table><thead><tr><th>Точка</th><th>Прибытие</th><th>Стоянка</th><th>Отправление</th></tr></thead><tbody>
-    ${sc.pts.map((x,i)=>`<tr><td style="text-align:left"><b>${letter(i)}</b> <span class="sub">${esc(stops[i]?.city||"")}</span></td><td>${i?dt(x.arr):"—"}</td><td>${x.wait?hm(x.wait):"—"}</td><td>${i<sc.pts.length-1||x.wait?dt(x.dep):"—"}</td></tr>`).join("")}
-    </tbody></table></div><div class="sub">Перерывов по 45 мин: ${sc.breaks} · ежедневных отдыхов по 11 ч: ${sc.rests}${p.drivenBefore?` · до выезда водитель уже ехал ${hm(p.drivenBefore)}`:""}. Без учёта пробок, границ и запретов на выходные.</div>`;
+  const rowsS=[...sc.pts.map((x,i)=>({k:0,t:+x.arr,i,x})),...sc.events.map((e,j)=>({k:1,t:+e.t,j,e}))].sort((a,b)=>a.t-b.t||a.k-b.k);
+  const EV={break:["☕","Перерыв"],rest:["🛏","Ежедневный отдых"],ban:["⛔","Запрет движения"]};
+  html+=`<h2 style="margin-top:16px">График рейса</h2><div class="tablewrap"><table class="sched"><thead><tr><th>Точка</th><th>Прибытие</th><th>Стоянка</th><th>Отправление</th><th>Где встать</th></tr></thead><tbody>
+    ${rowsS.map(r=>{if(!r.k){const x=r.x,i=r.i;return `<tr><td style="text-align:left"><b>${letter(i)}</b> <span class="sub">${esc(stops[i]?.city||"")}</span></td><td>${i?dt(x.arr):"—"}</td><td>${x.wait?hm(x.wait):"—"}</td><td>${i<sc.pts.length-1||x.wait?dt(x.dep):"—"}</td><td class="sub">${i?fmt(x.km)+" км":""}</td></tr>`}
+      const e=r.e,[ic,nm]=EV[e.type];
+      return `<tr class="ev ev-${e.type}"><td style="text-align:left">${ic} ${nm} <span class="sub">${esc(COUNTRIES[e.c]?.n||"")}</span></td><td>${dt(e.t)}</td><td>${hm(e.dur)}</td><td>${dt(e.end)}</td><td style="text-align:left"><span class="sub">${fmt(e.km)} км</span> <span id="pk${r.j}" class="pk sub">…</span></td></tr>`}).join("")}
+    </tbody></table></div><div class="sub">Перерывов по 45 мин: ${sc.breaks} · ежедневных отдыхов по 11 ч: ${sc.rests}${sc.banH?` · простой из-за запретов: <b>${hm(sc.banH)}</b>`:""}${p.drivenBefore?` · до выезда водитель уже ехал ${hm(p.drivenBefore)}`:""}. ${p.bans?BAN_NOTE+" ":"Запреты на выходные выключены. "}Пробки и очереди на границах не учитываются. Стоянки — из OpenStreetMap: ближайшие к месту остановки, без данных о свободных местах.</div>`;
   html+=`<h2 style="margin-top:16px">По странам</h2><div class="bar">${res.rows.map(r=>`<div title="${esc(COUNTRIES[r.c]?.n||r.c)}" style="width:${r.km/s.km*100}%;background:${col[r.c]}"></div>`).join("")}</div><div class="tablewrap"><table><thead><tr><th>Страна</th><th>км</th><th>Платных км</th><th>Время</th><th>Дороги</th><th>Виньетки</th><th>Топливо</th><th>CO₂, кг</th><th>Итого</th></tr></thead><tbody>
     ${res.rows.map(r=>`<tr><td><span class="dot" style="background:${col[r.c]}"></span>${esc(COUNTRIES[r.c]?.n||"Неизвестно")} <span class="sub">${r.c}</span></td><td>${fmt(r.km)}</td><td>${fmt(r.tolledKm)}</td><td>${hm(r.h)}</td><td>${eur2(r.toll+r.fixed)}</td><td>${r.vig?eur(r.vig):"—"}</td><td>${eur(r.fuel)}</td><td>${fmt(r.co2)}</td><td>${eur(r.total)}</td></tr>`).join("")}
     </tbody><tfoot><tr><td>Итого по странам</td><td>${fmt(s.km)}</td><td>${fmt(s.tolledKm)}</td><td>${hm(s.h)}</td><td>${eur2(s.toll+s.fixed)}</td><td>${eur(s.vig)}</td><td>${eur(s.fuel)}</td><td>${fmt(s.co2)}</td><td>${eur(s.total)}</td></tr></tfoot></table></div>`;
@@ -962,6 +1028,48 @@ function renderResult(){
   $("#csvBtn").onclick=()=>download("marshrut.csv",resultCsv(res));
   $("#copyBtn").onclick=()=>{navigator.clipboard.writeText(resultText(res)).then(()=>toast("Скопировано"),()=>toast("Не удалось скопировать"))};
   $("#shareBtn").onclick=()=>{saveHash();navigator.clipboard.writeText(location.href).then(()=>toast("Ссылка скопирована"),()=>toast(location.href))};
+  drawStops(sc);
+}
+/* Остановки на карте и ближайшие стоянки для грузовиков (OpenStreetMap через Overpass) */
+const OVERPASS="https://overpass-api.de/api/interpreter",pkCache={};let pkToken=0;
+function drawStops(sc){
+  const colr={break:"#d97706",rest:"#146C72",ban:"#dc2626"},ic={break:"☕",rest:"🛏",ban:"⛔"};
+  sc.events.forEach(e=>L.circleMarker([e.lat,e.lon],{radius:7,color:"#fff",weight:2,fillColor:colr[e.type],fillOpacity:1}).addTo(routeLayer)
+    .bindTooltip(`${ic[e.type]} ${e.t.toLocaleString("ru-RU",{weekday:"short",hour:"2-digit",minute:"2-digit"})} · ${hm(e.dur)}`));
+  findParking(sc.events);
+}
+function pkScore(x,d){const t=x.tags||{};return d-(t.hgv==="designated"?3:0)-(t.highway==="services"?2:0)-(/truck|lkw|tir|parking/i.test(t.name||"")?1:0)}
+function pkLabel(t){const n=t.name||(t.highway==="services"?"Зона обслуживания":t.highway==="rest_area"?"Площадка отдыха":"Стоянка для грузовиков");
+  const f=[t.supervised==="yes"||t.surveillance?"🔒":"",t.shower==="yes"?"🚿":"",t.fee==="no"?"бесплатно":t.fee==="yes"?"платно":"",t["capacity:hgv"]?`${t["capacity:hgv"]} мест`:""].filter(Boolean).join(" ");
+  return {n,f}}
+async function findParking(events){
+  const tok=++pkToken,R=10000,list=events.slice(0,30);if(!list.length)return;
+  const key=e=>e.lat.toFixed(2)+","+e.lon.toFixed(2),need=[...new Set(list.map(key))].filter(k=>!pkCache[k]);
+  if(need.length){
+    // 1) Overpass: стоянки с пометкой hgv, зоны обслуживания и площадки отдыха; 2) если Overpass перегружен — Photon (только зоны и площадки)
+    const near=(k,els)=>{const [la,lo]=k.split(",").map(Number);return els.map(o=>({...o,d:hav([lo,la],[o.lon,o.lat])})).filter(o=>o.lat!=null&&o.d<=R/1000+2)};
+    let ok=false;
+    try{const q=need.map(k=>`nwr["amenity"="parking"]["hgv"~"^(yes|designated)$"](around:${R},${k});nwr["highway"~"^(services|rest_area)$"](around:${R},${k});`).join("");
+      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
+      const r=await fetch(OVERPASS,{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(`[out:json][timeout:15];(${q});out center tags;`)});
+      clearTimeout(tm);if(!r.ok)throw 0;
+      const els=((await r.json()).elements||[]).map(x=>({x,lat:x.lat??x.center?.lat,lon:x.lon??x.center?.lon}));
+      need.forEach(k=>pkCache[k]=near(k,els));ok=true}catch(e){}
+    if(!ok)for(const k of need){if(tok!==pkToken)return;const [la,lo]=k.split(",");
+      try{let els=[];for(const tag of ["highway:services","highway:rest_area"]){
+          const j=await (await fetch(`https://photon.komoot.io/reverse?lat=${la}&lon=${lo}&radius=${R/1000}&limit=6&osm_tag=${tag}`)).json();
+          els=els.concat((j.features||[]).map(f=>{const pr=f.properties;return {lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],
+            x:{type:{N:"node",W:"way",R:"relation"}[pr.osm_type]||"node",id:pr.osm_id,tags:{name:pr.name,highway:pr.osm_value}}}}))}
+        pkCache[k]=near(k,els)}catch(e){pkCache[k]=null}}
+  }
+  if(tok!==pkToken)return;
+  list.forEach((e,j)=>{const el=document.getElementById("pk"+j);if(!el)return;const c=pkCache[key(e)];
+    if(c===null){el.textContent="стоянки не загрузились";return}
+    const best=c.map(o=>({...o,d:hav([e.lon,e.lat],[o.lon,o.lat])})).sort((a,b)=>pkScore(a.x,a.d)-pkScore(b.x,b.d)).slice(0,2);
+    if(!best.length){el.textContent="рядом стоянок в OSM нет";return}
+    el.innerHTML=best.map(o=>{const {n,f}=pkLabel(o.x.tags||{});
+      L.marker([o.lat,o.lon],{icon:L.divIcon({className:"",html:'<div class="pkm">P</div>',iconSize:[18,18]})}).addTo(routeLayer).bindTooltip(`${esc(n)} ${esc(f)}`);
+      return `<a href="https://www.openstreetmap.org/${o.x.type}/${o.x.id}" target="_blank" rel="noopener">${esc(n)}</a> ${fmt(o.d,1)} км${f?" · "+esc(f):""}`}).join("<br>")});
 }
 function resultCsv(res){
   const L=[["Страна","Код","км","Платных км","Часы","Дороги €","Виньетки €","Топливо л","Топливо €","CO2 кг","Прочие €","Итого €"]];
@@ -971,7 +1079,10 @@ function resultCsv(res){
   L.push(["Суточные, сут",sc.days,"","","","","","","","","",a.diem.toFixed(2)]);L.push(["Разовые расходы","","","","","","","","","","",a.fix.toFixed(2)]);
   L.push(["ИТОГО","","","","","","","","","","",res.grand.toFixed(2)]);
   L.push([]);L.push(["Точка","Прибытие","Стоянка, ч","Отправление"]);
-  sc.pts.forEach((x,i)=>L.push([letter(i)+" "+(stops[i]?.city||""),x.arr.toLocaleString("ru-RU"),x.wait.toFixed(2),x.dep.toLocaleString("ru-RU")]));
+  const EVN={break:"Перерыв",rest:"Ежедневный отдых",ban:"Запрет движения"};
+  [...sc.pts.map((x,i)=>({t:+x.arr,k:0,r:[letter(i)+" "+(stops[i]?.city||""),x.arr.toLocaleString("ru-RU"),x.wait.toFixed(2),x.dep.toLocaleString("ru-RU")]})),
+   ...sc.events.map(e=>({t:+e.t,k:1,r:[`${EVN[e.type]} (${e.c}, ${e.km.toFixed(0)} км, ${e.lat.toFixed(5)} ${e.lon.toFixed(5)})`,e.t.toLocaleString("ru-RU"),e.dur.toFixed(2),e.end.toLocaleString("ru-RU")]}))]
+    .sort((a,b)=>a.t-b.t||a.k-b.k).forEach(x=>L.push(x.r));
   L.unshift(["Маршрут",stops.map(x=>x.city||x.zip).join(" → ")]);
   return L.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
 }
@@ -980,7 +1091,7 @@ function resultText(res){const s=res.sum;
     res.rows.map(r=>`${COUNTRIES[r.c]?.n||r.c}: ${fmt(r.km)} км, дороги ${eur(r.toll)}${r.vig?`, виньетка ${eur(r.vig)}`:""}, топливо ${eur(r.fuel)}`).join("\n")+
     `\nДороги: ${eur(s.toll+s.fixed)} · Виньетки: ${eur(s.vig)} · Топливо: ${eur(s.fuel)} · CO₂e: ${fmt(s.co2)} кг`+
     (res.add.total?`\nМашина и водитель: ${eur(s.extra+res.add.time)} · Суточные: ${eur(res.add.diem)} · Разовые: ${eur(res.add.fix)}`:"")+
-    `\nРейс: ${hm(res.sched.tourH)} (${res.sched.days} сут.), прибытие ${res.sched.pts.at(-1).arr.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}\nИТОГО: ${eur(res.grand)}`}
+    `\nРейс: ${hm(res.sched.tourH)} (${res.sched.days} сут.${res.sched.banH?`, из них запреты ${hm(res.sched.banH)}`:""}), прибытие ${res.sched.pts.at(-1).arr.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}\nИТОГО: ${eur(res.grand)}`}
 function download(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+text],{type:"text/csv;charset=utf-8"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 
 /* ================= Оптимизация порядка (OSRM Trip) ================= */
@@ -1003,7 +1114,7 @@ function saveHash(){
     t:$("#truck").value,a:$("#axles").value,c:$("#cargo").value,e:$("#euro").value,co:$("#co2").value,eu:$("#euOnly").checked?1:0,v:$("#fuelVat").checked?1:0,
     m:$("#modeSeg .active").dataset.mode,x:$("#extraKm").value,mg:$("#margin").value,cn:$("#cons").value,
     hr:$("#hourRate").value,pd:$("#perDiem").value,xf:$("#extraFix").value,ht:$("#height").value,al:$("#axleLoad").value,hz:$("#adr").checked?1:0,
-    av:$("#avoid").value,dp:$("#depart").value,db:$("#drivenBefore").value};
+    av:$("#avoid").value,dp:$("#depart").value,db:$("#drivenBefore").value,bn:$("#bans").checked?1:0};
   history.replaceState(null,"","#"+encodeURIComponent(JSON.stringify(st)));
 }
 function loadHash(){
@@ -1012,7 +1123,7 @@ function loadHash(){
     $("#truck").value=st.t;$("#axles").value=st.a;$("#cargo").value=st.c;$("#euro").value=st.e;$("#co2").value=st.co;$("#euOnly").checked=!!st.eu;$("#fuelVat").checked=!!st.v;
     $("#extraKm").value=st.x||0;$("#margin").value=st.mg||0;$("#cons").value=st.cn||"";
     $("#hourRate").value=st.hr||0;$("#perDiem").value=st.pd||0;$("#extraFix").value=st.xf||0;$("#height").value=st.ht||"";$("#axleLoad").value=st.al||"";
-    $("#adr").checked=!!st.hz;$("#avoid").value=st.av||"";$("#depart").value=st.dp||"";$("#drivenBefore").value=st.db||0;
+    $("#adr").checked=!!st.hz;$("#avoid").value=st.av||"";$("#depart").value=st.dp||"";$("#drivenBefore").value=st.db||0;$("#bans").checked=st.bn!==0;
     document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("active",b.dataset.mode===st.m));
     return stops.length>=2}catch(e){return false}
 }
