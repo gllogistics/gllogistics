@@ -1146,7 +1146,7 @@ function loadQuery(){
   if(q.get("maxHeight"))$("#height").value=q.get("maxHeight");
   if(q.get("maxAxle"))$("#axleLoad").value=q.get("maxAxle");
   if(q.has("shippedHazardousGoods"))$("#adr").checked=!!q.get("shippedHazardousGoods");
-  if(q.get("departureDate"))$("#depart").value=localInput(new Date(+q.get("departureDate")));
+  if(q.get("departureDate")){const v=q.get("departureDate"),d=/^\d+$/.test(v)?new Date(+v):new Date(v);if(!isNaN(d))$("#depart").value=localInput(d)}  // мс или 2026-11-20T10:00
   if(q.get("minutesDrivenBeforeRouteStart"))$("#drivenBefore").value=q.get("minutesDrivenBeforeRouteStart");
   return true;
 }
