@@ -63,7 +63,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .btn.primary:hover{background:var(--accent-2)}
 .btn.block{width:100%}
 .btn:disabled{opacity:.55;cursor:default}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--soft);border-radius:10px;padding:4px;gap:4px}
+details.grp{margin-top:12px;border-top:1px solid var(--line);padding-top:4px}
+details.grp>summary{font-weight:600;color:var(--text)}
+.opts label.wide{grid-column:1/-1}
+.stop .sub2{display:grid;grid-template-columns:1fr 128px;gap:6px}
+.costbar{display:flex;height:14px;border-radius:5px;overflow:hidden;margin:12px 0 4px}
+.tc-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.late{color:var(--err);font-weight:600}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));background:var(--soft);border-radius:10px;padding:4px;gap:4px}
 .seg button{border:0;background:none;border-radius:8px;padding:7px 4px;cursor:pointer;line-height:1.2}
 .seg button small{display:block;color:var(--muted);font-size:11px}
 .seg button.active{background:var(--accent);color:#fff}
@@ -92,7 +100,7 @@ tfoot td{font-weight:700;border-bottom:0}
 .tablewrap{overflow-x:auto}
 .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:10px 0 4px}
-.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
 .compare .opt{border:2px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}
 .compare .opt.sel{border-color:var(--accent)}
 .compare .opt .v{font-weight:700;font-size:18px}
@@ -112,7 +120,6 @@ details summary{cursor:pointer;color:var(--accent);margin-top:10px}
 .pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .pin span{transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px}
 @media print{header,.noprint,#map{display:none!important}.grid{display:block}}
-.tc-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 </style>
 <script>if (window.self !== window.top || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
 <style>
@@ -173,13 +180,33 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
         <div style="margin-top:14px" class="seg" id="modeSeg">
           <button data-mode="fast" class="active">Быстрый<small>минимум времени</small></button>
           <button data-mode="eco">Экономичный<small>минимум затрат</small></button>
-          <button data-mode="both">Оба<small>сравнить</small></button>
+          <button data-mode="short">Кратчайший<small>минимум км</small></button>
+          <button data-mode="notoll">Без платных<small>где есть объезд</small></button>
+          <button data-mode="both">Сравнить<small>все варианты</small></button>
         </div>
 
         <label class="switch"><input type="checkbox" id="euOnly">
           <div>Только страны ЕС<small>Маршрут не проходит через Швейцарию, Сербию, Великобританию и т.п.</small></div></label>
         <label class="switch"><input type="checkbox" id="fuelVat">
           <div>Дизель с НДС<small>По умолчанию — без НДС: перевозчик-плательщик НДС возмещает его, как и в тарифах дорог.</small></div></label>
+
+        <details class="grp" open><summary>Ограничения маршрута</summary>
+          <div class="opts">
+            <label>Высота, м<input type="number" id="height" step="0.1" min="2" max="5"></label>
+            <label>Нагрузка на ось, т<input type="number" id="axleLoad" step="0.5" min="1" max="13"></label>
+            <label class="wide">Избегать стран<input type="text" id="avoid" placeholder="Коды через запятую: RU, BY, UA" autocomplete="off"></label>
+          </div>
+          <label class="switch"><input type="checkbox" id="adr">
+            <div>Опасный груз (ADR)<small>Маршрут обходит туннели и дороги, закрытые для опасных грузов.</small></div></label>
+        </details>
+
+        <details class="grp"><summary>График рейса</summary>
+          <div class="opts">
+            <label>Выезд<input type="datetime-local" id="depart"></label>
+            <label>Водитель уже за рулём сегодня, мин<input type="number" id="drivenBefore" step="15" min="0" max="540" value="0"></label>
+          </div>
+          <div class="sub" style="margin-top:6px">Время на погрузку и выгрузку указывается у каждой точки. Перерывы и отдых — по правилам ЕС 561/2006: 45 мин после 4,5 ч за рулём, 11 ч после 9 ч в сутки.</div>
+        </details>
 
         <div class="opts">
           <label>Тип грузовика<select id="truck">
@@ -189,9 +216,16 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
           <label>Экокласс<select id="euro"><option value="6">Евро 6</option><option value="5">Евро 5</option><option value="4">Евро 4</option><option value="3">Евро 3 и старше</option></select></label>
           <label>Класс CO₂<select id="co2"><option value="1">Класс 1 (стандарт)</option><option value="2">Класс 2</option><option value="3">Класс 3</option><option value="4">Класс 4</option><option value="5">Электро</option></select></label>
           <label>Расход, л/100 км<input type="number" id="cons" step="0.5" min="0"></label>
-          <label>Прочие расходы, €/км<input type="number" id="extraKm" step="0.01" min="0" value="0" title="Водитель, амортизация, страховка и т.п."></label>
           <label>Наценка, %<input type="number" id="margin" step="1" min="0" value="0"></label>
         </div>
+        <details class="grp"><summary>Себестоимость машины и водителя</summary>
+          <div class="opts">
+            <label>Машина, €/км<input type="number" id="extraKm" step="0.01" min="0" value="0" title="Амортизация, шины, ремонт, страховка на километр"></label>
+            <label>Водитель и машина, €/ч<input type="number" id="hourRate" step="0.5" min="0" value="0" title="Зарплата водителя и часовые расходы машины; считается за время работы: езда, перерывы, погрузка"></label>
+            <label>Суточные, €/сутки<input type="number" id="perDiem" step="1" min="0" value="0" title="Командировочные водителя за каждые начатые сутки рейса"></label>
+            <label>Разовые расходы, €<input type="number" id="extraFix" step="1" min="0" value="0" title="Паром, стоянка, документы и т.п."></label>
+          </div>
+        </details>
 
         <div class="actions">
           <button class="btn" id="newBtn">Новый маршрут</button>
@@ -251,7 +285,10 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
     <p><b>Виньетки.</b> Дневная или недельная ставка (что дешевле) × сутки пребывания в стране.</p>
     <p><b>Дизель.</b> Страны ЕС — еженедельный бюллетень Еврокомиссии (EC Weekly Oil Bulletin), цена с налогами; по умолчанию в расчёте цена без НДС (перевозчик его возмещает). Обновление: <code>node update-diesel.js</code> — скачивает свежий бюллетень и записывает <code>diesel.json</code>. Вне ЕС — оценка. Топливо считается по цене страны, где пройдены километры.</p>
     <p><b>Расход и CO₂.</b> 40 т — 30, 12 т — 21, 7,5 т — 16, 3,5 т — 10 л/100 км; Евро 5 +7%, Евро 4 +12%, Евро 3 +17%; рефрижератор +2/+3 л/ч. CO₂e — 3,24 кг/л (well-to-wheel, ISO 14083).</p>
-    <p><b>Время.</b> Время маршрутизатора с потолком средней скорости 80 км/ч (3,5 т — 110 км/ч); режим труда и отдыха: 45 мин после 4,5 ч вождения, 11 ч отдыха после 9 ч.</p>
+    <p><b>Режимы.</b> «Кратчайший» — минимум километров; «Без платных» — объезд платных дорог там, где он есть (в Швейцарии и Германии объезда обычно нет); «Сравнить» строит все четыре варианта. Высота, нагрузка на ось и опасный груз (ADR) передаются маршрутизатору. «Избегать стран»: строится несколько вариантов, и отбрасываются те, что проходят через указанные страны. Если обойти не удалось, добавьте промежуточную точку.</p>
+    <p><b>Время и график.</b> Время маршрутизатора с потолком средней скорости 80 км/ч (3,5 т — 110 км/ч). График рейса — по Регламенту ЕС 561/2006: перерыв 45 мин после 4,5 ч за рулём, ежедневный отдых 11 ч после 9 ч вождения за сутки, с учётом времени, которое водитель уже проехал до выезда. Стоянка в точке (погрузка, выгрузка) — рабочее время; стоянка от 11 ч засчитывается как отдых. Пробки, очереди на границах и запреты на выходные не учитываются.</p>
+    <p><b>Себестоимость.</b> Итого = дороги + виньетки + топливо + машина (€/км × км) + время работы (€/ч × езда, перерывы и стоянки, без ночного отдыха) + суточные (€ × начатые сутки рейса) + разовые расходы (паром, стоянка). В режиме «Экономичный» выбирается вариант с минимальной суммой дорог, топлива и времени.</p>
+    <p><b>Ссылки.</b> Калькулятор понимает ссылки в формате IMPARGO Planner: <code>?stops[0]=Oradea&amp;stops[1]=44.43,26.10&amp;excludeCountries=RU,BY&amp;routingMode=avoidTolls&amp;waitingTimes[1]=90</code>. Такая ссылка сразу открывает готовый расчёт.</p>
     <p class="note">Сверка с опубликованными примерами RouteCalc: Роттердам → Вена 445 € против 430 € (+4%), Варшава → Лион +2%, Франкфурт → Нюрнберг 0%, Милан → Болонья −1%, TollRo Надлак → Бухарест +3%. Расхождения в основном из-за выбора маршрута. Это расчёт для коммерческих предложений, а не счёт оператора.</p>
   </div>
 </section>
@@ -539,7 +576,7 @@ function attachAutocomplete(input,s,i){
 
 /* ================= Точки ================= */
 let stops = [];
-const newStop = (o={}) => Object.assign({city:"",zip:"",country:"",lat:null,lon:null,status:""},o);
+const newStop = (o={}) => Object.assign({city:"",zip:"",country:"",lat:null,lon:null,status:"",wait:0},o);
 const letter = i => String.fromCharCode(65+i);
 function renderStops(){
   const wrap=$("#stops");wrap.innerHTML="";
@@ -548,12 +585,14 @@ function renderStops(){
     const opts=['<option value="">Страна</option>'].concat(SELECTABLE.map(c=>`<option value="${c}"${s.country===c?" selected":""}>${c} · ${COUNTRIES[c].n}</option>`)).join("");
     d.innerHTML=`<div class="badge" style="background:${STOP_COLORS[i]}">${letter(i)}</div>
       <div class="fields"><div class="ac"><input type="text" data-f="city" placeholder="Начните вводить город, адрес или GPS" autocomplete="off" value="${esc(s.city)}"><div class="ac-list hidden"></div></div>
-      <input type="text" data-f="zip" placeholder="Индекс (необязательно)" value="${esc(s.zip)}">
+      <div class="sub2"><input type="text" data-f="zip" placeholder="Индекс (необязательно)" value="${esc(s.zip)}">
+        <input type="number" data-w min="0" step="15" placeholder="Стоянка, мин" title="Погрузка, выгрузка, ожидание в этой точке, мин" value="${s.wait||""}"></div>
       <div class="hint ${s.status==="ok"?"ok":s.status==="err"?"err":""}">${esc(s.msg||"")}</div></div>
       <select data-f="country">${opts}</select>
       ${stops.length>2?`<button class="x" title="Удалить" data-del="${i}">×</button>`:"<span></span>"}`;
     d.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("change",()=>{if(!el.isConnected||el.dataset.picked)return;s[el.dataset.f]=el.value.trim();s.lat=s.lon=null;s.status="";s.msg="";saveHash();
       d.querySelector(".hint").textContent=""}));
+    d.querySelector("[data-w]").addEventListener("change",e=>{s.wait=Math.max(0,parseFloat(e.target.value)||0);saveHash()});
     attachAutocomplete(d.querySelector('[data-f="city"]'),s,i);
     wrap.appendChild(d);
   });
@@ -613,9 +652,11 @@ function decode6(s){const pts=[];let i=0,lat=0,lon=0;
     const d=r&1?~(r>>1):r>>1;if(k===0)lat+=d;else lon+=d}pts.push([lon/1e6,lat/1e6])}return pts}
 const DIMS={40:{weight:40,height:4,width:2.55,length:16.5,axle_load:10},12:{weight:12,height:3.8,width:2.55,length:10,axle_load:9},
   7.5:{weight:7.5,height:3.5,width:2.5,length:8,axle_load:6},3.5:{weight:3.5,height:2.8,width:2.1,length:6.5,axle_load:2}};
-async function valhallaLeg(a,b,p,extra,alternates){
+async function valhallaLeg(a,b,p,extra,alternates,exclude){
   const body={locations:[{lat:a.lat,lon:a.lon},{lat:b.lat,lon:b.lon}],costing:"truck",units:"kilometers",alternates,
-    costing_options:{truck:Object.assign({},DIMS[p.truck],{axle_count:p.axles,use_tolls:1,use_highways:1},extra)}};
+    ...(exclude&&exclude.length?{exclude_polygons:exclude}:{}),
+    costing_options:{truck:Object.assign({},DIMS[p.truck],{axle_count:p.axles,use_tolls:1,use_highways:1},
+      p.height?{height:p.height}:{},p.axleLoad?{axle_load:p.axleLoad}:{},p.adr?{hazmat:true}:{},extra)}};
   // если точка в зоне запрета для грузовиков (центр города) — сначала ищем дорогу в радиусе 3 км, затем игнорируем запреты у точек
   const fallbacks=[()=>{},()=>body.locations.forEach(l=>l.radius=3000),()=>body.costing_options.truck.ignore_restrictions=true];
   for(let k=0,f=0;k<6;k++){
@@ -637,9 +678,18 @@ function params(){
     reeferLh:{std:0,r2:2,r18:3}[cargo],
     vmax:truck<=3.5?110:80,
     extraKm:parseFloat($("#extraKm").value)||0,margin:parseFloat($("#margin").value)||0,
+    hourRate:parseFloat($("#hourRate").value)||0,perDiem:parseFloat($("#perDiem").value)||0,extraFix:parseFloat($("#extraFix").value)||0,
+    height:parseFloat($("#height").value)||0,axleLoad:parseFloat($("#axleLoad").value)||0,adr:$("#adr").checked,avoid:avoidList(),
+    depart:$("#depart").value?new Date($("#depart").value):defaultDeparture(),drivenBefore:(parseFloat($("#drivenBefore").value)||0)/60,
     euOnly:$("#euOnly").checked,vat:$("#fuelVat").checked};
 }
-function updateConsPlaceholder(){const p=params();$("#cons").placeholder=fmt(({40:30,12:21,7.5:16,3.5:10}[p.truck])*({6:1,5:1.07,4:1.12,3:1.17}[p.euro]),1)+" (авто)"}
+// «Избегать стран»: коды ISO через запятую или пробел, неизвестные коды игнорируются
+function avoidList(){return [...new Set($("#avoid").value.toUpperCase().split(/[^A-Z]+/).map(c=>c==="GB"?"UK":c).filter(c=>COUNTRIES[c]))]}
+// по умолчанию, как в IMPARGO, выезд завтра в 08:00
+function defaultDeparture(){const d=new Date();d.setDate(d.getDate()+1);d.setHours(8,0,0,0);return d}
+function localInput(d){const z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`}
+function updateConsPlaceholder(){const p=params();$("#cons").placeholder=fmt(({40:30,12:21,7.5:16,3.5:10}[p.truck])*({6:1,5:1.07,4:1.12,3:1.17}[p.euro]),1)+" (авто)";
+  $("#height").placeholder=fmt(DIMS[p.truck].height,1)+" (авто)";$("#axleLoad").placeholder=fmt(DIMS[p.truck].axle_load,1)+" (авто)"}
 ["truck","euro"].forEach(id=>$("#"+id).addEventListener("change",()=>{updateConsPlaceholder();
   const ax=$("#axles");const t=+$("#truck").value;
   [...ax.options].forEach(o=>o.disabled=t===40?+o.value<3:t===12?+o.value>3:+o.value!==2);
@@ -662,6 +712,7 @@ function tollRate(c,cls,p){
   const t=TOLLS[c];if(!t)return 0;
   if(p.truck<=3.5&&!t.light)return 0;                       // большинство систем — только >3,5 т
   const base=cls==="nat"?(t.nat??t.mw):t.mw;
+  if(!base)return 0;                                         // виньетки и бесплатные страны: ставки за км нет
   const w=(cls==="nat"&&t.wNat)||t.w||DEF_W;                  // коэффициенты по весовым категориям
   let r=base*(w[p.truck]??1);
   if(p.truck===40)r*=(t.ax||DEF_AX)[p.axles]??1;
@@ -714,23 +765,70 @@ function vigCost(t,h){const days=Math.max(1,Math.ceil(h/24));
   return Math.min(t.vig*days,t.vigW?t.vigW*Math.ceil(days/7):Infinity)}
 const SUM_KEYS=["km","h","tolledKm","toll","fixed","vig","liters","fuel","co2","extra","total"];
 function sumRows(rows){const s={};SUM_KEYS.forEach(k=>s[k]=0);rows.forEach(r=>SUM_KEYS.forEach(k=>s[k]+=r[k]));return s}
-function restHours(h){const breaks=Math.floor(Math.max(0,h-0.01)/4.5)*0.75;const rests=h>9?(Math.ceil(h/9)-1)*11:0;return h+breaks+rests}
-
+// График рейса по правилам ЕС 561/2006: перерыв 45 мин после 4,5 ч езды, ежедневный отдых 11 ч после 9 ч езды за сутки.
+// Стоянка в точке (погрузка, выгрузка) — работа, а не отдых; стоянка от 11 ч засчитывается как ежедневный отдых.
+function schedule(legs,points,p){
+  const H=3600e3,start=p.depart.getTime();let t=start,cont=Math.min(p.drivenBefore,4.5),day=p.drivenBefore,breaks=0,rests=0,waitH=0,driveH=0;
+  const pts=[];
+  const stay=i=>{const w=(points[i].wait||0)/60,arr=t;t+=w*H;waitH+=w;if(w>=11){day=0;cont=0}pts.push({arr:new Date(arr),dep:new Date(t),wait:w})};
+  for(let i=0;i<legs.length;i++){
+    stay(i);let d=legs[i].sum.h;driveH+=d;
+    while(d>1e-6){
+      if(day>=9-1e-6){t+=11*H;rests++;day=0;cont=0;continue}
+      if(cont>=4.5-1e-6){t+=0.75*H;breaks++;cont=0;continue}
+      const step=Math.min(d,4.5-cont,9-day);t+=step*H;d-=step;cont+=step;day+=step;
+    }
+  }
+  stay(legs.length);
+  const tourH=(t-start)/H;
+  return {pts,breaks,rests,tourH,opH:driveH+waitH+breaks*0.75,days:Math.max(1,Math.ceil(tourH/24))};
+}
+// Себестоимость сверх дорог и топлива: время работы × €/ч, суточные, разовые расходы
+function addCosts(res,p){
+  const sc=res.sched,a={time:sc.opH*p.hourRate,diem:sc.days*p.perDiem,fix:p.extraFix};
+  a.total=a.time+a.diem+a.fix;res.add=a;res.grand=res.sum.total+a.total;return res;
+}
+const MODE_RU={fast:"быстрый",eco:"экономичный",short:"кратчайший",notoll:"без платных дорог"};
+const MODE_EXTRA={short:{shortest:true},notoll:{use_tolls:0,use_highways:0.5}};
 async function computeRoute(points,mode,p){
-  const legs=[];
+  const legs=[],avoid=new Set(p.avoid),filtered=p.euOnly||avoid.size>0;
   for(let i=0;i<points.length-1;i++){
-    let trips=await valhallaLeg(points[i],points[i+1],p,{},2);
-    // для экономичного режима дополнительно строим вариант с избеганием платных дорог
-    if(mode==="eco"||p.euOnly){try{trips=trips.concat(await valhallaLeg(points[i],points[i+1],p,{use_tolls:0,use_highways:0.3},0))}catch(e){}}
+    const a=points[i],b=points[i+1];
+    let trips=await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},2);
+    // экономичный режим и обход стран: дополнительно варианты с избеганием платных дорог и кратчайший
+    // маршрутизатор не знает о сборах вроде швейцарской LSVA (все дороги) — сравниваем и с обычными вариантами
+    if(mode==="notoll"){try{trips=trips.concat(await valhallaLeg(a,b,p,{},1))}catch(e){}}
+    if(mode==="eco"||filtered){try{trips=trips.concat(await valhallaLeg(a,b,p,{use_tolls:0,use_highways:0.3},0))}catch(e){}}
+    if(filtered&&mode!=="short"){try{trips=trips.concat(await valhallaLeg(a,b,p,{shortest:true},0))}catch(e){}}
     let cands=trips.map(r=>{const sp=splitTrip(r,p);const rows=costCountries(sp,p);const sum=sumRows(rows);
-      return {sp,rows,sum,nonEU:sp.order.filter(c=>c!=="??"&&!EU.has(c))}});
-    if(p.euOnly){
-      const fromTo=new Set([countryOf([points[i].lon,points[i].lat])?.a2,countryOf([points[i+1].lon,points[i+1].lat])?.a2]);
-      const ok=cands.filter(c=>c.nonEU.every(x=>fromTo.has(x)));
-      if(!ok.length)throw new Error(`Плечо ${letter(i)}→${letter(i+1)}: нет варианта только по ЕС (проходит через ${[...new Set(cands[0].nonEU)].map(c=>COUNTRIES[c]?.n||c).join(", ")})`);
+      return {sp,rows,sum,bad:sp.order.filter(c=>c!=="??"&&(avoid.has(c)||(p.euOnly&&!EU.has(c))))}});
+    if(filtered){
+      // страны начала и конца плеча обойти нельзя — их не считаем нарушением
+      const fromTo=new Set([countryOf([a.lon,a.lat])?.a2,countryOf([b.lon,b.lat])?.a2]);
+      const isOk=c=>c.bad.every(x=>fromTo.has(x));
+      let ok=cands.filter(isOk);
+      // объезд: закрываем пограничные переходы в запрещённые страны маленькими зонами и строим заново
+      // (сервер допускает зоны общим периметром до 10 км — квадрат 150×150 м у самого перехода, до 16 переходов)
+      const blocks=[],seen=new Set();
+      for(let k=0;!ok.length&&k<6;k++){
+        let added=0;
+        for(const c of cands)c.sp.segs.forEach(s=>{if(fromTo.has(s.c)||!(avoid.has(s.c)||(p.euOnly&&!EU.has(s.c))))return;
+          const [lat,lon]=s.pts[0],key=lat.toFixed(3)+","+lon.toFixed(3);
+          if(seen.has(key)||blocks.length>=16)return;seen.add(key);added++;
+          const dl=75/111320,dn=75/(111320*Math.cos(lat*Math.PI/180));
+          blocks.push([[lon-dn,lat-dl],[lon+dn,lat-dl],[lon+dn,lat+dl],[lon-dn,lat+dl],[lon-dn,lat-dl]])});
+        if(!added)break;
+        $("#mapStatus").textContent=`Ищем объезд: закрыто переходов ${blocks.length}…`;
+        try{cands=(await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},1,blocks)).map(r=>{const sp=splitTrip(r,p);const rows=costCountries(sp,p);
+          return {sp,rows,sum:sumRows(rows),bad:sp.order.filter(c=>c!=="??"&&(avoid.has(c)||(p.euOnly&&!EU.has(c))))}})}catch(e){break}
+        ok=cands.filter(isOk);
+      }
+      if(!ok.length){const via=[...new Set(cands.flatMap(c=>c.bad).filter(x=>!fromTo.has(x)))].map(c=>COUNTRIES[c]?.n||c).join(", ");
+        throw new Error(`Плечо ${letter(i)}→${letter(i+1)}: все найденные варианты проходят через ${via}. Добавьте промежуточную точку в обход.`)}
       cands=ok;
     }
-    cands.sort(mode==="eco"?(a,b)=>a.sum.total-b.sum.total:(a,b)=>a.sum.h-b.sum.h);
+    const by={eco:c=>c.sum.total+c.sum.h*p.hourRate,short:c=>c.sum.km,notoll:c=>(c.sum.toll+c.sum.fixed+c.sum.vig)*1e3+c.sum.h}[mode]||(c=>c.sum.h);
+    cands.sort((x,y)=>by(x)-by(y));
     legs.push(cands[0]);
   }
   const by={},order=[],fixed=[];
@@ -738,7 +836,7 @@ async function computeRoute(points,mode,p){
   // виньетки — по суммарному времени в стране за весь маршрут
   order.forEach(c=>{const t=TOLLS[c]||{},r=by[c];if(t.vig&&p.truck>3.5){r.total-=r.vig;r.vig=vigCost(t,r.h);r.total+=r.vig}});
   const rows=order.map(c=>by[c]);
-  return {legs,rows,sum:sumRows(rows),mode,fixed};
+  return addCosts({legs,rows,sum:sumRows(rows),mode,fixed,sched:schedule(legs,points,p)},p);
 }
 
 /* ================= Расчёт ================= */
@@ -761,10 +859,13 @@ $("#calcBtn").onclick=async()=>{
     $("#mapStatus").textContent="Загрузка границ…";await bordersReady;
     $("#mapStatus").textContent="Строим маршрут…";
     const p=params(),mode=$("#modeSeg .active").dataset.mode;
-    const pts=stops.map(s=>({lat:s.lat,lon:s.lon}));
+    const pts=stops.map(s=>({lat:s.lat,lon:s.lon,wait:s.wait||0}));
     if(mode==="both"){
-      const fast=await computeRoute(pts,"fast",p);const eco=await computeRoute(pts,"eco",p);
-      lastCompare={fast,eco,p};lastResult=fast;
+      lastCompare={p};const errs=[];
+      for(const m of ["fast","eco","short","notoll"]){$("#mapStatus").textContent=`Строим вариант «${MODE_RU[m]}»…`;
+        try{lastCompare[m]=await computeRoute(pts,m,p)}catch(e){errs.push(e.message)}}
+      lastResult=lastCompare.fast||lastCompare.eco||lastCompare.short||lastCompare.notoll;
+      if(!lastResult)throw new Error(errs[0]);
     }else{lastCompare=null;lastResult=await computeRoute(pts,mode,p)}
     lastResult.p=p;renderResult();saveHash();
     $("#mapStatus").textContent="";
@@ -784,28 +885,37 @@ function drawRoute(res){
 function renderResult(){
   const res=lastResult,p=res.p,s=res.sum,col=colorFor(res.rows.map(r=>r.c));
   drawRoute(res);
-  const withRest=restHours(s.h);
-  const price=s.total*(1+p.margin/100);
-  let html=`<div class="row between" style="margin-bottom:10px;flex-wrap:wrap;gap:6px"><h2>Результат · ${res.mode==="eco"?"экономичный":"быстрый"} маршрут</h2>
+  const sc=res.sched,a=res.add,grand=res.grand;
+  const price=grand*(1+p.margin/100);
+  let html=`<div class="row between" style="margin-bottom:10px;flex-wrap:wrap;gap:6px"><h2>Результат · ${MODE_RU[res.mode]||""} маршрут</h2>
     <div class="row noprint"><button class="btn" id="csvBtn">CSV</button><button class="btn" id="copyBtn">Копировать</button><button class="btn" id="shareBtn">Ссылка</button><button class="btn" onclick="print()">Печать</button></div></div>`;
-  if(lastCompare){const f=lastCompare.fast.sum,e=lastCompare.eco.sum;
-    html+=`<div class="compare noprint" style="margin-bottom:12px">
-      <div class="opt ${res===lastCompare.fast?"sel":""}" data-pick="fast"><div class="sub">Быстрый</div><div class="v">${eur(f.total)}</div><div class="sub">${fmt(f.km)} км · ${hm(f.h)}</div></div>
-      <div class="opt ${res===lastCompare.eco?"sel":""}" data-pick="eco"><div class="sub">Экономичный</div><div class="v">${eur(e.total)}</div><div class="sub">${fmt(e.km)} км · ${hm(e.h)}${f.total-e.total>1?` · экономия ${eur(f.total-e.total)}`:""}</div></div></div>`}
+  if(lastCompare){const vs=["fast","eco","short","notoll"].filter(m=>lastCompare[m]),base=lastCompare.fast?.grand;
+    html+=`<div class="compare noprint" style="margin-bottom:12px">${vs.map(m=>{const r=lastCompare[m],d=base!=null?base-r.grand:0;
+      return `<div class="opt ${res===r?"sel":""}" data-pick="${m}"><div class="sub">${MODE_RU[m][0].toUpperCase()+MODE_RU[m].slice(1)}</div><div class="v">${eur(r.grand)}</div>
+        <div class="sub">${fmt(r.sum.km)} км · ${hm(r.sum.h)}<br>дороги ${eur(r.sum.toll+r.sum.fixed+r.sum.vig)}${d>1?` · <b style="color:var(--ok)">−${eur(d)}</b>`:d<-1?` · +${eur(-d)}`:""}</div></div>`}).join("")}</div>`}
   html+=`<div class="kpis">
     <div class="kpi"><div class="l">Расстояние</div><div class="v">${fmt(s.km)} км</div></div>
     <div class="kpi"><div class="l">В движении</div><div class="v">${hm(s.h)}</div></div>
-    <div class="kpi"><div class="l">С отдыхом (РТО)</div><div class="v">${withRest>s.h+0.01?hm(withRest):"—"}</div></div>
+    <div class="kpi"><div class="l">Рейс целиком · ${sc.days} сут.</div><div class="v">${hm(sc.tourH)}</div></div>
     <div class="kpi"><div class="l">CO₂e</div><div class="v">${fmt(s.co2)} кг</div></div>
     <div class="kpi"><div class="l">Платные дороги · ${fmt(s.tolledKm)} км</div><div class="v">${eur(s.toll+s.fixed)}</div></div>
     <div class="kpi"><div class="l">Виньетки</div><div class="v">${eur(s.vig)}</div></div>
     <div class="kpi"><div class="l">${p.co2===5?"Электроэнергия":"Топливо · "+fmt(s.liters)+" л"}</div><div class="v">${eur(s.fuel)}</div></div>
-    <div class="kpi total"><div class="l">Итого${p.margin?` · с наценкой ${fmt(price)} €`:""}</div><div class="v">${eur(s.total)}</div></div></div>`;
-  html+=`<div class="bar">${res.rows.map(r=>`<div title="${esc(COUNTRIES[r.c]?.n||r.c)}" style="width:${r.km/s.km*100}%;background:${col[r.c]}"></div>`).join("")}</div>
-    <div class="sub">${fmt(s.total/s.km,2)} €/км · ${s.extra?`прочие ${eur(s.extra)} · `:""}${fmt(s.co2/s.km*1000)} г CO₂e/км</div>`;
-  html+=`<h2 style="margin-top:16px">По странам</h2><div class="tablewrap"><table><thead><tr><th>Страна</th><th>км</th><th>Платных км</th><th>Время</th><th>Дороги</th><th>Виньетки</th><th>Топливо</th><th>CO₂, кг</th><th>Итого</th></tr></thead><tbody>
+    <div class="kpi total"><div class="l">Итого${p.margin?` · с наценкой ${fmt(price)} €`:""}</div><div class="v">${eur(grand)}</div></div></div>`;
+  // из чего складывается стоимость
+  const parts=[["Дороги и мосты",s.toll+s.fixed,"#146C72"],["Виньетки",s.vig,"#0891b2"],[p.co2===5?"Электроэнергия":"Топливо",s.fuel,"#d97706"],
+    ["Машина €/км",s.extra,"#7c3aed"],[`Время работы ${hm(sc.opH)}`,a.time,"#db2777"],[`Суточные × ${sc.days}`,a.diem,"#65a30d"],["Разовые",a.fix,"#64748b"]].filter(x=>x[1]>0.005);
+  html+=`<div class="costbar">${parts.map(x=>`<div title="${esc(x[0])}: ${eur2(x[1])}" style="width:${x[1]/grand*100}%;background:${x[2]}"></div>`).join("")}</div>
+    <div class="legend">${parts.map(x=>`<span><span class="dot" style="background:${x[2]}"></span>${esc(x[0])} — ${eur(x[1])} (${fmt(x[1]/grand*100)}%)</span>`).join("")}</div>
+    <div class="sub" style="margin-top:6px">${fmt(grand/s.km,2)} €/км · ${fmt(s.co2/s.km*1000)} г CO₂e/км</div>`;
+  // график по точкам
+  const dt=d=>d.toLocaleString("ru-RU",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  html+=`<h2 style="margin-top:16px">График рейса</h2><div class="tablewrap"><table><thead><tr><th>Точка</th><th>Прибытие</th><th>Стоянка</th><th>Отправление</th></tr></thead><tbody>
+    ${sc.pts.map((x,i)=>`<tr><td style="text-align:left"><b>${letter(i)}</b> <span class="sub">${esc(stops[i]?.city||"")}</span></td><td>${i?dt(x.arr):"—"}</td><td>${x.wait?hm(x.wait):"—"}</td><td>${i<sc.pts.length-1||x.wait?dt(x.dep):"—"}</td></tr>`).join("")}
+    </tbody></table></div><div class="sub">Перерывов по 45 мин: ${sc.breaks} · ежедневных отдыхов по 11 ч: ${sc.rests}${p.drivenBefore?` · до выезда водитель уже ехал ${hm(p.drivenBefore)}`:""}. Без учёта пробок, границ и запретов на выходные.</div>`;
+  html+=`<h2 style="margin-top:16px">По странам</h2><div class="bar">${res.rows.map(r=>`<div title="${esc(COUNTRIES[r.c]?.n||r.c)}" style="width:${r.km/s.km*100}%;background:${col[r.c]}"></div>`).join("")}</div><div class="tablewrap"><table><thead><tr><th>Страна</th><th>км</th><th>Платных км</th><th>Время</th><th>Дороги</th><th>Виньетки</th><th>Топливо</th><th>CO₂, кг</th><th>Итого</th></tr></thead><tbody>
     ${res.rows.map(r=>`<tr><td><span class="dot" style="background:${col[r.c]}"></span>${esc(COUNTRIES[r.c]?.n||"Неизвестно")} <span class="sub">${r.c}</span></td><td>${fmt(r.km)}</td><td>${fmt(r.tolledKm)}</td><td>${hm(r.h)}</td><td>${eur2(r.toll+r.fixed)}</td><td>${r.vig?eur(r.vig):"—"}</td><td>${eur(r.fuel)}</td><td>${fmt(r.co2)}</td><td>${eur(r.total)}</td></tr>`).join("")}
-    </tbody><tfoot><tr><td>Итого</td><td>${fmt(s.km)}</td><td>${fmt(s.tolledKm)}</td><td>${hm(s.h)}</td><td>${eur2(s.toll+s.fixed)}</td><td>${eur(s.vig)}</td><td>${eur(s.fuel)}</td><td>${fmt(s.co2)}</td><td>${eur(s.total)}</td></tr></tfoot></table></div>`;
+    </tbody><tfoot><tr><td>Итого по странам</td><td>${fmt(s.km)}</td><td>${fmt(s.tolledKm)}</td><td>${hm(s.h)}</td><td>${eur2(s.toll+s.fixed)}</td><td>${eur(s.vig)}</td><td>${eur(s.fuel)}</td><td>${fmt(s.co2)}</td><td>${eur(s.total)}</td></tr></tfoot></table></div>`;
   if(res.legs.length>1){html+=`<h2 style="margin-top:16px">По плечам</h2><div class="tablewrap"><table><thead><tr><th>Плечо</th><th>км</th><th>Время</th><th>Дороги+виньетки</th><th>Топливо</th><th>Итого</th></tr></thead><tbody>
     ${res.legs.map((l,i)=>`<tr><td>${letter(i)} → ${letter(i+1)} <span class="sub">${esc(stops[i]?.city||"")} → ${esc(stops[i+1]?.city||"")}</span></td><td>${fmt(l.sum.km)}</td><td>${hm(l.sum.h)}</td><td>${eur(l.sum.toll+l.sum.vig)}</td><td>${eur(l.sum.fuel)}</td><td>${eur(l.sum.total)}</td></tr>`).join("")}</tbody></table></div>`}
   html+=`<div class="note">${res.fixed.length?`Включены отдельные сборы: ${res.fixed.map(x=>esc(x.name)+" — "+eur2(x.price[p.truck]??0)).join("; ")}.<br>`:""}Все суммы без НДС${p.vat?", кроме дизеля (с НДС)":""}. Тарифы — опубликованные ставки операторов (вкладка «Тарифы дорог»), дизель — EC Weekly Oil Bulletin за ${esc(FUEL_DATE)}. Маршрут для грузовика строит Valhalla (OpenStreetMap).</div>`;
@@ -818,14 +928,21 @@ function renderResult(){
 function resultCsv(res){
   const L=[["Страна","Код","км","Платных км","Часы","Дороги €","Виньетки €","Топливо л","Топливо €","CO2 кг","Прочие €","Итого €"]];
   res.rows.forEach(r=>L.push([COUNTRIES[r.c]?.n||r.c,r.c,r.km.toFixed(1),r.tolledKm.toFixed(1),r.h.toFixed(2),(r.toll+r.fixed).toFixed(2),r.vig.toFixed(2),r.liters.toFixed(1),r.fuel.toFixed(2),r.co2.toFixed(1),r.extra.toFixed(2),r.total.toFixed(2)]));
-  const s=res.sum;L.push(["Итого","",s.km.toFixed(1),s.tolledKm.toFixed(1),s.h.toFixed(2),(s.toll+s.fixed).toFixed(2),s.vig.toFixed(2),s.liters.toFixed(1),s.fuel.toFixed(2),s.co2.toFixed(1),s.extra.toFixed(2),s.total.toFixed(2)]);
+  const s=res.sum,a=res.add,sc=res.sched;L.push(["Итого по странам","",s.km.toFixed(1),s.tolledKm.toFixed(1),s.h.toFixed(2),(s.toll+s.fixed).toFixed(2),s.vig.toFixed(2),s.liters.toFixed(1),s.fuel.toFixed(2),s.co2.toFixed(1),s.extra.toFixed(2),s.total.toFixed(2)]);
+  L.push([]);L.push(["Время работы, ч",sc.opH.toFixed(2),"","","","","","","","","",a.time.toFixed(2)]);
+  L.push(["Суточные, сут",sc.days,"","","","","","","","","",a.diem.toFixed(2)]);L.push(["Разовые расходы","","","","","","","","","","",a.fix.toFixed(2)]);
+  L.push(["ИТОГО","","","","","","","","","","",res.grand.toFixed(2)]);
+  L.push([]);L.push(["Точка","Прибытие","Стоянка, ч","Отправление"]);
+  sc.pts.forEach((x,i)=>L.push([letter(i)+" "+(stops[i]?.city||""),x.arr.toLocaleString("ru-RU"),x.wait.toFixed(2),x.dep.toLocaleString("ru-RU")]));
   L.unshift(["Маршрут",stops.map(x=>x.city||x.zip).join(" → ")]);
   return L.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
 }
 function resultText(res){const s=res.sum;
   return `Маршрут: ${stops.map(x=>[x.zip,x.city,x.country].filter(Boolean).join(" ")).join(" → ")}\n${fmt(s.km)} км, ${hm(s.h)} в движении\n`+
     res.rows.map(r=>`${COUNTRIES[r.c]?.n||r.c}: ${fmt(r.km)} км, дороги ${eur(r.toll)}${r.vig?`, виньетка ${eur(r.vig)}`:""}, топливо ${eur(r.fuel)}`).join("\n")+
-    `\nДороги: ${eur(s.toll)} · Виньетки: ${eur(s.vig)} · Топливо: ${eur(s.fuel)} · CO₂e: ${fmt(s.co2)} кг\nИТОГО: ${eur(s.total)}`}
+    `\nДороги: ${eur(s.toll+s.fixed)} · Виньетки: ${eur(s.vig)} · Топливо: ${eur(s.fuel)} · CO₂e: ${fmt(s.co2)} кг`+
+    (res.add.total?`\nМашина и водитель: ${eur(s.extra+res.add.time)} · Суточные: ${eur(res.add.diem)} · Разовые: ${eur(res.add.fix)}`:"")+
+    `\nРейс: ${hm(res.sched.tourH)} (${res.sched.days} сут.), прибытие ${res.sched.pts.at(-1).arr.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}\nИТОГО: ${eur(res.grand)}`}
 function download(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+text],{type:"text/csv;charset=utf-8"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 
 /* ================= Оптимизация порядка (OSRM Trip) ================= */
@@ -844,20 +961,46 @@ $("#optimizeBtn").onclick=async()=>{
 
 /* ================= Состояние в URL ================= */
 function saveHash(){
-  const st={s:stops.map(s=>[s.city,s.zip,s.country,s.lat!=null?+s.lat.toFixed(5):null,s.lon!=null?+s.lon.toFixed(5):null]),
+  const st={s:stops.map(s=>[s.city,s.zip,s.country,s.lat!=null?+s.lat.toFixed(5):null,s.lon!=null?+s.lon.toFixed(5):null,s.wait||0]),
     t:$("#truck").value,a:$("#axles").value,c:$("#cargo").value,e:$("#euro").value,co:$("#co2").value,eu:$("#euOnly").checked?1:0,v:$("#fuelVat").checked?1:0,
-    m:$("#modeSeg .active").dataset.mode,x:$("#extraKm").value,mg:$("#margin").value,cn:$("#cons").value};
+    m:$("#modeSeg .active").dataset.mode,x:$("#extraKm").value,mg:$("#margin").value,cn:$("#cons").value,
+    hr:$("#hourRate").value,pd:$("#perDiem").value,xf:$("#extraFix").value,ht:$("#height").value,al:$("#axleLoad").value,hz:$("#adr").checked?1:0,
+    av:$("#avoid").value,dp:$("#depart").value,db:$("#drivenBefore").value};
   history.replaceState(null,"","#"+encodeURIComponent(JSON.stringify(st)));
 }
 function loadHash(){
   try{const st=JSON.parse(decodeURIComponent(location.hash.slice(1)));
-    stops=st.s.map(([city,zip,country,lat,lon])=>newStop({city,zip,country,lat,lon,status:lat!=null?"ok":"",msg:""}));
+    stops=st.s.map(([city,zip,country,lat,lon,wait])=>newStop({city,zip,country,lat,lon,wait:wait||0,status:lat!=null?"ok":"",msg:""}));
     $("#truck").value=st.t;$("#axles").value=st.a;$("#cargo").value=st.c;$("#euro").value=st.e;$("#co2").value=st.co;$("#euOnly").checked=!!st.eu;$("#fuelVat").checked=!!st.v;
     $("#extraKm").value=st.x||0;$("#margin").value=st.mg||0;$("#cons").value=st.cn||"";
+    $("#hourRate").value=st.hr||0;$("#perDiem").value=st.pd||0;$("#extraFix").value=st.xf||0;$("#height").value=st.ht||"";$("#axleLoad").value=st.al||"";
+    $("#adr").checked=!!st.hz;$("#avoid").value=st.av||"";$("#depart").value=st.dp||"";$("#drivenBefore").value=st.db||0;
     document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("active",b.dataset.mode===st.m));
     return stops.length>=2}catch(e){return false}
 }
-document.querySelectorAll(".opts select,.opts input,#euOnly,#fuelVat").forEach(el=>el.addEventListener("change",saveHash));
+document.querySelectorAll(".opts select,.opts input,#euOnly,#fuelVat,#adr").forEach(el=>el.addEventListener("change",saveHash));
+// Ссылки в формате IMPARGO Planner: ?stops[0]=Адрес или широта,долгота&excludeCountries=RU,BY&routingMode=avoidTolls&maxHeight=4&maxAxle=10
+// &shippedHazardousGoods=flammable&departureDate=<мс>&waitingTimes[1]=60&minutesDrivenBeforeRouteStart=30 — так рейсы с сайта открываются сразу с маршрутом
+function loadQuery(){
+  const q=new URLSearchParams(location.search),list=[];
+  for(const [k,v] of q){const m=k.match(/^stops\[(\d+)\]$/);if(m&&v.trim())list[+m[1]]=v.trim()}
+  const found=list.filter(Boolean);if(found.length<2)return false;
+  stops=list.map((v,i)=>{if(!v)return null;const ll=parseLatLon(v);
+    const parts=v.split(",").map(x=>x.trim()),n=parts.length;  // «Улица, индекс, страна, широта, долгота» как в IMPARGO
+    const s=ll?newStop({city:v,lat:ll.lat,lon:ll.lon,status:"ok"})
+      :n>=5&&isFinite(parts[n-2])&&isFinite(parts[n-1])?newStop({city:parts.slice(0,n-4).join(", ")||parts[0],zip:parts[n-4]||"",lat:+parts[n-2],lon:+parts[n-1],status:"ok"})
+      :newStop({city:v});
+    s.wait=parseFloat(q.get(`waitingTimes[${i}]`))||0;return s}).filter(Boolean).slice(0,10);
+  const mode={fastest:"fast",shortest:"short",costOptimized:"eco",avoidTolls:"notoll"}[q.get("routingMode")];
+  if(mode)document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+  if(q.has("excludeCountries"))$("#avoid").value=q.get("excludeCountries");
+  if(q.get("maxHeight"))$("#height").value=q.get("maxHeight");
+  if(q.get("maxAxle"))$("#axleLoad").value=q.get("maxAxle");
+  if(q.has("shippedHazardousGoods"))$("#adr").checked=!!q.get("shippedHazardousGoods");
+  if(q.get("departureDate"))$("#depart").value=localInput(new Date(+q.get("departureDate")));
+  if(q.get("minutesDrivenBeforeRouteStart"))$("#drivenBefore").value=q.get("minutesDrivenBeforeRouteStart");
+  return true;
+}
 
 /* ================= Пакетный расчёт ================= */
 let bulkRows=[];
@@ -872,7 +1015,7 @@ $("#bulkBtn").onclick=async()=>{
     $("#bulkStatus").textContent=`Расчёт ${i+1} из ${lines.length}…`;
     const row={from:lines[i][0],to:lines[i][1]};
     try{const a=await geocode(parse(row.from)),z=await geocode(parse(row.to));
-      const r=await computeRoute([a,z],"fast",p);Object.assign(row,r.sum,{countries:r.rows.map(x=>x.c).join("-")})}
+      const r=await computeRoute([a,z],"fast",p);Object.assign(row,r.sum,{total:r.grand,countries:r.rows.map(x=>x.c).join("-")})}
     catch(e){row.err=e.message}
     bulkRows.push(row);renderBulk();
   }
@@ -920,9 +1063,13 @@ $("#fuelReset").onclick=()=>{store.set("fuel2",{});FUEL=buildFuel();renderFuel()
 $("#tollReset").onclick=()=>{store.set("tolls2",{});TOLLS=buildTolls();renderTolls();toast("Сброшено")};
 
 /* ================= Старт ================= */
-if(!loadHash())stops=[newStop(),newStop()];
+const fromQuery=loadQuery();
+if(!fromQuery&&!loadHash())stops=[newStop(),newStop()];
+if(!$("#depart").value)$("#depart").value=localInput(defaultDeparture());
+if($("#avoid").value||$("#adr").checked||$("#height").value||$("#axleLoad").value)$("#avoid").closest("details").open=true;
 renderStops();drawMarkers();renderFuel();renderTolls();updateConsPlaceholder();
 $("#truck").dispatchEvent(new Event("change"));
+if(fromQuery)$("#calcBtn").click();   // открыто ссылкой с точками — сразу считаем
 </script>
 <script>
 (function () {   // во вкладке «Маршруты» сообщаем высоту, чтобы не было двойной прокрутки
