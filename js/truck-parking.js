@@ -56,6 +56,81 @@
       return { d: best, km: at };
     });
   }
+  // путь по дорогам: сначала Valhalla с профилем грузовика, при сбое — OSRM (легковой)
+  const decode6 = s => { let i = 0, lat = 0, lon = 0; const out = [];
+    while (i < s.length) { for (let k = 0; k < 2; k++) { let r = 0, sh = 0, b; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32);
+      const v = (r & 1) ? ~(r >> 1) : (r >> 1); if (k === 0) lat += v; else lon += v; } out.push([lat / 1e6, lon / 1e6]); }
+    return out; };
+  async function roadRoute(lls) {
+    try {
+      const j = await fetch('https://valhalla1.openstreetmap.de/route', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locations: lls.map(([lat, lon]) => ({ lat, lon })), costing: 'truck', units: 'kilometers', directions_type: 'none' }) }).then(r => r.json());
+      if (!j.trip) throw new Error(j.error || 'нет пути');
+      const line = []; j.trip.legs.forEach((l, k) => { const p = decode6(l.shape); line.push(...(k ? p.slice(1) : p)); });
+      return { line, km: j.trip.summary.length, truck: true };
+    } catch (e) {
+      const j = await fetch('https://router.project-osrm.org/route/v1/driving/' + lls.map(([lat, lon]) => lon + ',' + lat).join(';') + '?overview=full&geometries=geojson').then(r => r.json());
+      if (j.code !== 'Ok' || !j.routes || !j.routes.length) throw new Error('путь по дорогам не найден');
+      return { line: j.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]), km: j.routes[0].distance / 1000, truck: false };
+    }
+  }
+
+  // ——— только через Евросоюз после Турции: страны вне ЕС из /non-eu.json, обход через города ЕС ———
+  const HUBS = [['Свиленград', 41.77, 26.20], ['Пловдив', 42.15, 24.75], ['София', 42.70, 23.32], ['Монтана', 43.41, 23.23], ['Видин', 43.99, 22.88], ['Русе', 43.85, 25.97], ['Варна', 43.21, 27.91], ['Кулата', 41.40, 23.36],
+    ['Салоники', 40.64, 22.94], ['Александруполис', 40.85, 25.87], ['Игуменица', 39.50, 20.27],
+    ['Бухарест', 44.43, 26.10], ['Крайова', 44.32, 23.80], ['Калафат', 43.99, 22.93], ['Дробета-Турну-Северин', 44.63, 22.66], ['Тимишоара', 45.75, 21.23], ['Арад', 46.18, 21.31], ['Орадя', 47.06, 21.93], ['Клуж-Напока', 46.77, 23.59],
+    ['Сату-Маре', 47.79, 22.89], ['Сибиу', 45.79, 24.15], ['Брашов', 45.65, 25.60], ['Яссы', 47.16, 27.59], ['Сучава', 47.65, 26.25], ['Бакэу', 46.57, 26.91], ['Галац', 45.44, 28.05], ['Констанца', 44.17, 28.63], ['Питешть', 44.86, 24.87],
+    ['Сегед', 46.25, 20.15], ['Будапешт', 47.50, 19.04], ['Дебрецен', 47.53, 21.63], ['Мишкольц', 48.10, 20.78], ['Ньиредьхаза', 47.95, 21.72], ['Дьёр', 47.68, 17.63], ['Печ', 46.07, 18.23],
+    ['Кошице', 48.72, 21.26], ['Прешов', 49.00, 21.24], ['Жилина', 49.22, 18.74], ['Братислава', 48.15, 17.11], ['Зволен', 48.58, 19.12],
+    ['Жешув', 50.04, 22.00], ['Краков', 50.06, 19.94], ['Катовице', 50.26, 19.02], ['Люблин', 51.25, 22.57], ['Варшава', 52.23, 21.01], ['Белосток', 53.13, 23.16], ['Гданьск', 54.35, 18.65], ['Каунас', 54.90, 23.90],
+    ['Острава', 49.83, 18.28], ['Брно', 49.20, 16.61], ['Вена', 48.21, 16.37], ['Грац', 47.07, 15.44], ['Инсбрук', 47.27, 11.40], ['Филлах', 46.61, 13.85],
+    ['Любляна', 46.06, 14.51], ['Марибор', 46.55, 15.65], ['Загреб', 45.81, 15.98], ['Славонски-Брод', 45.16, 18.02], ['Осиек', 45.55, 18.69], ['Риека', 45.33, 14.44], ['Сплит', 43.51, 16.44], ['Карловац', 45.49, 15.55],
+    ['Триест', 45.65, 13.78], ['Милан', 45.46, 9.19], ['Верона', 45.44, 10.99], ['Больцано', 46.50, 11.35], ['Турин', 45.07, 7.69], ['Бари', 41.12, 16.87], ['Анкона', 43.62, 13.52],
+    ['Мюнхен', 48.14, 11.58], ['Штутгарт', 48.78, 9.18], ['Франкфурт-на-Майне', 50.11, 8.68], ['Фрайбург', 47.99, 7.85], ['Линдау', 47.55, 9.68], ['Лион', 45.76, 4.84], ['Мюлуз', 47.75, 7.34], ['Шамбери', 45.56, 5.92], ['Ницца', 43.70, 7.27], ['Страсбург', 48.58, 7.75]];
+  let nonEU = null;
+  const loadNonEU = async () => nonEU || (nonEU = await fetch('/non-eu.json?v=1').then(r => { if (!r.ok) throw new Error('нет границ стран'); return r.json(); }));
+  const inRing = (p, r) => { let ins = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const yi = r[i][0], xi = r[i][1], yj = r[j][0], xj = r[j][1];
+      if ((yi > p[0]) !== (yj > p[0]) && p[1] < (xj - xi) * (p[0] - yi) / (yj - yi) + xi) ins = !ins; }
+    return ins; };
+  const countryAt = p => { for (const c of nonEU) { const b = c.bb; if (p[0] < b[0] || p[0] > b[2] || p[1] < b[1] || p[1] > b[3]) continue; if (inRing(p, c.r)) return c.c; } return null; };
+  const crosses = (a, b) => { const n = Math.max(2, Math.ceil(dist(a, b) / 10));
+    for (let i = 1; i < n; i++) { const t = i / n; if (countryAt([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t])) return true; } return false; };
+  // кратчайшая цепочка городов ЕС между двумя точками: прямые перегоны до 450 км, не задевающие страны вне ЕС
+  function hubPath(a, b) {
+    const nodes = [a, ...HUBS.map(h => [h[1], h[2]]), b], N = nodes.length, d = Array(N).fill(Infinity), prev = Array(N).fill(-1), done = Array(N).fill(false), memo = {};
+    d[0] = 0;
+    for (;;) {
+      let u = -1; for (let i = 0; i < N; i++) if (!done[i] && d[i] < Infinity && (u < 0 || d[i] < d[u])) u = i;
+      if (u < 0 || u === N - 1) break; done[u] = true;
+      for (let v = 0; v < N; v++) {
+        if (done[v]) continue; const L = dist(nodes[u], nodes[v]); if (L > 450 || d[u] + L >= d[v]) continue;
+        const k = Math.min(u, v) + '-' + Math.max(u, v); if (memo[k] === undefined) memo[k] = crosses(nodes[u], nodes[v]);
+        if (!memo[k]) { d[v] = d[u] + L; prev[v] = u; }
+      }
+    }
+    if (d[N - 1] === Infinity) return null;
+    const path = []; for (let v = prev[N - 1]; v > 0; v = prev[v]) path.unshift(HUBS[v - 1]); return path;
+  }
+  const nearestIdx = (line, p) => { let bi = 0, bd = Infinity; for (let i = 0; i < line.length; i += 2) { const d = dist(line[i], p); if (d < bd) { bd = d; bi = i; } } return bi; };
+  async function routeEU(stops) {
+    const wp = stops.map(s => ({ ll: s.ll, name: s.name })), added = [];
+    let res = null, bad = null;
+    for (let it = 0; it < 5; it++) {
+      res = await roadRoute(wp.map(w => w.ll));
+      const line = res.line; let i = -1; bad = null;
+      for (let k = 0; k < line.length; k += 3) { const c = countryAt(line[k]); if (c) { i = k; bad = c; break; } }
+      if (i < 0) break;
+      let j = i; while (j + 3 < line.length && countryAt(line[j + 3])) j += 3;
+      const path = hubPath(line[Math.max(0, i - 3)], line[Math.min(line.length - 1, j + 3)]);
+      const ins = (path || []).filter(h => !wp.some(w => w.name === h[0])).map(h => ({ ll: [h[1], h[2]], name: h[0] }));
+      if (!ins.length) break;
+      const idx = wp.map(w => nearestIdx(line, w.ll)); let leg = 0; while (leg < wp.length - 2 && idx[leg + 1] <= i) leg++;
+      wp.splice(leg + 1, 0, ...ins); added.push(...ins);
+    }
+    return { res, added, bad };
+  }
+
   async function buildRoute() {
     const names = [...document.querySelectorAll('.tp-pt')].map(i => i.value.trim()).filter(Boolean);
     if (names.length < 2) { $('tpRouteMsg').textContent = 'Напишите хотя бы «Откуда» и «Куда».'; return; }
@@ -64,14 +139,24 @@
       const pts = [];
       for (const n of names) { pts.push(await geocode(n)); if (names.length > 1) await new Promise(r => setTimeout(r, 1100)); }  // правило Nominatim: не чаще раза в секунду
       $('tpRouteMsg').textContent = 'Строю путь…';
-      const coords = pts.map(p => p.ll[1] + ',' + p.ll[0]).join(';');
-      const j = await fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson').then(r => r.json());
-      if (j.code !== 'Ok' || !j.routes || !j.routes.length) throw new Error('путь по дорогам не найден');
-      const line = j.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
-      route = { line, km: j.routes[0].distance / 1000, names: pts.map(p => p.name), near: measure(line) };
+      const euOnly = $('tpEU').checked;
+      let res, added = [], bad = null, userOut = null;
+      if (euOnly) {
+        await loadNonEU();
+        userOut = pts.map(p => countryAt(p.ll) && p.name + ' (' + countryAt(p.ll) + ')').filter(Boolean);
+      }
+      if (euOnly && !userOut.length) ({ res, added, bad } = await routeEU(pts));
+      else res = await roadRoute(pts.map(p => p.ll));
+      const line = res.line;
+      route = { line, km: res.km, names: pts.map(p => p.name), added, near: measure(line) };
       try { localStorage.setItem(ROUTE_KEY, JSON.stringify(names)); } catch (e) {}
       drawRoute();
-      $('tpRouteMsg').textContent = route.names.join(' → ') + ' · ' + fmtKm(route.km) + ' по дорогам';
+      let msg = route.names.join(' → ') + ' · ' + fmtKm(route.km) + ' по дорогам' + (res.truck ? ', для грузовика' : '');
+      if (euOnly && userOut.length) msg += '. Обход стран вне ЕС выключен: ' + userOut.join(', ') + ' — не в Евросоюзе.';
+      else if (euOnly && bad) msg += '. Не удалось обойти страну вне ЕС: ' + bad + '. Добавьте город ЕС по пути вручную.';
+      else if (euOnly && added.length) msg += '. Только через ЕС: добавлены ' + added.map(a => a.name).join(', ') + '.';
+      else if (euOnly) msg += '. Весь путь после Турции — по ЕС.';
+      $('tpRouteMsg').textContent = msg;
       render(true);
     } catch (e) { $('tpRouteMsg').textContent = 'Не получилось: ' + e.message + '. Проверьте названия городов.'; }
     $('tpBuild').disabled = false;
@@ -82,7 +167,8 @@
     if (!route || f.mode !== 'route') { routeLayer = null; return; }
     routeLayer = L.layerGroup([L.polyline(route.line, { color: '#146C72', weight: 5, opacity: .8 }),
       L.circleMarker(route.line[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#146C72', fillOpacity: 1 }).bindTooltip(route.names[0]),
-      L.circleMarker(route.line[route.line.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: '#14202B', fillOpacity: 1 }).bindTooltip(route.names[route.names.length - 1])]).addTo(map);
+      L.circleMarker(route.line[route.line.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: '#14202B', fillOpacity: 1 }).bindTooltip(route.names[route.names.length - 1]),
+      ...(route.added || []).map(a => L.circleMarker(a.ll, { radius: 5, color: '#146C72', weight: 2, fillColor: '#fff', fillOpacity: 1 }).bindTooltip('Через ЕС: ' + a.name))]).addTo(map);
   }
   function ptRow(v, i, n) {
     const label = i === 0 ? 'Откуда' : i === n - 1 ? 'Куда' : 'Через';
@@ -233,6 +319,7 @@
       <div id="tpRouteBox" class="tp-route" hidden>
         <div id="tpPts"></div>
         <div class="tp-bar"><button type="button" class="tp-btn ghost" id="tpAddPt">+ Точка по пути</button>
+          <label class="tp-check"><input type="checkbox" id="tpEU" checked> После Турции — только через Евросоюз</label>
           <label class="tp-check">Показывать до <select id="tpCorr"><option>5</option><option>10</option><option selected>15</option><option>25</option><option>50</option></select> км от дороги</label>
           <button type="button" class="tp-btn" id="tpBuild">Построить</button></div>
         <div class="tp-sub" id="tpRouteMsg">Напишите города, например: Ереван → Тбилиси → Стамбул → Варшава.</div></div>
@@ -245,7 +332,7 @@
       <div class="tp-sub" id="tpCount">Загружаю ТИР парковки…</div>
       <div class="tp-list" id="tpList"></div>
       <div class="tp-sub" id="tpUpdated"></div>
-      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Путь строится автоматически (OSRM) как для легковой машины, это не грузовой навигатор.</div></section>`;
+      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;
     const st = document.createElement('style');
     st.textContent = `
       #tpCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
