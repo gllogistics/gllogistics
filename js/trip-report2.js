@@ -99,8 +99,8 @@ async function fetchWialonData(trip) {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
-const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', food:'Продукты', advance:'Доплата аванса', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
-const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', food:'cat-food', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
+const catLabel = { fuel:'Топливо', toll:'Платная дорога', parking:'Стоянка', ferry:'Паром', transit:'Транзитные карты', adblue:'AdBlue', parts:'Запчасти', insurance:'Страховки', food:'Продукты', fine:'Штрафы', advance:'Доплата аванса', salary:'Зарплата', bank:'Выписка', other:'Прочее' };
+const catClass  = { fuel:'cat-fuel', toll:'cat-toll', parking:'cat-parking', ferry:'cat-ferry', transit:'cat-transit', adblue:'cat-adblue', parts:'cat-parts', insurance:'cat-insurance', food:'cat-food', fine:'cat-fine', advance:'cat-advance', salary:'cat-salary', bank:'cat-bank', other:'cat-other' };
 
 function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function fmt(n) { return Number(n || 0).toLocaleString('ru', { maximumFractionDigits: 1 }); }
@@ -723,10 +723,10 @@ document.getElementById('btnScanReceipt')?.addEventListener('click', async () =>
   "amount": число (только цифры, без валюты),
   "currency": "EUR" или "AMD" или "USD" или "GEL" или "TRY" или "RUB",
   "date": "YYYY-MM-DD",
-  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "parts" или "insurance" или "food" или "other",
+  "category": "fuel" или "toll" или "parking" или "transit" или "adblue" или "parts" или "insurance" или "food" или "fine" или "other",
   "description": "краткое описание на русском (название места, тип расхода)"
 }
-Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, parts=запчасти/детали/ремонт/шиномонтаж/автосервис, insurance=страховка/полис/зелёная карта, food=продукты/еда/магазин/супермаркет/кафе для водителя, other=всё остальное.
+Категории: fuel=топливо/заправка, toll=платная дорога/toll, parking=парковка/стоянка, transit=транзитная карта/транзитка/разрешение на проезд, adblue=AdBlue/мочевина/DEF, parts=запчасти/детали/ремонт/шиномонтаж/автосервис, insurance=страховка/полис/зелёная карта, fine=штраф/пеня/protocol/mandat/Bußgeld, food=продукты/еда/магазин/супермаркет/кафе для водителя, other=всё остальное.
 Если не можешь определить поле — используй null.`
             }
           ]
