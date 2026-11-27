@@ -313,8 +313,8 @@
     try {
       if (!data) {
         const [main, rest] = await Promise.all([
-          fetch('/truck-parking.json?v=4').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); }),
-          fetch('/rest-areas.json?v=5').then(r => r.ok ? r.json() : null).catch(() => null)]);   // без площадок карта всё равно работает
+          fetch('/truck-parking.json?v=5').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); }),
+          fetch('/rest-areas.json?v=6').then(r => r.ok ? r.json() : null).catch(() => null)]);   // без площадок карта всё равно работает
         data = main; data.restCount = 0;
         if (rest && rest.items) { data.stops = data.stops.concat(rest.items.map(restStop)); data.restCount = rest.items.length; }
       }

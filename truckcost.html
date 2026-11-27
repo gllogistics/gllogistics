@@ -339,10 +339,11 @@ const COUNTRIES = {
   NO:{n:"Норвегия",iso:"578"},PL:{n:"Польша",iso:"616"},PT:{n:"Португалия",iso:"620"},RO:{n:"Румыния",iso:"642"},
   RS:{n:"Сербия",iso:"688"},RU:{n:"Россия",iso:"643"},SE:{n:"Швеция",iso:"752"},SI:{n:"Словения",iso:"705"},
   SK:{n:"Словакия",iso:"703"},TR:{n:"Турция",iso:"792"},UA:{n:"Украина",iso:"804"},UK:{n:"Великобритания",iso:"826"},
-  XK:{n:"Косово",iso:"-99"},LI:{n:"Лихтенштейн",iso:"438"},AD:{n:"Андорра",iso:"020"},MC:{n:"Монако",iso:"492"},SM:{n:"Сан-Марино",iso:"674"}
+  XK:{n:"Косово",iso:"-99"},LI:{n:"Лихтенштейн",iso:"438"},AD:{n:"Андорра",iso:"020"},MC:{n:"Монако",iso:"492"},SM:{n:"Сан-Марино",iso:"674"},
+  KZ:{n:"Казахстан",iso:"398"},GE:{n:"Грузия",iso:"268"},AM:{n:"Армения",iso:"051"},AZ:{n:"Азербайджан",iso:"031"}
 };
 const EU = new Set("AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE".split(" "));
-const SELECTABLE = "AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FR GR HR HU IE IT LT LU LV MD ME MK MT NL NO PL PT RO RS RU SE SI SK TR UA UK".split(" ");
+const SELECTABLE = "AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FR GR HR HU IE IT LT LU LV MD ME MK MT NL NO PL PT RO RS RU SE SI SK TR UA UK KZ GE AM AZ".split(" ");
 
 const PALETTE = ["#146C72","#e11d48","#16a34a","#d97706","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#4f46e5","#0d9488","#9333ea"];
 const STOP_COLORS = ["#16a34a","#146C72","#7c3aed","#0891b2","#d97706","#db2777","#4f46e5","#0d9488","#ea580c","#111827"];
@@ -395,8 +396,10 @@ const DEFAULT_TOLLS={
   IE:{sys:"Toll roads",type:"concession",mw:.10,light:1,src:"оценка"},
   NO:{sys:"Bompenger",type:"concession",mw:.20,light:1,src:"оценка"},
   BG:{sys:"TOLL (BG Toll)",type:"network",mwRe:"^A ?\\d",natRe:"^(I-)?\\d$",mw:.10,nat:.08,src:"оценка"},
-  BY:{sys:"BelToll",type:"network",mwRe:"^[MМ] ?-?\\d",mw:.15,src:"оценка"},
-  RU:{sys:"Платон",type:"network",mwRe:"^[MМ] ?-?\\d",natRe:"^[PРAА] ?-?\\d",mw:.035,nat:.035,src:"оценка"},
+  BY:{sys:"BelToll",type:"network",mwRe:"^[MМ] ?-?\\d",mw:.182,src:"BelToll 0,182 €/км (4+ оси), с 01.09.2026"},
+  RU:{sys:"Платон",type:"network",mwRe:"^[MМ] ?-?\\d",natRe:"^[PРAА] ?-?\\d",mw:.0575,nat:.0575,src:"Платон 5,19 ₽/км с 01.03.2026 (≈0,058 €/км), федеральные дороги"},
+  GE:{sys:"Сбор за въезд",type:"vignette",vig:123,vigW:123,src:"сбор для иностранных грузовиков 350 ₾ за въезд (≈123 €); транзит может быть освобождён — уточняйте"},
+  KZ:{sys:"KazAvtoZhol",type:"concession",mw:0,src:"платные участки по зонам (в МРП), ставка за км для фур не опубликована — не учтено"},
   SE:{sys:"Eurovignette",type:"vignette",vig:12,vigW:37,src:"оценка"},
   LU:{sys:"Eurovignette",type:"vignette",vig:12,vigW:37,src:"оценка"},
   LV:{sys:"Виньетка",type:"vignette",vig:11,vigW:30,src:"оценка"},
@@ -424,13 +427,18 @@ function buildTolls(){
 let TOLLS=buildTolls();
 
 // Дизель: страны ЕС — EC Weekly Oil Bulletin (цена с налогами, €/л). Блок ниже переписывает update-diesel.js
-const EC_DIESEL=/*EC_DIESEL*/{"date":"2026-11-16","source":"European Commission, Weekly Oil Bulletin (prices with taxes, automotive gas oil)","prices":{"AT":2.035,"BE":2.279,"BG":1.856,"HR":1.974,"CY":1.986,"CZ":1.818,"DK":2.368,"EE":2.045,"FI":2.564,"FR":2.123,"DE":2.215,"GR":2.038,"HU":1.922,"IE":2.114,"IT":2.21,"LV":2.012,"LT":2.166,"LU":1.987,"MT":1.21,"NL":2.294,"PL":1.676,"PT":2.078,"RO":2.004,"SK":1.893,"SI":1.904,"ES":1.837,"SE":1.91}}/*END_EC_DIESEL*/;
+const EC_DIESEL=/*EC_DIESEL*/{"date":"2026-11-23","source":"European Commission, Weekly Oil Bulletin (prices with taxes, automotive gas oil)","prices":{"AT":1.986,"BE":2.207,"BG":1.82,"HR":1.945,"CY":1.963,"CZ":1.775,"DK":2.341,"EE":2.001,"FI":2.393,"FR":2.098,"DE":2.125,"GR":1.995,"HU":1.86,"IE":2.07,"IT":2.195,"LV":1.967,"LT":2.154,"LU":1.904,"MT":1.21,"NL":2.22,"PL":1.626,"PT":2.04,"RO":1.964,"SK":1.854,"SI":1.833,"ES":1.792,"SE":1.814}}/*END_EC_DIESEL*/;
 // Стандартные ставки НДС на дизель, %
 const VAT={AT:20,BE:21,BG:20,HR:25,CY:19,CZ:21,DK:25,EE:24,FI:25.5,FR:20,DE:19,GR:24,HU:27,IE:23,IT:22,LV:21,LT:21,LU:17,MT:18,NL:21,
-  PL:23,PT:23,RO:21,SK:23,SI:22,ES:21,SE:25,CH:8.1,LI:8.1,NO:25,UK:20,RS:20,BA:17,ME:21,MK:18,AL:20,TR:20,UA:20,MD:20,BY:20,RU:22,XK:18};
+  PL:23,PT:23,RO:21,SK:23,SI:22,ES:21,SE:25,CH:8.1,LI:8.1,NO:25,UK:20,RS:20,BA:17,ME:21,MK:18,AL:20,TR:20,UA:20,MD:20,BY:20,RU:22,XK:18,KZ:16,GE:18,AM:20,AZ:18};
 // Вне ЕС бюллетень цен не даёт — оценка с НДС, €/л (правится на вкладке «Цены на дизель»)
-const NON_EU_DIESEL={CH:2.45,LI:2.45,NO:2.40,UK:2.15,RS:2.10,BA:1.95,ME:2.00,MK:1.85,AL:2.25,XK:1.95,TR:1.75,UA:1.80,MD:1.65,BY:1.05,RU:0.85};
-let FUEL_DATE=EC_DIESEL.date;
+const NON_EU_DIESEL={CH:2.45,LI:2.45,NO:2.40,UK:2.15,RS:2.10,BA:1.95,ME:2.00,MK:1.85,AL:2.25,XK:1.95,UA:1.80,MD:1.65,
+  // по источникам, пересчёт в € по курсу на 27.11.2026: RU — Росстат 09.11.2026, 86,63 ₽; BY — Белнефтехим с 02.09.2026, 2,71 BYN;
+  // TR — Стамбул 20.11.2026, 88,77 ₺; KZ — Бюро нацстатистики, октябрь 2026, 351 ₸; GE — АЗС Тбилиси 27.11.2026;
+  // AM — 19.10.2026, 710 ֏ (агрегатор); AZ — Тарифный совет с 01.01.2026, 1,10 AZN
+  RU:0.960,BY:0.824,TR:1.594,KZ:0.699,GE:1.725,AM:1.796,AZ:0.590};
+const NON_EU_DATE={RU:"09.11.2026",BY:"02.09.2026",TR:"20.11.2026",KZ:"10.2026",GE:"27.11.2026",AM:"19.10.2026",AZ:"01.01.2026"};
+let FUEL_DATE=EC_DIESEL.date, FUEL_EC=EC_DIESEL;
 function buildFuel(ec=EC_DIESEL){
   const f={};
   for(const [c,p] of Object.entries(ec.prices))f[c]={p,vat:VAT[c]??20,est:false};
@@ -440,7 +448,12 @@ function buildFuel(ec=EC_DIESEL){
 let FUEL=buildFuel();
 // Если рядом с калькулятором на сервере лежит свежий diesel.json (его делает update-diesel.js) — берём цены оттуда
 fetch("diesel.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{
-  if(j&&j.prices&&j.date&&j.date>=FUEL_DATE){FUEL_DATE=j.date;FUEL=buildFuel(j);renderFuel()}}).catch(()=>{});
+  if(j&&j.prices&&j.date&&j.date>=FUEL_DATE){FUEL_DATE=j.date;FUEL_EC=j;FUEL=buildFuel(j);renderFuel()}}).catch(()=>{});
+// Цены вне ЕС (RU, BY, TR, KZ, GE, AM, AZ) обновляются ежедневно в diesel-noneu.json
+fetch("diesel-noneu.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!j.prices)return;
+  for(const [c,v] of Object.entries(j.prices))if(v&&v.p>0.2&&v.p<4){NON_EU_DIESEL[c]=v.p;if(v.date)NON_EU_DATE[c]=v.date}
+  FUEL=buildFuel(FUEL_EC);renderFuel()}).catch(()=>{});
 
 /* ================= Утилиты ================= */
 const $ = s => document.querySelector(s);
@@ -1303,7 +1316,7 @@ function renderFuel(){
   $("#fuelTable").innerHTML=`<thead><tr><th>Страна</th><th>Код</th><th>С НДС, €/л</th><th>НДС, %</th><th>Без НДС, €/л</th><th>Источник</th></tr></thead><tbody>${codes.map(c=>{const f=FUEL[c];
     return `<tr><td>${COUNTRIES[c].n}</td><td>${c}</td><td><input type="number" step="0.001" data-c="${c}" data-k="p" value="${f.p}"></td>
     <td><input type="number" step="0.5" data-c="${c}" data-k="vat" value="${f.vat}"></td><td data-nv="${c}">${fmt(f.p/(1+f.vat/100),3)}</td>
-    <td>${f.est?"≈ оценка":"EC Oil Bulletin"}</td></tr>`}).join("")}</tbody>`;
+    <td>${f.est?(NON_EU_DATE[c]?"цена на "+NON_EU_DATE[c]:"≈ оценка"):"EC Oil Bulletin"}</td></tr>`}).join("")}</tbody>`;
   $("#fuelTable").querySelectorAll("input").forEach(i=>i.onchange=()=>{const f=FUEL[i.dataset.c];f[i.dataset.k]=parseFloat(i.value)||0;
     $(`[data-nv="${i.dataset.c}"]`).textContent=fmt(f.p/(1+f.vat/100),3);
     const own=store.get("fuel2",{});own[i.dataset.c]=f;store.set("fuel2",own);toast("Сохранено")});

@@ -66,7 +66,7 @@ function unzip(buf) {
 
   // Обновляем встроенный блок в truckcost.html
   const htmlPath = path.join(dir, "truckcost.html");
-  if (fs.existsSync(htmlPath)) {
+  if (fs.existsSync(htmlPath) && !process.env.NO_HTML) {   // NO_HTML=1 — только diesel.json (для ежедневной задачи)
     const html = fs.readFileSync(htmlPath, "utf8");
     const block = `/*EC_DIESEL*/${JSON.stringify(out)}/*END_EC_DIESEL*/`;
     const next = html.replace(/\/\*EC_DIESEL\*\/[\s\S]*?\/\*END_EC_DIESEL\*\//, block);

@@ -1,5 +1,6 @@
 // GL Logistics — refresh of truck-parking sources for the «ТИР парковки» map layers.
 // usage: node tools/parking/fetch.js [de] [osm] [dkv] [travis] [lkw] [countries]   (no args = all)
+// OSM_CC=RU,BY node tools/parking/fetch.js osm   — only these countries
 // Writes raw source files into tools/parking/cache/. Each source is independent: a failure is logged and the
 // previous cache file is kept, so build-rest.js always has something to build from.
 // Bosch Secure Truck Parking has no fetcher: its list (data/bosch.txt) is read from the public map page in a browser.
@@ -31,8 +32,15 @@ async function de() {
 async function osm() {
   const SERVERS = ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass-api.de/api/interpreter'];
   const out = {};
-  for (const cc of ['TR', 'BG', 'RO', 'HU', 'SK', 'CZ', 'PL', 'SI', 'HR', 'IT', 'FR', 'ES']) {
-    const q = `[out:json][timeout:250];area["ISO3166-1"="${cc}"][admin_level=2]->.a;(nwr["amenity"="parking"]["hgv"~"^(designated|yes)$"](area.a);nwr["amenity"="parking"]["parking"="truck"](area.a);nwr["highway"~"^(rest_area|services)$"]["hgv"~"^(designated|yes)$"](area.a););out center tags;`;
+  const LIST = process.env.OSM_CC ? process.env.OSM_CC.split(',') : ['TR', 'BG', 'RO', 'HU', 'SK', 'CZ', 'PL', 'SI', 'HR', 'IT', 'FR', 'ES', 'RU', 'BY', 'KZ', 'GE', 'AM', 'AZ'];
+  // Russia is too big for one query: European part and the Urals in 6 tiles (s,w,n,e), merged by OSM id
+  const TILES = { RU: [[41, 27, 50, 45], [50, 27, 56, 45], [56, 27, 62, 45], [41, 45, 50, 62], [50, 45, 56, 62], [56, 45, 62, 62]] };
+  const all = [];
+  for (const cc of LIST) for (const t of TILES[cc] || [null]) all.push([cc, t]);
+  const parts = {};
+  for (const [cc, tile] of all) {
+    const f = tile ? `(area.a)(${tile.join(',')})` : '(area.a)';
+    const q = `[out:json][timeout:250];area["ISO3166-1"="${cc}"][admin_level=2]->.a;(nwr["amenity"="parking"]["hgv"~"^(designated|yes)$"]${f};nwr["amenity"="parking"]["parking"="truck"]${f};nwr["highway"~"^(rest_area|services)$"]["hgv"~"^(designated|yes)$"]${f};);out center tags;`;
     let ok = false;
     for (let t = 0; t < 6 && !ok; t++) {
       const s = SERVERS[t % SERVERS.length];
@@ -40,14 +48,20 @@ async function osm() {
         const r = await fetch(s, { method: 'POST', headers: { ...UA, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q), signal: AbortSignal.timeout(280000) });
         const txt = await r.text();
         if (r.ok && txt.trim().startsWith('{')) { const e = JSON.parse(txt).elements || [];
-          const old = fs.existsSync(path.join(CACHE, 'osm_' + cc + '.json')) ? JSON.parse(fs.readFileSync(path.join(CACHE, 'osm_' + cc + '.json'), 'utf8')).length : 0;
-          if (e.length === 0 && old > 0) throw new Error('empty answer, keeping old');
-          save('osm_' + cc + '.json', e); out[cc] = e.length; ok = true; break; }
+          if (parts[cc] !== null) (parts[cc] = parts[cc] || []).push(...e); ok = true; break; }
         log('osm', cc, 'HTTP', r.status);
       } catch (e) { log('osm', cc, e.message); }
       await sleep(20000);
     }
-    if (!ok) out[cc] = 'failed (old file kept)';
+    if (!ok) { out[cc] = 'failed (old file kept)'; parts[cc] = null; }
+    else if (parts[cc] !== null && all.filter(x => x[0] === cc).pop()[1] === tile) {
+      // last tile of this country: save if every tile succeeded
+      const e = [...new Map(parts[cc].map(x => [x.type + x.id, x])).values()];
+      const oldF = path.join(CACHE, 'osm_' + cc + '.json');
+      const old = fs.existsSync(oldF) ? JSON.parse(fs.readFileSync(oldF, 'utf8')).length : 0;
+      if (e.length === 0 && old > 0) out[cc] = 'empty answer, old file kept';
+      else { save('osm_' + cc + '.json', e); out[cc] = e.length; }
+    }
     await sleep(3000);
   }
   return out;

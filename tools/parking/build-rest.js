@@ -8,7 +8,8 @@ const CACHE = path.join(DIR, 'cache');
 const OUT = process.argv[2];
 const MAIN = process.argv[3];
 
-const RU = { TR: 'Турция', BG: 'Болгария', RO: 'Румыния', HU: 'Венгрия', SK: 'Словакия', CZ: 'Чехия', PL: 'Польша', SI: 'Словения', HR: 'Хорватия', IT: 'Италия', FR: 'Франция', ES: 'Испания' };
+const RU = { TR: 'Турция', BG: 'Болгария', RO: 'Румыния', HU: 'Венгрия', SK: 'Словакия', CZ: 'Чехия', PL: 'Польша', SI: 'Словения', HR: 'Хорватия', IT: 'Италия', FR: 'Франция', ES: 'Испания',
+  RU: 'Россия', BY: 'Беларусь', KZ: 'Казахстан', GE: 'Грузия', AM: 'Армения', AZ: 'Азербайджан' };
 const dist = (a, b) => { const t = Math.PI / 180, dLat = (b[0] - a[0]) * t, dLon = (b[1] - a[1]) * t;
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dLon / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
 // grid index for fast "is there already a stop within N km" checks
