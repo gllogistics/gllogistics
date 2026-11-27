@@ -149,5 +149,6 @@ for (const cc of Object.keys(RU)) {
     osmCount[cc] = (osmCount[cc] || 0) + 1;
   }
 }
-fs.writeFileSync(OUT, JSON.stringify({ updated: new Date().toISOString().slice(0, 10), items }));
+// TIR is always written in Latin letters (owner decision), also inside names coming from OSM
+fs.writeFileSync(OUT, JSON.stringify({ updated: new Date().toISOString().slice(0, 10), items }).replace(/ТИР(?![А-ЯЁа-яё])/g, "TIR"));
 console.log('DE', items.filter(x => x.c === 'Германия').length, '| OSM', JSON.stringify(osmCount), '| skipped (near existing)', skipped, '| total', items.length, '|', (fs.statSync(OUT).size / 1024).toFixed(0) + 'KB');
