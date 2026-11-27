@@ -3,10 +3,10 @@
 (function () {
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const KIND = { price: 'цена известна', none: 'платная, цена не найдена', free: 'бесплатная', rest: 'площадка на трассе (открытые данные)' };
+  const KIND = { price: 'цена известна', none: 'платная, цена не найдена', free: 'бесплатная', rest: 'площадка на трассе (открытые данные)', dkv: 'стоянка, где принимают DKV' };
   // площадки на трассах из открытых данных (/rest-areas.json): Autobahn GmbH (Германия) и OpenStreetMap
-  const REST_SRC = [['Autobahn GmbH, открытые данные', 'https://verkehr.autobahn.de/'], ['© участники OpenStreetMap (ODbL)', 'https://www.openstreetmap.org/copyright']];
-  const restStop = x => ({ name: x.n, country: x.c, where: x.w, lat: x.a, lon: x.o, kind: 'rest', spaces: x.s || 0,
+  const REST_SRC = [['Autobahn GmbH, открытые данные', 'https://verkehr.autobahn.de/'], ['© участники OpenStreetMap (ODbL)', 'https://www.openstreetmap.org/copyright'], ['DKV Maps', 'https://my.dkv-mobility.com/maps/']];
+  const restStop = x => ({ name: x.n, country: x.c, where: x.w, lat: x.a, lon: x.o, kind: x.k || 'rest', spaces: x.s || 0,
     price: x.fee === 'no' ? 'бесплатно' : x.fee === 'yes' ? 'платная (цена неизвестна)' : '', note: x.f || '',
     src: [x.u ? [REST_SRC[x.src][0], 'https://www.openstreetmap.org/' + ({ n: 'node', w: 'way', r: 'relation' }[x.u[0]]) + '/' + x.u.slice(1)] : REST_SRC[x.src]] });
   const ROUTE_KEY = 'gl_tp_route_v1';
@@ -31,8 +31,8 @@
   const fmtKm = n => Math.round(n).toLocaleString('ru') + ' км';
   const nav = s => `<a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}" target="_blank" rel="noopener">Google Maps</a> · <a href="https://waze.com/ul?ll=${s.lat},${s.lon}&navigate=yes" target="_blank" rel="noopener">Waze</a>`;
   const popup = s => `<div class="tp-pop"><b>${esc(s.name)}</b><div class="tp-sub">${esc(s.where)}</div>
-    ${s.kind === 'rest' ? `<div class="tp-sub">Площадка на трассе${s.spaces ? ' · мест для грузовиков: <b>' + s.spaces + '</b>' : ''}</div>` : ''}
-    <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? 'Оплата не указана, обычно бесплатно' : 'Цена в открытых источниках не найдена'))}</div>
+    ${s.kind === 'dkv' ? '<div class="tp-sub">Стоянка из DKV Maps</div>' : ''}${s.kind === 'rest' ? `<div class="tp-sub">Площадка на трассе${s.spaces ? ' · мест для грузовиков: <b>' + s.spaces + '</b>' : ''}</div>` : ''}
+    <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? 'Оплата не указана, обычно бесплатно' : s.kind === 'dkv' ? 'Цену смотрите в DKV Maps или на месте' : 'Цена в открытых источниках не найдена'))}</div>
     ${s.note ? `<div>${esc(s.note)}</div>` : ''}
     <div class="tp-sub">Проложить: ${nav(s)}</div>
     <div class="tp-sub">Источник: ${s.src.map(x => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])}</a>`).join(' · ')}</div></div>`;
@@ -216,7 +216,7 @@
         <i class="tp-dot ${s.kind}" title="${KIND[s.kind]}"></i>
         <div class="tp-main">${r ? `<span class="tp-km">${fmtKm(r.km)}</span>` : ''}<b>${esc(s.name)}</b><div class="tp-sub">${esc(s.where)}</div>
           ${r || d != null ? `<div class="tp-sub">${r ? (r.d < 1 ? 'у дороги' : '≈ ' + fmtKm(r.d) + ' от дороги') : ''}${r && d != null ? ' · ' : ''}${d != null ? '<b>' + fmtKm(d) + ' от ' + esc(who.from) + '</b>' : ''}</div>` : ''}</div>
-        <div class="tp-price ${s.price || s.kind === 'rest' ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? (s.spaces ? s.spaces + ' мест для грузовиков' : 'площадка на трассе') : 'цена не найдена'))}</div></div>`).join('')
+        <div class="tp-price ${s.price || s.kind === 'rest' || s.kind === 'dkv' ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? (s.spaces ? s.spaces + ' мест для грузовиков' : 'площадка на трассе') : s.kind === 'dkv' ? 'принимают DKV' : 'цена не найдена'))}</div></div>`).join('')
         + (rows.length > LIMIT ? `<div class="tp-empty">Показаны первые ${LIMIT} из ${rows.length}. На карте видны все — уточните страну, тип или поиск.</div>` : '')
       : f.mode === 'route' && !route ? '' : '<div class="tp-empty">Ничего не найдено. ' + (inRoute ? 'Увеличьте расстояние от дороги или сбросьте фильтры.' : 'Сбросьте фильтры или измените поиск.') + '</div>';
     if (!map) return;
@@ -232,7 +232,7 @@
     const counts = {}; data.stops.forEach(s => counts[s.country] = (counts[s.country] || 0) + 1);
     const c = [['all', 'Все страны', data.stops.length], ...Object.keys(counts).map(k => [k, k, counts[k]])];
     $('tpCountries').innerHTML = c.map(([v, l, n]) => `<button type="button" class="tp-chip${f.country === v ? ' on' : ''}" data-country="${esc(v)}">${esc(l)} <span>${n}</span></button>`).join('');
-    const k = [['all', 'Все'], ['price', 'С ценой'], ['none', 'Без цены'], ['free', 'Бесплатные'], ['rest', 'Площадки на трассах']];
+    const k = [['all', 'Все'], ['price', 'С ценой'], ['none', 'Без цены'], ['free', 'Бесплатные'], ['rest', 'Площадки на трассах'], ['dkv', 'Стоянки DKV']];
     $('tpKinds').innerHTML = k.map(([v, l]) => `<button type="button" class="tp-chip${f.kind === v ? ' on' : ''}" data-kind="${v}">${v === 'all' ? '' : `<i class="tp-dot ${v}"></i>`}${l}</button>`).join('');
     document.querySelectorAll('.tp-mode').forEach(b => { const on = b.dataset.mode === f.mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
     $('tpRouteBox').hidden = f.mode !== 'route';
@@ -314,7 +314,7 @@
       if (!data) {
         const [main, rest] = await Promise.all([
           fetch('/truck-parking.json?v=4').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); }),
-          fetch('/rest-areas.json?v=1').then(r => r.ok ? r.json() : null).catch(() => null)]);   // без площадок карта всё равно работает
+          fetch('/rest-areas.json?v=2').then(r => r.ok ? r.json() : null).catch(() => null)]);   // без площадок карта всё равно работает
         data = main; data.restCount = 0;
         if (rest && rest.items) { data.stops = data.stops.concat(rest.items.map(restStop)); data.restCount = rest.items.length; }
       }
@@ -327,8 +327,8 @@
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
       layer = L.layerGroup().addTo(map);
       const canvas = L.canvas({ padding: 0.5 });   // тысячи площадок рисуем на canvas, это быстро
-      markers = data.stops.map(s => s.kind === 'rest'
-        ? L.circleMarker([s.lat, s.lon], { renderer: canvas, radius: 4, color: '#fff', weight: 1, fillColor: '#4F6D8A', fillOpacity: .9 }).bindPopup(() => popup(s), { maxWidth: 300 })
+      markers = data.stops.map(s => s.kind === 'rest' || s.kind === 'dkv'
+        ? L.circleMarker([s.lat, s.lon], { renderer: canvas, radius: 4, color: '#fff', weight: 1, fillColor: s.kind === 'dkv' ? '#D4561C' : '#4F6D8A', fillOpacity: .9 }).bindPopup(() => popup(s), { maxWidth: 300 })
         : L.marker([s.lat, s.lon], { title: s.name, zIndexOffset: 500, icon: L.divIcon({ className: '', html: `<div class="tp-pin ${s.kind}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9] }) }).bindPopup(popup(s), { maxWidth: 300 }));
       truckLayer = L.layerGroup().addTo(map);
       render(true);
@@ -356,7 +356,7 @@
       <div class="tp-sub" id="tpCount">Загружаю ТИР парковки…</div>
       <div class="tp-list" id="tpList"></div>
       <div class="tp-sub" id="tpUpdated"></div>
-      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Площадки на трассах: Autobahn GmbH (открытые данные, Германия) и © участники OpenStreetMap (ODbL). Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;
+      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Площадки на трассах: Autobahn GmbH (открытые данные, Германия) и © участники OpenStreetMap (ODbL). Стоянки DKV: DKV Maps. Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;
     const st = document.createElement('style');
     st.textContent = `
       #tpCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -380,7 +380,7 @@
       #tpMap { height: 520px; border: 1px solid #E4E7EA; border-radius: 8px; }
       .tp-sub { font-size: 12.5px; color: #5B6670; }
       .tp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
-      .tp-dot.price, .tp-pin.price { background: #C27A00; } .tp-dot.none, .tp-pin.none { background: #8A949C; } .tp-dot.free, .tp-pin.free { background: #1B8A4C; } .tp-dot.rest { background: #4F6D8A; width: 8px; height: 8px; }
+      .tp-dot.price, .tp-pin.price { background: #C27A00; } .tp-dot.none, .tp-pin.none { background: #8A949C; } .tp-dot.free, .tp-pin.free { background: #1B8A4C; } .tp-dot.rest { background: #4F6D8A; width: 8px; height: 8px; } .tp-dot.dkv { background: #D4561C; width: 8px; height: 8px; }
       .tp-pin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
       .tp-list { border: 1px solid #E4E7EA; border-radius: 8px; max-height: 560px; overflow-y: auto; } .tp-list:empty { display: none; }
       .tp-row { display: grid; grid-template-columns: 12px minmax(0,1fr) minmax(0,240px); gap: 12px; align-items: start; padding: 10px 12px; border-top: 1px solid #EEF0F2; cursor: pointer; }
