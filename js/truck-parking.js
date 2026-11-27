@@ -3,7 +3,12 @@
 (function () {
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const KIND = { price: 'цена известна', none: 'платная, цена не найдена', free: 'бесплатная' };
+  const KIND = { price: 'цена известна', none: 'платная, цена не найдена', free: 'бесплатная', rest: 'площадка на трассе (открытые данные)' };
+  // площадки на трассах из открытых данных (/rest-areas.json): Autobahn GmbH (Германия) и OpenStreetMap
+  const REST_SRC = [['Autobahn GmbH, открытые данные', 'https://verkehr.autobahn.de/'], ['© участники OpenStreetMap (ODbL)', 'https://www.openstreetmap.org/copyright']];
+  const restStop = x => ({ name: x.n, country: x.c, where: x.w, lat: x.a, lon: x.o, kind: 'rest', spaces: x.s || 0,
+    price: x.fee === 'no' ? 'бесплатно' : x.fee === 'yes' ? 'платная (цена неизвестна)' : '', note: x.f || '',
+    src: [x.u ? [REST_SRC[x.src][0], 'https://www.openstreetmap.org/' + ({ n: 'node', w: 'way', r: 'relation' }[x.u[0]]) + '/' + x.u.slice(1)] : REST_SRC[x.src]] });
   const ROUTE_KEY = 'gl_tp_route_v1';
   let data = null, map = null, layer = null, markers = [], me = null, meMarker = null;
   let who = { to: 'вам', from: 'вас' };   // от кого считаем расстояние: от вас или от машины
@@ -26,7 +31,8 @@
   const fmtKm = n => Math.round(n).toLocaleString('ru') + ' км';
   const nav = s => `<a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}" target="_blank" rel="noopener">Google Maps</a> · <a href="https://waze.com/ul?ll=${s.lat},${s.lon}&navigate=yes" target="_blank" rel="noopener">Waze</a>`;
   const popup = s => `<div class="tp-pop"><b>${esc(s.name)}</b><div class="tp-sub">${esc(s.where)}</div>
-    <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || 'Цена в открытых источниках не найдена')}</div>
+    ${s.kind === 'rest' ? `<div class="tp-sub">Площадка на трассе${s.spaces ? ' · мест для грузовиков: <b>' + s.spaces + '</b>' : ''}</div>` : ''}
+    <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? 'Оплата не указана, обычно бесплатно' : 'Цена в открытых источниках не найдена'))}</div>
     ${s.note ? `<div>${esc(s.note)}</div>` : ''}
     <div class="tp-sub">Проложить: ${nav(s)}</div>
     <div class="tp-sub">Источник: ${s.src.map(x => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])}</a>`).join(' · ')}</div></div>`;
@@ -42,10 +48,17 @@
   // для каждой стоянки: расстояние до линии маршрута и на каком км от старта она стоит
   function measure(line) {
     const cum = [0]; for (let i = 1; i < line.length; i++) cum.push(cum[i - 1] + dist(line[i - 1], line[i]));
+    // грубый отбор: стоянки дальше ~70 км от маршрута сразу отбрасываем (иначе тысячи площадок × десятки тысяч точек пути)
+    const step = Math.max(1, Math.floor(line.length / 1500)), coarse = line.filter((_, i) => i % step === 0);
+    let la0 = 90, la1 = -90, lo0 = 180, lo1 = -180; line.forEach(([a, o]) => { la0 = Math.min(la0, a); la1 = Math.max(la1, a); lo0 = Math.min(lo0, o); lo1 = Math.max(lo1, o); });
     return data.stops.map(s => {
+      if (s.lat < la0 - 0.7 || s.lat > la1 + 0.7 || s.lon < lo0 - 1 || s.lon > lo1 + 1) return { d: Infinity, km: 0 };
       const p = [s.lat, s.lon], kx = 111.32 * Math.cos(s.lat * Math.PI / 180), ky = 110.57;
+      let near = Infinity, ni = 0; coarse.forEach((q, k) => { const d = Math.hypot((q[1] - p[1]) * kx, (q[0] - p[0]) * ky); if (d < near) { near = d; ni = k * step; } });
+      if (near > 70) return { d: near, km: 0 };
       let best = Infinity, at = 0;
-      for (let i = 1; i < line.length; i++) {
+      const from = Math.max(1, ni - step * 3), to = Math.min(line.length, ni + step * 3 + 1);
+      for (let i = from; i < to; i++) {
         const a = line[i - 1], b = line[i];
         const ax = (a[1] - p[1]) * kx, ay = (a[0] - p[0]) * ky, bx = (b[1] - p[1]) * kx, by = (b[0] - p[0]) * ky;
         const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
@@ -198,11 +211,13 @@
     $('tpCount').textContent = f.mode === 'route' && !route ? 'Напишите маршрут и нажмите «Построить» — покажу парковки вдоль него.'
       : list.length + (inRoute ? ' вдоль маршрута (до ' + f.corridor + ' км от дороги), по порядку от старта' : ' из ' + data.stops.length + (me ? ' · ближайшие к ' + who.to + ' сверху' : ''));
     const rows = f.mode === 'route' && !route ? [] : list;
-    $('tpList').innerHTML = rows.length ? rows.map(({ s, i, d, r }) => `<div class="tp-row" data-i="${i}" tabindex="0">
+    const LIMIT = 300;   // в списке не больше 300 строк, на карте — все
+    $('tpList').innerHTML = rows.length ? rows.slice(0, LIMIT).map(({ s, i, d, r }) => `<div class="tp-row" data-i="${i}" tabindex="0">
         <i class="tp-dot ${s.kind}" title="${KIND[s.kind]}"></i>
         <div class="tp-main">${r ? `<span class="tp-km">${fmtKm(r.km)}</span>` : ''}<b>${esc(s.name)}</b><div class="tp-sub">${esc(s.where)}</div>
           ${r || d != null ? `<div class="tp-sub">${r ? (r.d < 1 ? 'у дороги' : '≈ ' + fmtKm(r.d) + ' от дороги') : ''}${r && d != null ? ' · ' : ''}${d != null ? '<b>' + fmtKm(d) + ' от ' + esc(who.from) + '</b>' : ''}</div>` : ''}</div>
-        <div class="tp-price ${s.price ? '' : 'none'}">${esc(s.price || 'цена не найдена')}</div></div>`).join('')
+        <div class="tp-price ${s.price || s.kind === 'rest' ? '' : 'none'}">${esc(s.price || (s.kind === 'rest' ? (s.spaces ? s.spaces + ' мест для грузовиков' : 'площадка на трассе') : 'цена не найдена'))}</div></div>`).join('')
+        + (rows.length > LIMIT ? `<div class="tp-empty">Показаны первые ${LIMIT} из ${rows.length}. На карте видны все — уточните страну, тип или поиск.</div>` : '')
       : f.mode === 'route' && !route ? '' : '<div class="tp-empty">Ничего не найдено. ' + (inRoute ? 'Увеличьте расстояние от дороги или сбросьте фильтры.' : 'Сбросьте фильтры или измените поиск.') + '</div>';
     if (!map) return;
     layer.clearLayers();
@@ -217,7 +232,7 @@
     const counts = {}; data.stops.forEach(s => counts[s.country] = (counts[s.country] || 0) + 1);
     const c = [['all', 'Все страны', data.stops.length], ...Object.keys(counts).map(k => [k, k, counts[k]])];
     $('tpCountries').innerHTML = c.map(([v, l, n]) => `<button type="button" class="tp-chip${f.country === v ? ' on' : ''}" data-country="${esc(v)}">${esc(l)} <span>${n}</span></button>`).join('');
-    const k = [['all', 'Все'], ['price', 'С ценой'], ['none', 'Без цены'], ['free', 'Бесплатные']];
+    const k = [['all', 'Все'], ['price', 'С ценой'], ['none', 'Без цены'], ['free', 'Бесплатные'], ['rest', 'Площадки на трассах']];
     $('tpKinds').innerHTML = k.map(([v, l]) => `<button type="button" class="tp-chip${f.kind === v ? ' on' : ''}" data-kind="${v}">${v === 'all' ? '' : `<i class="tp-dot ${v}"></i>`}${l}</button>`).join('');
     document.querySelectorAll('.tp-mode').forEach(b => { const on = b.dataset.mode === f.mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
     $('tpRouteBox').hidden = f.mode !== 'route';
@@ -296,7 +311,13 @@
 
   async function show() {
     try {
-      if (!data) data = await fetch('/truck-parking.json?v=4').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); });
+      if (!data) {
+        const [main, rest] = await Promise.all([
+          fetch('/truck-parking.json?v=4').then(r => { if (!r.ok) throw new Error('нет данных'); return r.json(); }),
+          fetch('/rest-areas.json?v=1').then(r => r.ok ? r.json() : null).catch(() => null)]);   // без площадок карта всё равно работает
+        data = main; data.restCount = 0;
+        if (rest && rest.items) { data.stops = data.stops.concat(rest.items.map(restStop)); data.restCount = rest.items.length; }
+      }
       await loadLeaflet();
     } catch (e) { $('tpCount').textContent = 'Не удалось загрузить ТИР парковки: ' + e.message; return; }
     if (!map) {
@@ -305,7 +326,10 @@
       map = L.map('tpMap', { scrollWheelZoom: true }).setView([46, 25], 5);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
       layer = L.layerGroup().addTo(map);
-      markers = data.stops.map(s => L.marker([s.lat, s.lon], { title: s.name, icon: L.divIcon({ className: '', html: `<div class="tp-pin ${s.kind}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9] }) }).bindPopup(popup(s), { maxWidth: 300 }));
+      const canvas = L.canvas({ padding: 0.5 });   // тысячи площадок рисуем на canvas, это быстро
+      markers = data.stops.map(s => s.kind === 'rest'
+        ? L.circleMarker([s.lat, s.lon], { renderer: canvas, radius: 4, color: '#fff', weight: 1, fillColor: '#4F6D8A', fillOpacity: .9 }).bindPopup(() => popup(s), { maxWidth: 300 })
+        : L.marker([s.lat, s.lon], { title: s.name, zIndexOffset: 500, icon: L.divIcon({ className: '', html: `<div class="tp-pin ${s.kind}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9] }) }).bindPopup(popup(s), { maxWidth: 300 }));
       truckLayer = L.layerGroup().addTo(map);
       render(true);
     } else setTimeout(() => map.invalidateSize(), 50);
@@ -332,7 +356,7 @@
       <div class="tp-sub" id="tpCount">Загружаю ТИР парковки…</div>
       <div class="tp-list" id="tpList"></div>
       <div class="tp-sub" id="tpUpdated"></div>
-      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;
+      <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Площадки на трассах: Autobahn GmbH (открытые данные, Германия) и © участники OpenStreetMap (ODbL). Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;
     const st = document.createElement('style');
     st.textContent = `
       #tpCard { background: #fff; border: 1px solid #E4E7EA; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -356,7 +380,7 @@
       #tpMap { height: 520px; border: 1px solid #E4E7EA; border-radius: 8px; }
       .tp-sub { font-size: 12.5px; color: #5B6670; }
       .tp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
-      .tp-dot.price, .tp-pin.price { background: #C27A00; } .tp-dot.none, .tp-pin.none { background: #8A949C; } .tp-dot.free, .tp-pin.free { background: #1B8A4C; }
+      .tp-dot.price, .tp-pin.price { background: #C27A00; } .tp-dot.none, .tp-pin.none { background: #8A949C; } .tp-dot.free, .tp-pin.free { background: #1B8A4C; } .tp-dot.rest { background: #4F6D8A; width: 8px; height: 8px; }
       .tp-pin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
       .tp-list { border: 1px solid #E4E7EA; border-radius: 8px; max-height: 560px; overflow-y: auto; } .tp-list:empty { display: none; }
       .tp-row { display: grid; grid-template-columns: 12px minmax(0,1fr) minmax(0,240px); gap: 12px; align-items: start; padding: 10px 12px; border-top: 1px solid #EEF0F2; cursor: pointer; }
