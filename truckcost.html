@@ -715,7 +715,7 @@ async function viaPoints(a,b){
 }
 function mergeTrips(parts){
   const shape=[],man=[];let len=0,time=0;
-  parts.forEach((t,k)=>{const l=t.legs[0],sh=decode6(l.shape),off=shape.length-(k?1:0);
+  parts.forEach((t,k)=>{const l=t.legs[0],sh=Array.isArray(l.shape)?l.shape:decode6(l.shape),off=shape.length-(k?1:0);
     shape.push(...(k?sh.slice(1):sh));
     l.maneuvers.forEach(m=>man.push(Object.assign({},m,{begin_shape_index:m.begin_shape_index+off,end_shape_index:m.end_shape_index+off})));
     len+=t.summary.length;time+=t.summary.time});
@@ -730,7 +730,7 @@ async function valhallaLeg(a,b,p,extra,alternates,exclude){
   return valhallaLeg1(a,b,p,extra,alternates,exclude);
 }
 async function valhallaLeg1(a,b,p,extra,alternates,exclude){
-  const loc=x=>Object.assign({lat:x.lat,lon:x.lon},x.heading!=null?{heading:x.heading,heading_tolerance:60}:{});
+  const loc=x=>Object.assign({lat:x.lat,lon:x.lon},x.heading!=null?{heading:x.heading,heading_tolerance:60}:{},x.radius?{radius:x.radius}:{});
   const body={locations:[loc(a),loc(b)],costing:"truck",units:"kilometers",alternates,
     ...(exclude&&exclude.length?{exclude_polygons:exclude}:{}),
     costing_options:{truck:Object.assign({},DIMS[p.truck],{axle_count:p.axles,use_tolls:1,use_highways:p.noHighway?0:1},p.noFerry?{use_ferry:0}:{},
@@ -807,6 +807,8 @@ function splitTrip(trip,p){
   for(const m of leg.maneuvers){
     const s=m.begin_shape_index,e=m.end_shape_index;if(e<=s)continue;
     const names=(m.street_names||[]).concat(m.begin_street_names||[]);
+    if(m.synthFerry){const r=row("FY");r.km+=m.length;r.h+=m.time/3600;r.ferry=m.ferry;
+      curSeg={c:"FY",pts:shape.slice(s,e+1).map(q=>[q[1],q[0]])};segs.push(curSeg);cur=null;continue}
     const ds=[];let tot=0;for(let i=s;i<e;i++){const d=hav(shape[i],shape[i+1]);ds.push(d);tot+=d}
     for(let i=s;i<e;i++){
       const a=shape[i],b=shape[i+1],f=tot?ds[i-s]/tot:1/(e-s);
@@ -830,6 +832,7 @@ function fuelPrice(c,p){const f=FUEL[c];if(!f)return 1.9;return p.vat?f.p:f.p/(1
 function costCountries(sp,p){
   const rows=sp.order.map(c=>{
     const {km,h,mw,nat}=sp.by[c],t=TOLLS[c]||{};
+    if(c==="FY")return {c,km,h,tolledKm:0,toll:0,fixed:0,vig:0,liters:0,fuel:0,co2:0,extra:0,total:0,ferry:sp.by[c].ferry};
     let toll=mw*tollRate(c,"mw",p)+nat*tollRate(c,"nat",p);
     let fixed=0;sp.fixed.filter(x=>x.cc===c).forEach(x=>fixed+=x.price[p.truck]??0);
     const vig=(t.vig&&p.truck>3.5&&km>0.5)?vigCost(t,h):0;
@@ -932,13 +935,23 @@ function addCosts(res,p){
 }
 const MODE_RU={fast:"быстрый",eco:"экономичный",short:"кратчайший",notoll:"без платных дорог"};
 const MODE_EXTRA={short:{shortest:true},notoll:{use_tolls:0,use_highways:0.5}};
+// Паромы, которых нет в картах OpenStreetMap для маршрутизатора: строим их отдельным участком.
+// Стоимость переправы не включена — тарифы операторов не публикуются, уточняется при бронировании.
+const FERRIES=[{name:"Паром Курык — Алят (Каспий)",a:"Курык (паром)",b:"Алят (паром)",km:470,h:30}];
+COUNTRIES.FY={n:"Паром (стоимость не включена)"};
+function ferryOf(A,B){return FERRIES.find(f=>(f.a===A&&f.b===B)||(f.a===B&&f.b===A))}
+function ferryTrip(x,y,f){
+  const n=24,shape=[];for(let i=0;i<=n;i++)shape.push([x.lon+(y.lon-x.lon)*i/n,x.lat+(y.lat-x.lat)*i/n]);
+  return {legs:[{shape,maneuvers:[{begin_shape_index:0,end_shape_index:n,length:f.km,time:f.h*3600,travel_type:"ferry",synthFerry:true,ferry:f.name,street_names:[f.name]}]}],
+    summary:{length:f.km,time:f.h*3600}};
+}
 // «Только страны ЕС»: запрещены европейские страны вне Евросоюза. Кавказ и Турция — подъезд к ЕС, они разрешены.
 const EU_ONLY_BAN=new Set("CH LI NO UK IS RS MK BA ME AL XK MD UA BY RU AD MC SM VA".split(" "));
 const banned=(c,p,avoid)=>avoid.has(c)||(p.euOnly&&EU_ONLY_BAN.has(c));
 // закрытые сухопутные границы — между этими странами грузовик не проедет
 const CLOSED=new Set(["AM-TR","TR-AM","AM-AZ","AZ-AM"]);
 // опорные города: Кавказ → Турция → Балканы ЕС → Центральная и Западная Европа
-const HUBS=[["Ереван",40.18,44.51],["Ванадзор",40.81,44.49],["Тбилиси",41.72,44.79],["Гори",41.98,44.11],["Кутаиси",42.27,42.70],["Батуми",41.64,41.63],["Ахалцихе",41.64,42.98],
+const HUBS=[["Алматы",43.24,76.95],["Кордай",43.04,74.71],["Шу",43.60,73.76],["Тараз",42.90,71.37],["Кульсары",46.95,54.02],["Шымкент",42.32,69.59],["Туркестан",43.30,68.25],["Кызылорда",44.85,65.51],["Аральск",46.80,61.67],["Шалкар",47.83,59.62],["Актобе",50.28,57.17],["Атырау",47.10,51.92],["Бейнеу",45.32,55.20],["Жанаозен",43.34,52.86],["Актау",43.65,51.20],["Курык (паром)",43.18,51.67],["Алят (паром)",39.95,49.41],["Шамкир",40.83,46.02],["Газах",41.09,45.37],["Красный мост",41.33,45.07],["Ереван",40.18,44.51],["Ванадзор",40.81,44.49],["Тбилиси",41.72,44.79],["Гори",41.98,44.11],["Кутаиси",42.27,42.70],["Батуми",41.64,41.63],["Ахалцихе",41.64,42.98],
   ["Баку",40.41,49.87],["Гянджа",40.68,46.36],["Ардахан",41.11,42.70],["Карс",40.60,43.10],["Артвин",41.18,41.82],["Хопа",41.40,41.43],["Трабзон",41.00,39.72],["Эрзурум",39.90,41.27],
   ["Эрзинджан",39.75,39.49],["Сивас",39.75,37.02],["Орду",40.98,37.88],["Самсун",41.29,36.33],["Мерзифон",40.87,35.46],["Чорум",40.55,34.95],["Кайсери",38.72,35.49],["Анкара",39.93,32.86],
   ["Болу",40.73,31.61],["Измит",40.77,29.92],["Стамбул",41.04,28.86],["Текирдаг",40.98,27.51],["Эдирне",41.68,26.56],["Ипсала",40.92,26.38],["Бурса",40.19,29.06],["Чанаккале",40.15,26.41],["Измир",38.42,27.14],
@@ -953,7 +966,7 @@ const HUBS=[["Ереван",40.18,44.51],["Ванадзор",40.81,44.49],["Тб
   ["Любляна",46.06,14.51],["Марибор",46.55,15.65],["Загреб",45.81,15.98],["Славонски-Брод",45.16,18.02],["Осиек",45.55,18.69],["Риека",45.33,14.44],["Сплит",43.51,16.44],["Карловац",45.49,15.55],
   ["Триест",45.65,13.78],["Венеция",45.44,12.33],["Милан",45.46,9.19],["Верона",45.44,10.99],["Больцано",46.50,11.35],["Турин",45.07,7.69],["Бари",41.12,16.87],["Анкона",43.62,13.52],["Болонья",44.49,11.34],
   ["Мюнхен",48.14,11.58],["Нюрнберг",49.45,11.08],["Дрезден",51.05,13.74],["Берлин",52.52,13.40],["Штутгарт",48.78,9.18],["Франкфурт-на-Майне",50.11,8.68],["Фрайбург",47.99,7.85],["Линдау",47.55,9.68],
-  ["Лион",45.76,4.84],["Мюлуз",47.75,7.34],["Шамбери",45.56,5.92],["Ницца",43.70,7.27],["Страсбург",48.58,7.75]];
+  ["Лион",45.76,4.84],["Мюлуз",47.75,7.34],["Шамбери",45.56,5.92],["Ницца",43.70,7.27],["Страсбург",48.58,7.75],["Монпелье",43.61,3.88],["Перпиньян",42.70,2.90],["Тулуза",43.60,1.44],["Бордо",44.84,-0.58],["Байонна",43.49,-1.47],["Нант",47.22,-1.55],["Париж",48.86,2.35],["Реймс",49.26,4.03],["Лилль",50.63,3.06],["Руан",49.44,1.10],["Дижон",47.32,5.04],["Марсель",43.30,5.37],["Барселона",41.39,2.17],["Сарагоса",41.65,-0.89],["Бильбао",43.26,-2.93],["Бургос",42.34,-3.70],["Мадрид",40.42,-3.70],["Валенсия",39.47,-0.38],["Мурсия",37.99,-1.13],["Гранада",37.18,-3.60],["Севилья",37.39,-5.98],["Мерида",38.92,-6.34],["Вальядолид",41.65,-4.72],["Лиссабон",38.72,-9.14],["Порту",41.15,-8.61],["Брюссель",50.85,4.35],["Антверпен",51.22,4.40],["Роттердам",51.92,4.48],["Амстердам",52.37,4.90],["Люксембург",49.61,6.13],["Кёльн",50.94,6.96],["Ганновер",52.37,9.73],["Гамбург",53.55,9.99],["Бремен",53.08,8.80],["Лейпциг",51.34,12.37],["Фленсбург",54.79,9.44],["Копенгаген",55.68,12.57],["Мальмё",55.60,13.00],["Гётеборг",57.71,11.97],["Стокгольм",59.33,18.07],["Таллин",59.44,24.75],["Неаполь",40.85,14.27],["Рим",41.90,12.50],["Флоренция",43.77,11.25],["Генуя",44.41,8.93]];
 // можно ли ехать по прямой между двумя городами: не через запрещённую страну, не через закрытую границу, не по морю дольше 40 км
 function hubEdgeOk(A,B,bad){
   const L=hav(A,B),n=Math.max(2,Math.ceil(L/10));let prev=null,sea=0,hint=null;
@@ -963,25 +976,53 @@ function hubEdgeOk(A,B,bad){
   return true;
 }
 // кратчайшая цепочка опорных городов между точками a и b (перегоны до 500 км)
-function hubChain(a,b,bad){
+function hubChain(a,b,bad,noFerry,maxEdge){
+  maxEdge=maxEdge||500;
   const A=[a.lon,a.lat],B=[b.lon,b.lat];
-  if(hav(A,B)<=500&&hubEdgeOk(A,B,bad))return [];
+  if(hav(A,B)<=maxEdge&&hubEdgeOk(A,B,bad))return [];
   const nodes=[A,...HUBS.map(h=>[h[2],h[1]]),B],N=nodes.length,d=Array(N).fill(Infinity),prev=Array(N).fill(-1),done=Array(N).fill(false),memo={};
   d[0]=0;
   for(;;){let u=-1;for(let i=0;i<N;i++)if(!done[i]&&d[i]<Infinity&&(u<0||d[i]<d[u]))u=i;
     if(u<0||u===N-1)break;done[u]=true;
-    for(let v=0;v<N;v++){if(done[v])continue;const L=hav(nodes[u],nodes[v]);if(L>500||d[u]+L>=d[v])continue;
-      const k=Math.min(u,v)+"-"+Math.max(u,v);if(memo[k]===undefined)memo[k]=hubEdgeOk(nodes[u],nodes[v],bad);
+    for(let v=0;v<N;v++){if(done[v])continue;
+      const fe=!noFerry&&u>0&&v>0&&u<N-1&&v<N-1&&ferryOf(HUBS[u-1][0],HUBS[v-1][0]);
+      const L=fe?fe.km:hav(nodes[u],nodes[v]);if((!fe&&L>maxEdge)||d[u]+L>=d[v])continue;
+      const k=Math.min(u,v)+"-"+Math.max(u,v);if(memo[k]===undefined)memo[k]=fe?true:hubEdgeOk(nodes[u],nodes[v],bad);
       if(memo[k]){d[v]=d[u]+L;prev[v]=u}}}
   if(d[N-1]===Infinity)return null;
-  const path=[];for(let v=prev[N-1];v>0;v=prev[v])path.unshift({lat:HUBS[v-1][1],lon:HUBS[v-1][2],name:HUBS[v-1][0]});
+  const path=[];for(let v=prev[N-1];v>0;v=prev[v])path.unshift({lat:HUBS[v-1][1],lon:HUBS[v-1][2],name:HUBS[v-1][0],radius:3000});
   return path.filter(h=>hav([h.lon,h.lat],A)>15&&hav([h.lon,h.lat],B)>15);
 }
 // маршрут плеча через цепочку городов: по кусочкам, затем склейка
-async function chainLeg(a,b,chain,p,extra,exclude){
-  const pts=[a,...chain,b],parts=[];
+function pieceProblems(trip,p,bad,ends){
+  const sp=splitTrip(trip,p),out=[];let prev=null;
+  for(const g of sp.segs){
+    if(g.c!=="??"&&g.c!=="FY"&&bad.has(g.c)&&!ends.has(g.c))out.push(g);
+    else if(prev&&prev!=="??"&&g.c!=="??"&&prev!==g.c&&CLOSED.has(prev+"-"+g.c))out.push(g);
+    if(g.c!=="??")prev=g.c}
+  return out;
+}
+async function chainLeg(a,b,chain,p,extra,exclude,bad){
+  const pts=[a,...chain,b],parts=[];bad=bad||new Set();
   for(let i=0;i<pts.length-1;i++){$("#mapStatus").textContent=`Строим через ${chain.map(h=>h.name).join(" → ")}: ${i+1} из ${pts.length-1}…`;
-    parts.push((await valhallaLeg(pts[i],pts[i+1],p,extra,0,exclude))[0])}
+    const fe=pts[i].name&&pts[i+1].name&&ferryOf(pts[i].name,pts[i+1].name);
+    if(fe){parts.push(ferryTrip(pts[i],pts[i+1],fe));continue}
+    const ends=new Set([countryOf([pts[i].lon,pts[i].lat])?.a2,countryOf([pts[i+1].lon,pts[i+1].lat])?.a2]);
+    const blocks=(exclude||[]).slice();let trip=null;
+    for(let k=0;k<5;k++){
+      trip=(await valhallaLeg(pts[i],pts[i+1],p,extra,0,blocks.length?blocks:undefined))[0];
+      let pr=pieceProblems(trip,p,bad,ends);if(!pr.length)break;
+      // first remedy: split this piece through nearer towns (short hops keep the road close to the straight line)
+      if(k===0&&!pts[i].sub){const sub=hubChain(pts[i],pts[i+1],bad,p.noFerry,180);
+        if(sub&&sub.length){const sp=[pts[i],...sub.map(h=>Object.assign(h,{sub:true})),pts[i+1]],ps=[];
+          for(let j=0;j<sp.length-1;j++)ps.push((await valhallaLeg(sp[j],sp[j+1],p,extra,0,blocks.length?blocks:undefined))[0]);
+          const t2=mergeTrips(ps);if(!pieceProblems(t2,p,bad,ends).length){trip=t2;pr=[];break}}}
+      if(blocks.length>=16)break;
+      for(const g of pr){const [lat,lon]=g.pts[0],dl=75/111320,dn=75/(111320*Math.cos(lat*Math.PI/180));
+        if(blocks.length<16)blocks.push([[lon-dn,lat-dl],[lon+dn,lat-dl],[lon+dn,lat+dl],[lon-dn,lat+dl],[lon-dn,lat-dl]])}
+      $("#mapStatus").textContent=`Кусок ${i+1} из ${pts.length-1}: обходим ${pr.map(g=>COUNTRIES[g.c]?.n||g.c).join(", ")}…`;
+    }
+    parts.push(trip)}
   return [mergeTrips(parts)];
 }
 async function computeRoute(points,mode,p){
@@ -989,11 +1030,11 @@ async function computeRoute(points,mode,p){
   for(let i=0;i<points.length-1;i++){
     const a=points[i],b=points[i+1];
     // обход запрещённых стран: цепочка опорных городов (например, Ереван → Тбилиси → Турция → Болгария → Румыния → Венгрия → Польша)
-    let chain=[];
+    let chain=[],badSet=new Set();
     if(filtered){const ft=new Set([countryOf([a.lon,a.lat])?.a2,countryOf([b.lon,b.lat])?.a2]);
-      const bad=new Set([...avoid,...(p.euOnly?EU_ONLY_BAN:[])].filter(c=>!ft.has(c)));
-      chain=hubChain(a,b,bad)||[]}
-    let trips=chain.length?await chainLeg(a,b,chain,p,MODE_EXTRA[mode]||{}):await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},2);
+      badSet=new Set([...avoid,...(p.euOnly?EU_ONLY_BAN:[])].filter(c=>!ft.has(c)));
+      chain=hubChain(a,b,badSet,p.noFerry)||[]}
+    let trips=chain.length?await chainLeg(a,b,chain,p,MODE_EXTRA[mode]||{},undefined,badSet):await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},2);
     if(chain.length){try{trips=trips.concat(await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},0))}catch(e){}}
     // экономичный режим и обход стран: дополнительно варианты с избеганием платных дорог и кратчайший
     // маршрутизатор не знает о сборах вроде швейцарской LSVA (все дороги) — сравниваем и с обычными вариантами
@@ -1010,7 +1051,7 @@ async function computeRoute(points,mode,p){
       // объезд: закрываем пограничные переходы в запрещённые страны маленькими зонами и строим заново
       // (сервер допускает зоны общим периметром до 10 км — квадрат 150×150 м у самого перехода, до 16 переходов)
       const blocks=[],seen=new Set();
-      for(let k=0;!ok.length&&k<6;k++){
+      for(let k=0;!ok.length&&!chain.length&&k<6;k++){
         let added=0;
         for(const c of cands)c.sp.segs.forEach(s=>{if(fromTo.has(s.c)||!banned(s.c,p,avoid))return;
           const [lat,lon]=s.pts[0],key=lat.toFixed(3)+","+lon.toFixed(3);
@@ -1019,7 +1060,7 @@ async function computeRoute(points,mode,p){
           blocks.push([[lon-dn,lat-dl],[lon+dn,lat-dl],[lon+dn,lat+dl],[lon-dn,lat+dl],[lon-dn,lat-dl]])});
         if(!added)break;
         $("#mapStatus").textContent=`Ищем объезд: закрыто переходов ${blocks.length}…`;
-        try{cands=(chain.length?await chainLeg(a,b,chain,p,MODE_EXTRA[mode]||{},blocks):await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},1,blocks)).map(r=>{const sp=splitTrip(r,p);const rows=costCountries(sp,p);
+        try{cands=(chain.length?await chainLeg(a,b,chain,p,MODE_EXTRA[mode]||{},blocks,badSet):await valhallaLeg(a,b,p,MODE_EXTRA[mode]||{},1,blocks)).map(r=>{const sp=splitTrip(r,p);const rows=costCountries(sp,p);
           return {sp,rows,sum:sumRows(rows),bad:sp.order.filter(c=>c!=="??"&&banned(c,p,avoid))}})}catch(e){break}
         ok=cands.filter(isOk);
       }
