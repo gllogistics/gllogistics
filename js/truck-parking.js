@@ -1,4 +1,4 @@
-// GL Logistics — «ТИР парковки»: платные и бесплатные стоянки с ценами на карте OpenStreetMap (данные: /truck-parking.json)
+// GL Logistics — «TIR парковки»: платные и бесплатные стоянки с ценами на карте OpenStreetMap (данные: /truck-parking.json)
 // Режимы: «Все парковки» и «По моему маршруту» — пользователь пишет города, путь строится через OSRM, парковки вдоль него сортируются по км.
 (function () {
   const $ = id => document.getElementById(id);
@@ -319,7 +319,7 @@
         if (rest && rest.items) { data.stops = data.stops.concat(rest.items.map(restStop)); data.restCount = rest.items.length; }
       }
       await loadLeaflet();
-    } catch (e) { $('tpCount').textContent = 'Не удалось загрузить ТИР парковки: ' + e.message; return; }
+    } catch (e) { $('tpCount').textContent = 'Не удалось загрузить TIR парковки: ' + e.message; return; }
     if (!map) {
       chips();
       $('tpUpdated').textContent = 'Данные собраны ' + new Date(data.updated).toLocaleDateString('ru') + '. Часть цен взята из отзывов водителей и могла измениться: у каждой цены указана дата.';
@@ -338,7 +338,7 @@
 
   function init() {
     const mount = $('tpMount'); if (!mount) return;
-    mount.innerHTML = `<section id="tpCard" aria-label="ТИР парковки">
+    mount.innerHTML = `<section id="tpCard" aria-label="TIR парковки">
       <div class="tp-modes" role="tablist"><button type="button" class="tp-mode on" data-mode="all" role="tab">Все парковки</button><button type="button" class="tp-mode" data-mode="route" role="tab">По моему маршруту</button></div>
       <div id="tpRouteBox" class="tp-route" hidden>
         <div id="tpPts"></div>
@@ -349,11 +349,11 @@
         <div class="tp-sub" id="tpRouteMsg">Напишите города, например: Ереван → Тбилиси → Стамбул → Варшава.</div></div>
       <div class="tp-bar"><div class="tp-chips" id="tpCountries"></div></div>
       <div class="tp-bar"><div class="tp-chips" id="tpKinds"></div>
-        <input type="search" id="tpSearch" class="tp-search" placeholder="Поиск: город, трасса, название" aria-label="Поиск ТИР парковки">
+        <input type="search" id="tpSearch" class="tp-search" placeholder="Поиск: город, трасса, название" aria-label="Поиск TIR парковки">
         <button type="button" class="tp-btn" id="tpNear">Ближайшие ко мне</button></div>
       <div class="tp-trucks" id="tpTrucks"><span class="tp-sub">Мои машины: загружаю…</span></div>
       <div id="tpMap"></div>
-      <div class="tp-sub" id="tpCount">Загружаю ТИР парковки…</div>
+      <div class="tp-sub" id="tpCount">Загружаю TIR парковки…</div>
       <div class="tp-list" id="tpList"></div>
       <div class="tp-sub" id="tpUpdated"></div>
       <div class="tp-sub">Карта и поиск городов: © участники OpenStreetMap. Площадки на трассах: Autobahn GmbH (открытые данные, Германия) и © участники OpenStreetMap (ODbL). Стоянки DKV: DKV Maps. Безопасные стоянки: список LKW WALTER для перевозчиков. Стоянки TRAVIS: карта yourtravis.com. Охраняемые стоянки Bosch: портал Bosch Secure Truck Parking. Путь строится автоматически для грузовика (Valhalla, при сбое — OSRM для легковой), это не замена грузовому навигатору: ограничения по весу и высоте проверяйте отдельно.</div></section>`;

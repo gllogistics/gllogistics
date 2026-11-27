@@ -1102,7 +1102,7 @@ function refuelTip(res,p){
   if(save<5)return "";
   return `<div class="sub tip">⛽ Дешевле всего дизель на маршруте в стране <b>${esc(COUNTRIES[cheap.c]?.n||cheap.c)}</b> — ${fmt(pr(cheap),3)} €/л${p.vat?"":" без НДС"}, дороже всего — ${esc(COUNTRIES[dear.c]?.n||dear.c)}, ${fmt(pr(dear),3)} €/л. Если заправить там ${fmt(vol)} л, экономия около <b>${eur(save)}</b> против средней цены по маршруту.</div>`;
 }
-/* Стоянки из базы GL (вкладка «ТИР парковки»): охраняемые и с ценами — в приоритете перед OpenStreetMap */
+/* Стоянки из базы GL (вкладка «TIR парковки»): охраняемые и с ценами — в приоритете перед OpenStreetMap */
 let GLPK=null;
 async function loadGlParkings(){
   if(GLPK)return GLPK;

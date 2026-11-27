@@ -1,4 +1,4 @@
-// GL Logistics — refresh of truck-parking sources for the «ТИР парковки» map layers.
+// GL Logistics — refresh of truck-parking sources for the «TIR парковки» map layers.
 // usage: node tools/parking/fetch.js [de] [osm] [dkv] [travis] [lkw] [countries]   (no args = all)
 // OSM_CC=RU,BY node tools/parking/fetch.js osm   — only these countries
 // Writes raw source files into tools/parking/cache/. Each source is independent: a failure is logged and the
