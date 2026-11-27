@@ -38,6 +38,9 @@ async function doLogin() {
         body: JSON.stringify({ username, status: 'ok' })
       }).catch(() => {});
 
+      // вход по ссылке (например, на расчёт в калькуляторе) — возвращаемся туда
+      let back = null; try { back = sessionStorage.getItem('gl_after_login'); sessionStorage.removeItem('gl_after_login'); } catch (e) {}
+      if (back && back.indexOf(location.origin + '/') === 0 && back.indexOf('/staff.html') === -1) { window.location.href = back; return; }
       if (username === 'TigranMetspagyan') {
         window.location.href = 'staff-dashboard.html';
       } else {

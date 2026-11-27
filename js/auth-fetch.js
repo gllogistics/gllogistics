@@ -4,7 +4,10 @@
   const origFetch = window.fetch.bind(window);
   function toLogin() {
     ['gl_staff_user', 'gl_staff_login_time', 'gl_staff_token', 'gl_staff_last_active'].forEach(k => localStorage.removeItem(k));
-    if (location.pathname.indexOf('staff.html') === -1) location.replace('/staff.html');
+    if (location.pathname.indexOf('staff.html') === -1) {
+      try { sessionStorage.setItem('gl_after_login', location.href); } catch (e) {}   // после входа вернём на эту же ссылку
+      location.replace('/staff.html');
+    }
   }
   window.fetch = function (input, init) {
     const url = typeof input === 'string' ? input : (input && input.url) || '';

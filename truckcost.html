@@ -132,7 +132,13 @@ details summary{cursor:pointer;color:var(--accent);margin-top:10px}
 .pin span{transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px}
 @media print{header,.noprint,#map{display:none!important}.grid{display:block}}
 </style>
-<script>if (window.self !== window.top || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<script>
+// Калькулятор живёт во вкладке «Маршруты → Калькулятор». Открытый напрямую — переходим туда, сохраняя расчёт из ссылки.
+if (window.self === window.top && !/[?&]embed=1/.test(location.search) && !/^file:/.test(location.protocol)) {
+  const q = (location.search + location.hash); location.replace('/routes.html#calc' + (q ? ':' + encodeURIComponent(q) : ''));
+}
+if (window.self !== window.top || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');
+</script>
 <style>
 /* во вкладке «Маршруты» — цвета и формы сайта GL Logistics, всегда светлая тема */
 html.embed { --bg:#F6F7F8 !important; --panel:#fff !important; --text:#14202B !important; --muted:#5B6670 !important; --line:#E4E7EA !important; --soft:#F6F7F8 !important;
@@ -1210,7 +1216,7 @@ function renderResult(){
   box.querySelectorAll("[data-pick]").forEach(el=>el.onclick=()=>{lastResult=lastCompare[el.dataset.pick];lastResult.p=lastCompare.p;renderResult()});
   $("#csvBtn").onclick=()=>download("marshrut.csv",resultCsv(res));
   $("#copyBtn").onclick=()=>{navigator.clipboard.writeText(resultText(res)).then(()=>toast("Скопировано"),()=>toast("Не удалось скопировать"))};
-  $("#shareBtn").onclick=()=>{saveHash();navigator.clipboard.writeText(location.href).then(()=>toast("Ссылка скопирована"),()=>toast(location.href))};
+  $("#shareBtn").onclick=()=>{saveHash();const u=location.origin+"/routes.html#calc:"+encodeURIComponent(location.hash);navigator.clipboard.writeText(u).then(()=>toast("Ссылка скопирована"),()=>toast(u))};
   drawStops(sc);
 }
 /* Прибыль по ставке заказчика (как «доход с перевозки» у Lardi): фрахт − себестоимость, рентабельность, ставка за км */
