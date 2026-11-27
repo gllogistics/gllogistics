@@ -222,10 +222,21 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
             <label>Выезд<input type="datetime-local" id="depart"></label>
             <label>Водитель уже за рулём сегодня, мин<input type="number" id="drivenBefore" step="15" min="0" max="540" value="0"></label>
             <label>Экипаж<select id="crew"><option value="1">1 водитель</option><option value="2">2 водителя (сменный экипаж)</option></select></label>
+            <label>Режим отдыха<select id="restMode"><option value="opt">По максимуму правил: 9 ч отдыха до 3 раз, 10 ч за рулём 2 раза в неделю</option><option value="std">Стандартный: отдых 11 ч, 9 ч за рулём</option></select></label>
           </div>
+          <details style="margin-top:8px"><summary class="sub">Что было у водителя до выезда (для точного графика)</summary>
+          <div class="opts" style="margin-top:6px">
+            <label>За рулём на этой неделе, ч<input type="number" id="weekDriven" step="0.5" min="0" max="56" value="0"></label>
+            <label>За рулём на прошлой неделе, ч<input type="number" id="lastWeekDriven" step="0.5" min="0" max="56" value="0"></label>
+            <label>Сокращённых отдыхов 9 ч уже было<select id="reducedUsed"><option>0</option><option>1</option><option>2</option><option>3</option></select></label>
+            <label>Дней с 10 ч на этой неделе уже было<select id="extUsed"><option>0</option><option>1</option><option>2</option></select></label>
+            <label>Еженедельный отдых закончился<input type="datetime-local" id="weeklyEnd"></label>
+            <label>Прошлый еженедельный был<select id="lastWeeklyReduced"><option value="0">обычный 45 ч</option><option value="1">сокращённый 24 ч</option></select></label>
+          </div></details>
           <label class="switch" style="margin-top:8px"><input type="checkbox" id="bans" checked>
             <div>Запреты движения в выходные и праздники<small>Грузовик стоит, пока действует запрет в стране, где он находится (DE, AT, FR, IT, CH, CZ, SK, HU, SI, PL).</small></div></label>
-          <div class="sub" style="margin-top:6px">Время на погрузку и выгрузку указывается у каждой точки. Перерывы и отдых — по правилам ЕС 561/2006: 45 мин после 4,5 ч за рулём, 11 ч после 9 ч в сутки.</div>
+          <div class="sub" style="margin-top:6px">Время на погрузку и выгрузку указывается у каждой точки. Перерывы и отдых — по правилам ЕС 561/2006 (с пакетом мобильности 2020/1054) и ЕСТР/AETR: 45 мин после 4,5 ч за рулём, ежедневный отдых 11 ч (до 3 раз — 9 ч), до 10 ч за рулём дважды в неделю, еженедельный отдых 45 ч или 24 ч, 56 ч в неделю и 90 ч за две недели.</div>
+          <details style="margin-top:6px"><summary class="sub">Все правила тахографа</summary><div id="tachoRules" class="sub"></div></details>
         </details>
 
         <div class="opts">
@@ -327,6 +338,7 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="js/tacho.js?v=1"></script>
 <script>
 "use strict";
 /* ================= Справочники ================= */
@@ -763,11 +775,14 @@ function params(){
     depart:$("#depart").value?new Date($("#depart").value):defaultDeparture(),drivenBefore:(parseFloat($("#drivenBefore").value)||0)/60,bans:$("#bans").checked,
     euOnly:$("#euOnly").checked,transitCmp:$("#transitCmp").checked,vat:$("#fuelVat").checked,
     noFerry:$("#noFerry").checked,noHighway:$("#noHighway").checked,cur:$("#cur").value,
-    crew:+$("#crew").value||1,parkNight:parseFloat($("#parkNight").value)||0,freight:parseFloat($("#freight").value)||0,emptyBack:$("#emptyBack").checked};
+    crew:+$("#crew").value||1,restMode:$("#restMode").value,weekDriven:parseFloat($("#weekDriven").value)||0,lastWeekDriven:parseFloat($("#lastWeekDriven").value)||0,
+    reducedUsed:+$("#reducedUsed").value||0,extUsed:+$("#extUsed").value||0,weeklyEnd:$("#weeklyEnd").value?new Date($("#weeklyEnd").value):null,lastWeeklyReduced:$("#lastWeeklyReduced").value==="1",parkNight:parseFloat($("#parkNight").value)||0,freight:parseFloat($("#freight").value)||0,emptyBack:$("#emptyBack").checked};
 }
 // «Избегать стран»: коды ISO через запятую или пробел, неизвестные коды игнорируются
 function avoidList(){return [...new Set($("#avoid").value.toUpperCase().split(/[^A-Z]+/).map(c=>c==="GB"?"UK":c).filter(c=>COUNTRIES[c]))]}
 // по умолчанию, как в IMPARGO, выезд завтра в 08:00
+// список правил тахографа из общего модуля
+(function(){const el=document.getElementById("tachoRules");if(el&&window.TACHO)el.innerHTML=TACHO.RULES.map(r=>`<p style="margin:6px 0"><b>${r.t}.</b> ${r.n} <i>(${r.s})</i></p>`).join("")})();
 function defaultDeparture(){const d=new Date();d.setDate(d.getDate()+1);d.setHours(8,0,0,0);return d}
 function localInput(d){const z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`}
 function updateConsPlaceholder(){const p=params();$("#cons").placeholder=fmt(({40:30,12:21,7.5:16,3.5:10}[p.truck])*({6:1,5:1.07,4:1.12,3:1.17}[p.euro]),1)+" (авто)";
@@ -897,42 +912,46 @@ function banEnd(c,t,p){const B=BANS[c];if(!B||p.truck<=B.min)return 0;let end=0;
     end=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()+w[1]*3600e3;if(w[1]<24)break;t=end}  // окно до 24:00 — проверяем следующий день
   return end}
 function schedule(legs,points,p){
-  // сменный экипаж (2 водителя): водители меняются за рулём, отдельные перерывы по 45 мин не нужны,
-  // за сутки машина едет до 18 ч (2 × 9), затем отдых 9 ч (правило для экипажа — 9 ч в течение 30 ч)
-  const LIM=p.crew===2?{cont:1e9,day:18,rest:9}:{cont:4.5,day:9,rest:11};
-  const H=3600e3,start=p.depart.getTime();let t=start,cont=Math.min(p.drivenBefore,4.5),day=p.drivenBefore,breaks=0,rests=0,waitH=0,driveH=0,km=0;
+  // режим труда и отдыха — общий модуль js/tacho.js (те же правила, что в приложении для водителей)
+  const P=new TACHO.Planner({mode:p.restMode,crew:p.crew,start:p.depart,drivenBefore:p.drivenBefore,weekDriven:p.weekDriven,lastWeekDriven:p.lastWeekDriven,
+    reducedUsed:p.reducedUsed,extUsed:p.extUsed,weeklyEnd:p.weeklyEnd,lastWeeklyReduced:p.lastWeeklyReduced});
+  const H=3600e3,start=p.depart.getTime();let t=start,breaks=0,rests=0,weeklies=0,weeklyH=0,restHsum=0,waitH=0,driveH=0,km=0;
   const pts=[],events=[];
-  const stay=i=>{const w=(points[i].wait||0)/60,arr=t;t+=w*H;waitH+=w;if(w>=11){day=0;cont=0}pts.push({arr:new Date(arr),dep:new Date(t),wait:w,km})};
+  const stay=i=>{const w=(points[i].wait||0)/60,arr=t;if(w)P.idle(t,w);t+=w*H;waitH+=w;pts.push({arr:new Date(arr),dep:new Date(t),wait:w,km})};
   for(let i=0;i<legs.length;i++){
     stay(i);const L=legs[i];driveH+=L.sum.h;
     // участки маршрута с координатами и временем: часы по стране распределяем пропорционально км
     const hk={};L.rows.forEach(r=>hk[r.c]=r.km?r.h/r.km:0);
     const pieces=[];let tot=0;
     L.sp.segs.forEach(s=>{for(let k=0;k<s.pts.length-1;k++){const a=s.pts[k],b=s.pts[k+1],d=hav([a[1],a[0]],[b[1],b[0]]);
-      pieces.push({c:s.c,a,b,km:d,h:d*(hk[s.c]||1/60)});tot+=d*(hk[s.c]||1/60)}});
+      pieces.push({c:s.c,a,b,km:d,h:d*(hk[s.c]||1/60),ferry:s.c==="FY"});tot+=d*(hk[s.c]||1/60)}});
     const sc=tot?L.sum.h/tot:1,kmSc=pieces.reduce((x,q)=>x+q.km,0);const kmF=kmSc?L.sum.km/kmSc:1;
     for(const q of pieces){
       let d=q.h*sc,done=0;const full=d;
       const here=()=>{const f=full?done/full:0;return [q.a[0]+(q.b[0]-q.a[0])*f,q.a[1]+(q.b[1]-q.a[1])*f]};
       const ev=(type,dur,extra)=>{const [lat,lon]=here();events.push(Object.assign({type,t:new Date(t),end:new Date(t+dur*H),dur,lat,lon,c:q.c,km:km+q.km*kmF*(full?done/full:0)},extra||{}))};
+      // паром: время на борту — отдых (с каютой), не вождение
+      if(q.ferry){if(d>1e-7){ev("ferry",d,{label:"Паром",note:"время на пароме с каютой засчитывается как отдых"});P.idle(t,d);t+=d*H}km+=q.km*kmF;continue}
       while(d>1e-7){
-        if(p.bans){const e=banEnd(q.c,t,p);if(e>t){const w=(e-t)/H;ev("ban",w);t=e;
-          if(w>=11){day=0;cont=0}else if(w>=0.75)cont=0;continue}}
-        if(day>=LIM.day-1e-6){ev("rest",LIM.rest);t+=LIM.rest*H;rests++;day=0;cont=0;continue}
-        if(cont>=LIM.cont-1e-6){ev("break",0.75);t+=0.75*H;breaks++;cont=0;continue}
-        const step=Math.min(d,LIM.cont-cont,LIM.day-day);t+=step*H;d-=step;done+=step;cont+=step;day+=step;
+        if(p.bans){const e=banEnd(q.c,t,p);if(e>t){const w=(e-t)/H;ev("ban",w,{note:P.idle(t,w)==="weekly"?"засчитан как еженедельный отдых":w>=9?"засчитан как ежедневный отдых":""});t=e;continue}}
+        const al=P.allowance(t);
+        if(al.h<=1e-6){const st=P.takeStop(t,al.stop);ev(st.type,st.dur,{label:st.label,note:st.note});t+=st.dur*H;
+          if(st.type==="break")breaks++;else if(st.type==="weekly"){weeklies++;weeklyH+=st.dur}else{rests++;restHsum+=st.dur}continue}
+        const step=Math.min(d,al.h);P.drive(t,step);t+=step*H;d-=step;done+=step;
       }
       km+=q.km*kmF;
     }
   }
   stay(legs.length);
   const tourH=(t-start)/H,banH=events.filter(e=>e.type==="ban").reduce((x,e)=>x+e.dur,0);
-  return {pts,events,breaks,rests,banH,tourH,opH:driveH+waitH+breaks*0.75,days:Math.max(1,Math.ceil(tourH/24)),restH:LIM.rest,crew:p.crew||1};
+  // ночёвки на платной стоянке: каждый ежедневный отдых + еженедельные (45 ч — две ночи)
+  return {pts,events,breaks,rests,weeklies,weeklyH,banH,tourH,opH:driveH+waitH+breaks*0.75,days:Math.max(1,Math.ceil(tourH/24)),
+    restH:rests?restHsum/rests:0,restNights:rests+events.filter(e=>e.type==="weekly").reduce((x,e)=>x+(e.dur>=45?2:1),0),crew:p.crew||1,owed:P.owed};
 }
 // Себестоимость сверх дорог и топлива: время работы × €/ч, суточные, разовые расходы
 function addCosts(res,p){
   // при двух водителях суточные — на каждого; стоянка — за каждый ежедневный отдых в пути
-  const sc=res.sched,a={time:sc.opH*p.hourRate,diem:sc.days*p.perDiem*(p.crew||1),fix:p.extraFix,park:sc.rests*(p.parkNight||0),back:0};
+  const sc=res.sched,a={time:sc.opH*p.hourRate,diem:sc.days*p.perDiem*(p.crew||1),fix:p.extraFix,park:(sc.restNights??sc.rests)*(p.parkNight||0),back:0};
   a.total=a.time+a.diem+a.fix+a.park;res.add=a;res.grand=res.sum.total+a.total;return res;
 }
 const MODE_RU={fast:"быстрый",eco:"экономичный",short:"кратчайший",notoll:"без платных дорог"};
@@ -1175,12 +1194,12 @@ function renderResult(){
   // график по точкам
   const dt=d=>d.toLocaleString("ru-RU",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
   const rowsS=[...sc.pts.map((x,i)=>({k:0,t:+x.arr,i,x})),...sc.events.map((e,j)=>({k:1,t:+e.t,j,e}))].sort((a,b)=>a.t-b.t||a.k-b.k);
-  const EV={break:["☕","Перерыв"],rest:["🛏","Ежедневный отдых"],ban:["⛔","Запрет движения"]};
+  const EV={break:["☕","Перерыв"],rest:["🛏","Ежедневный отдых"],weekly:["🏨","Еженедельный отдых"],ban:["⛔","Запрет движения"],ferry:["⛴","Паром"]};
   html+=`<h2 style="margin-top:16px">График рейса</h2><div class="tablewrap"><table class="sched"><thead><tr><th>Точка</th><th>Прибытие</th><th>Стоянка</th><th>Отправление</th><th>Где встать</th></tr></thead><tbody>
     ${rowsS.map(r=>{if(!r.k){const x=r.x,i=r.i;return `<tr><td style="text-align:left"><b>${letter(i)}</b> <span class="sub">${esc(stops[i]?.city||"")}</span></td><td>${i?dt(x.arr):"—"}</td><td>${x.wait?hm(x.wait):"—"}</td><td>${i<sc.pts.length-1||x.wait?dt(x.dep):"—"}</td><td class="sub">${i?fmt(x.km)+" км":""}</td></tr>`}
-      const e=r.e,[ic,nm]=EV[e.type];
-      return `<tr class="ev ev-${e.type}"><td style="text-align:left">${ic} ${nm} <span class="sub">${esc(COUNTRIES[e.c]?.n||"")}</span></td><td>${dt(e.t)}</td><td>${hm(e.dur)}</td><td>${dt(e.end)}</td><td style="text-align:left"><span class="sub">${fmt(e.km)} км</span> <span id="pk${r.j}" class="pk sub">…</span></td></tr>`}).join("")}
-    </tbody></table></div><div class="sub">${sc.crew===2?"Сменный экипаж: 2 водителя, до 18 ч езды в сутки":"Перерывов по 45 мин: "+sc.breaks} · ежедневных отдыхов по ${sc.restH} ч: ${sc.rests}${sc.banH?` · простой из-за запретов: <b>${hm(sc.banH)}</b>`:""}${p.drivenBefore?` · до выезда водитель уже ехал ${hm(p.drivenBefore)}`:""}. ${p.bans?BAN_NOTE+" ":"Запреты на выходные выключены. "}Пробки и очереди на границах не учитываются. Стоянки — из OpenStreetMap: ближайшие к месту остановки, без данных о свободных местах.</div>`;
+      const e=r.e,[ic,nm0]=EV[e.type]||["•",e.type],nm=e.label||nm0;
+      return `<tr class="ev ev-${e.type}"><td style="text-align:left">${ic} ${esc(nm)} <span class="sub">${esc(COUNTRIES[e.c]?.n||"")}</span>${e.note?`<div class="sub">${esc(e.note)}</div>`:""}</td><td>${dt(e.t)}</td><td>${hm(e.dur)}</td><td>${dt(e.end)}</td><td style="text-align:left"><span class="sub">${fmt(e.km)} км</span> <span id="pk${r.j}" class="pk sub">…</span></td></tr>`}).join("")}
+    </tbody></table></div><div class="sub">${sc.crew===2?"Сменный экипаж: 2 водителя, до 20 ч езды в сутки, отдых 9 ч в каждые 30 ч":"Перерывов по 45 мин: "+sc.breaks} · ежедневных отдыхов: ${sc.rests}${sc.weeklies?` · еженедельных: ${sc.weeklies} (${hm(sc.weeklyH)})`:""}${sc.owed?` · компенсация за сокращённый еженедельный: <b>${sc.owed} ч</b> до конца третьей недели`:""}${sc.banH?` · простой из-за запретов: <b>${hm(sc.banH)}</b>`:""}${p.drivenBefore?` · до выезда водитель уже ехал ${hm(p.drivenBefore)}`:""}. ${p.bans?BAN_NOTE+" ":"Запреты на выходные выключены. "}Пробки и очереди на границах не учитываются. Стоянки — из OpenStreetMap: ближайшие к месту остановки, без данных о свободных местах.</div>`;
   html+=`<h2 style="margin-top:16px">По странам</h2><div class="bar">${res.rows.map(r=>`<div title="${esc(COUNTRIES[r.c]?.n||r.c)}" style="width:${r.km/s.km*100}%;background:${col[r.c]}"></div>`).join("")}</div><div class="tablewrap"><table><thead><tr><th>Страна</th><th>км</th><th>Платных км</th><th>Время</th><th>Дороги</th><th>Виньетки</th><th>Топливо</th><th>CO₂, кг</th><th>Итого</th></tr></thead><tbody>
     ${res.rows.map(r=>`<tr><td><span class="dot" style="background:${col[r.c]}"></span>${esc(COUNTRIES[r.c]?.n||"Неизвестно")} <span class="sub">${r.c}</span></td><td>${fmt(r.km)}</td><td>${fmt(r.tolledKm)}</td><td>${hm(r.h)}</td><td>${eur2(r.toll+r.fixed)}</td><td>${r.vig?eur(r.vig):"—"}</td><td>${eur(r.fuel)}</td><td>${fmt(r.co2)}</td><td>${eur(r.total)}</td></tr>`).join("")}
     </tbody><tfoot><tr><td>Итого по странам</td><td>${fmt(s.km)}</td><td>${fmt(s.tolledKm)}</td><td>${hm(s.h)}</td><td>${eur2(s.toll+s.fixed)}</td><td>${eur(s.vig)}</td><td>${eur(s.fuel)}</td><td>${fmt(s.co2)}</td><td>${eur(s.total)}</td></tr></tfoot></table></div>`;
@@ -1280,9 +1299,9 @@ function resultCsv(res){
   L.push(["Суточные, сут"+(sc.crew===2?" (2 водителя)":""),sc.days,"","","","","","","","","",a.diem.toFixed(2)]);if(a.park)L.push(["Стоянки на ночёвках",sc.rests,"","","","","","","","","",a.park.toFixed(2)]);if(res.back)L.push(["Порожний возврат, км",res.back.km.toFixed(1),"","","","","","","","","",res.back.cost.toFixed(2)]);L.push(["Разовые расходы","","","","","","","","","","",a.fix.toFixed(2)]);
   L.push(["ИТОГО","","","","","","","","","","",res.grand.toFixed(2)]);if(res.p&&res.p.freight)L.push(["Фрахт / прибыль",res.p.freight.toFixed(2),"","","","","","","","","",(res.p.freight-res.grand).toFixed(2)]);
   L.push([]);L.push(["Точка","Прибытие","Стоянка, ч","Отправление"]);
-  const EVN={break:"Перерыв",rest:"Ежедневный отдых",ban:"Запрет движения"};
+  const EVN={break:"Перерыв",rest:"Ежедневный отдых",weekly:"Еженедельный отдых",ban:"Запрет движения",ferry:"Паром"};
   [...sc.pts.map((x,i)=>({t:+x.arr,k:0,r:[letter(i)+" "+(stops[i]?.city||""),x.arr.toLocaleString("ru-RU"),x.wait.toFixed(2),x.dep.toLocaleString("ru-RU")]})),
-   ...sc.events.map(e=>({t:+e.t,k:1,r:[`${EVN[e.type]} (${e.c}, ${e.km.toFixed(0)} км, ${e.lat.toFixed(5)} ${e.lon.toFixed(5)})`,e.t.toLocaleString("ru-RU"),e.dur.toFixed(2),e.end.toLocaleString("ru-RU")]}))]
+   ...sc.events.map(e=>({t:+e.t,k:1,r:[`${e.label||EVN[e.type]} (${e.c}, ${e.km.toFixed(0)} км, ${e.lat.toFixed(5)} ${e.lon.toFixed(5)})`,e.t.toLocaleString("ru-RU"),e.dur.toFixed(2),e.end.toLocaleString("ru-RU")]}))]
     .sort((a,b)=>a.t-b.t||a.k-b.k).forEach(x=>L.push(x.r));
   L.unshift(["Маршрут",stops.map(x=>x.city||x.zip).join(" → ")]);
   return L.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
@@ -1318,7 +1337,7 @@ function saveHash(){
     hr:$("#hourRate").value,pd:$("#perDiem").value,xf:$("#extraFix").value,ht:$("#height").value,al:$("#axleLoad").value,hz:$("#adr").checked?1:0,
     av:$("#avoid").value,dp:$("#depart").value,db:$("#drivenBefore").value,bn:$("#bans").checked?1:0,
     nf:$("#noFerry").checked?1:0,nh:$("#noHighway").checked?1:0,cu:$("#cur").value,
-    cr:$("#crew").value,pn:$("#parkNight").value,fr:$("#freight").value,eb:$("#emptyBack").checked?1:0};
+    cr:$("#crew").value,rm:$("#restMode").value,wd:$("#weekDriven").value,lwd:$("#lastWeekDriven").value,ru:$("#reducedUsed").value,xu:$("#extUsed").value,we:$("#weeklyEnd").value,lw:$("#lastWeeklyReduced").value,pn:$("#parkNight").value,fr:$("#freight").value,eb:$("#emptyBack").checked?1:0};
   history.replaceState(null,"","#"+encodeURIComponent(JSON.stringify(st)));
 }
 function loadHash(){
@@ -1329,7 +1348,7 @@ function loadHash(){
     $("#hourRate").value=st.hr||0;$("#perDiem").value=st.pd||0;$("#extraFix").value=st.xf||0;$("#height").value=st.ht||"";$("#axleLoad").value=st.al||"";
     $("#adr").checked=!!st.hz;$("#avoid").value=st.av||"";$("#depart").value=st.dp||"";$("#drivenBefore").value=st.db||0;$("#bans").checked=st.bn!==0;
     $("#noFerry").checked=!!st.nf;$("#noHighway").checked=!!st.nh;if(st.cu)$("#cur").value=st.cu;
-    $("#crew").value=st.cr||1;$("#parkNight").value=st.pn||0;$("#freight").value=st.fr||"";$("#emptyBack").checked=!!st.eb;
+    $("#crew").value=st.cr||1;$("#restMode").value=st.rm||"opt";$("#weekDriven").value=st.wd||0;$("#lastWeekDriven").value=st.lwd||0;$("#reducedUsed").value=st.ru||0;$("#extUsed").value=st.xu||0;$("#weeklyEnd").value=st.we||"";$("#lastWeeklyReduced").value=st.lw||"0";$("#parkNight").value=st.pn||0;$("#freight").value=st.fr||"";$("#emptyBack").checked=!!st.eb;
     document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("active",b.dataset.mode===st.m));
     return stops.length>=2}catch(e){return false}
 }
