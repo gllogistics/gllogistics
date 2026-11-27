@@ -198,6 +198,8 @@ html.embed button, html.embed select, html.embed input, html.embed textarea { bo
 
         <label class="switch"><input type="checkbox" id="euOnly">
           <div>Только страны ЕС<small>В Европе — только через страны Евросоюза: без Сербии, Македонии, Боснии, Украины, Беларуси, России, Швейцарии, Великобритании. Из Армении, Грузии, Азербайджана и Азии — через Турцию.</small></div></label>
+        <label class="switch"><input type="checkbox" id="transitCmp">
+          <div>Сравнить: через РФ и Беларусь / только ЕС<small>Строит оба пути сразу — обычный (через Россию и Беларусь, если так короче) и только по ЕС (через Турцию или Каспийский паром) — и показывает их рядом. Грузовики с российскими и белорусскими номерами в ЕС не въезжают (санкции ЕС).</small></div></label>
         <label class="switch"><input type="checkbox" id="fuelVat">
           <div>Дизель с НДС<small>По умолчанию — без НДС: перевозчик-плательщик НДС возмещает его, как и в тарифах дорог.</small></div></label>
 
@@ -759,7 +761,7 @@ function params(){
     hourRate:parseFloat($("#hourRate").value)||0,perDiem:parseFloat($("#perDiem").value)||0,extraFix:parseFloat($("#extraFix").value)||0,
     height:parseFloat($("#height").value)||0,axleLoad:parseFloat($("#axleLoad").value)||0,adr:$("#adr").checked,avoid:avoidList(),
     depart:$("#depart").value?new Date($("#depart").value):defaultDeparture(),drivenBefore:(parseFloat($("#drivenBefore").value)||0)/60,bans:$("#bans").checked,
-    euOnly:$("#euOnly").checked,vat:$("#fuelVat").checked,
+    euOnly:$("#euOnly").checked,transitCmp:$("#transitCmp").checked,vat:$("#fuelVat").checked,
     noFerry:$("#noFerry").checked,noHighway:$("#noHighway").checked,cur:$("#cur").value,
     crew:+$("#crew").value||1,parkNight:parseFloat($("#parkNight").value)||0,freight:parseFloat($("#freight").value)||0,emptyBack:$("#emptyBack").checked};
 }
@@ -1101,7 +1103,17 @@ $("#calcBtn").onclick=async()=>{
     $("#mapStatus").textContent="Строим маршрут…";
     const p=params(),mode=$("#modeSeg .active").dataset.mode;
     const pts=stops.map(s=>({lat:s.lat,lon:s.lon,wait:s.wait||0}));
-    if(mode==="both"){
+    if(p.transitCmp&&mode!=="both"){
+      lastCompare={p,keys:["any","eu"],labels:{any:"Через РФ и Беларусь",eu:"Только ЕС"}};const errs=[];
+      $("#mapStatus").textContent="Строим путь без ограничений по странам…";
+      try{lastCompare.any=await computeRoute(pts,mode,Object.assign({},p,{euOnly:false}))}catch(e){errs.push(e.message)}
+      $("#mapStatus").textContent="Строим путь только по ЕС…";
+      try{lastCompare.eu=await computeRoute(pts,mode,Object.assign({},p,{euOnly:true}))}catch(e){errs.push(e.message)}
+      // если обычный путь не заходит в Россию и Беларусь — так и называем
+      if(lastCompare.any&&!lastCompare.any.rows.some(r=>r.c==="RU"||r.c==="BY"))lastCompare.labels.any="Обычный (без РФ и РБ)";
+      lastResult=lastCompare.any||lastCompare.eu;
+      if(!lastResult)throw new Error(errs[0]);
+    }else if(mode==="both"){
       lastCompare={p};const errs=[];
       for(const m of ["fast","eco","short","notoll"]){$("#mapStatus").textContent=`Строим вариант «${MODE_RU[m]}»…`;
         try{lastCompare[m]=await computeRoute(pts,m,p)}catch(e){errs.push(e.message)}}
@@ -1115,7 +1127,7 @@ $("#calcBtn").onclick=async()=>{
         const cost=back.grand-back.add.fix;   // разовые расходы второй раз не берём
         const apply=r=>{if(!r||r.back)return;r.back={km:back.sum.km,h:back.sum.h,days:back.sched.days,cost,toll:back.sum.toll+back.sum.fixed+back.sum.vig,fuel:back.sum.fuel};
           r.add.back=cost;r.add.total+=cost;r.grand+=cost};
-        apply(lastResult);if(lastCompare)["fast","eco","short","notoll"].forEach(m=>apply(lastCompare[m]));
+        apply(lastResult);if(lastCompare)(lastCompare.keys||["fast","eco","short","notoll"]).forEach(m=>apply(lastCompare[m]));
       }catch(e){msg.innerHTML=`<div class="alert">Порожний возврат не посчитан: ${esc(e.message)}</div>`}}
     lastResult.p=p;renderResult();saveHash();pushHist(lastResult);
     $("#mapStatus").textContent="";
@@ -1139,10 +1151,11 @@ function renderResult(){
   const price=grand*(1+p.margin/100);
   let html=`<div class="row between" style="margin-bottom:10px;flex-wrap:wrap;gap:6px"><h2>Результат · ${MODE_RU[res.mode]||""} маршрут</h2>
     <div class="row noprint"><button class="btn" id="csvBtn">CSV</button><button class="btn" id="copyBtn">Копировать</button><button class="btn" id="shareBtn">Ссылка</button><button class="btn" onclick="print()">Печать</button></div></div>`;
-  if(lastCompare){const vs=["fast","eco","short","notoll"].filter(m=>lastCompare[m]),base=lastCompare.fast?.grand;
+  if(lastCompare){const vs=(lastCompare.keys||["fast","eco","short","notoll"]).filter(m=>lastCompare[m]),base=lastCompare[vs[0]]?.grand;
+    const lab=m=>lastCompare.labels?.[m]||MODE_RU[m][0].toUpperCase()+MODE_RU[m].slice(1);
     html+=`<div class="compare noprint" style="margin-bottom:12px">${vs.map(m=>{const r=lastCompare[m],d=base!=null?base-r.grand:0;
-      return `<div class="opt ${res===r?"sel":""}" data-pick="${m}"><div class="sub">${MODE_RU[m][0].toUpperCase()+MODE_RU[m].slice(1)}</div><div class="v">${eur(r.grand)}</div>
-        <div class="sub">${fmt(r.sum.km)} км · ${hm(r.sum.h)}<br>дороги ${eur(r.sum.toll+r.sum.fixed+r.sum.vig)}${d>1?` · <b style="color:var(--ok)">−${eur(d)}</b>`:d<-1?` · +${eur(-d)}`:""}</div></div>`}).join("")}</div>`}
+      return `<div class="opt ${res===r?"sel":""}" data-pick="${m}"><div class="sub">${esc(lab(m))}</div><div class="v">${eur(r.grand)}</div>
+        <div class="sub">${fmt(r.sum.km)} км · ${hm(r.sum.h)}<br>${lastCompare.keys?esc(r.rows.map(x=>x.c).filter(c=>c!=="FY").join(" → "))+"<br>":""}дороги ${eur(r.sum.toll+r.sum.fixed+r.sum.vig)}${d>1?` · <b style="color:var(--ok)">−${eur(d)}</b>`:d<-1?` · +${eur(-d)}`:""}</div></div>`}).join("")}</div>`}
   html+=`<div class="kpis">
     <div class="kpi"><div class="l">Расстояние</div><div class="v">${fmt(s.km)} км</div></div>
     <div class="kpi"><div class="l">В движении</div><div class="v">${hm(s.h)}</div></div>
@@ -1300,7 +1313,7 @@ $("#optimizeBtn").onclick=async()=>{
 /* ================= Состояние в URL ================= */
 function saveHash(){
   const st={s:stops.map(s=>[s.city,s.zip,s.country,s.lat!=null?+s.lat.toFixed(5):null,s.lon!=null?+s.lon.toFixed(5):null,s.wait||0]),
-    t:$("#truck").value,a:$("#axles").value,c:$("#cargo").value,e:$("#euro").value,co:$("#co2").value,eu:$("#euOnly").checked?1:0,v:$("#fuelVat").checked?1:0,
+    t:$("#truck").value,a:$("#axles").value,c:$("#cargo").value,e:$("#euro").value,co:$("#co2").value,eu:$("#euOnly").checked?1:0,tc:$("#transitCmp").checked?1:0,v:$("#fuelVat").checked?1:0,
     m:$("#modeSeg .active").dataset.mode,x:$("#extraKm").value,mg:$("#margin").value,cn:$("#cons").value,
     hr:$("#hourRate").value,pd:$("#perDiem").value,xf:$("#extraFix").value,ht:$("#height").value,al:$("#axleLoad").value,hz:$("#adr").checked?1:0,
     av:$("#avoid").value,dp:$("#depart").value,db:$("#drivenBefore").value,bn:$("#bans").checked?1:0,
@@ -1311,7 +1324,7 @@ function saveHash(){
 function loadHash(){
   try{const st=JSON.parse(decodeURIComponent(location.hash.slice(1)));
     stops=st.s.map(([city,zip,country,lat,lon,wait])=>newStop({city,zip,country,lat,lon,wait:wait||0,status:lat!=null?"ok":"",msg:""}));
-    $("#truck").value=st.t;$("#axles").value=st.a;$("#cargo").value=st.c;$("#euro").value=st.e;$("#co2").value=st.co;$("#euOnly").checked=!!st.eu;$("#fuelVat").checked=!!st.v;
+    $("#truck").value=st.t;$("#axles").value=st.a;$("#cargo").value=st.c;$("#euro").value=st.e;$("#co2").value=st.co;$("#euOnly").checked=!!st.eu;$("#transitCmp").checked=!!st.tc;$("#fuelVat").checked=!!st.v;
     $("#extraKm").value=st.x||0;$("#margin").value=st.mg||0;$("#cons").value=st.cn||"";
     $("#hourRate").value=st.hr||0;$("#perDiem").value=st.pd||0;$("#extraFix").value=st.xf||0;$("#height").value=st.ht||"";$("#axleLoad").value=st.al||"";
     $("#adr").checked=!!st.hz;$("#avoid").value=st.av||"";$("#depart").value=st.dp||"";$("#drivenBefore").value=st.db||0;$("#bans").checked=st.bn!==0;
@@ -1320,7 +1333,7 @@ function loadHash(){
     document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("active",b.dataset.mode===st.m));
     return stops.length>=2}catch(e){return false}
 }
-document.querySelectorAll(".opts select,.opts input,#euOnly,#fuelVat,#adr,#noFerry,#noHighway,#emptyBack").forEach(el=>el.addEventListener("change",saveHash));
+document.querySelectorAll(".opts select,.opts input,#euOnly,#transitCmp,#fuelVat,#adr,#noFerry,#noHighway,#emptyBack").forEach(el=>el.addEventListener("change",saveHash));
 
 /* ================= Валюта итогов: курс евро на сегодня (open.er-api.com, без ключа), кэш на 12 часов ================= */
 let RATES=store.get("rates",null);
